@@ -1,5 +1,7 @@
 /** Structured data the model extracts from a receipt or warranty card photo. */
 export type ReceiptExtraction = {
+  /** Full transcription of the document, line by line. Stored separately in documents.raw_text. */
+  rawText: string;
   documentType: 'receipt' | 'warranty_card' | 'invoice' | 'other';
   merchant: string | null;
   purchaseDate: string | null;
@@ -20,8 +22,12 @@ const nullable = (type: string) => ({ type: [type, 'null'] });
 export const RECEIPT_EXTRACTION_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['documentType', 'merchant', 'purchaseDate', 'totalCents', 'currency', 'products'],
+  required: ['rawText', 'documentType', 'merchant', 'purchaseDate', 'totalCents', 'currency', 'products'],
   properties: {
+    rawText: {
+      type: 'string',
+      description: 'All text printed on the document, transcribed exactly, one printed line per line',
+    },
     documentType: { type: 'string', enum: ['receipt', 'warranty_card', 'invoice', 'other'] },
     merchant: { ...nullable('string'), description: 'Store or seller name' },
     purchaseDate: { ...nullable('string'), description: 'Purchase date as YYYY-MM-DD' },
@@ -51,9 +57,11 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
 
 export const EXTRACTION_PROMPT = `You read photos of German receipts (Kassenbon), invoices and warranty cards (Garantieschein).
 Extract the purchase data. Use null for anything that is not clearly readable; never guess dates or prices.
-Dates on German receipts are DD.MM.YYYY; return them as YYYY-MM-DD.`;
+Dates on German receipts are DD.MM.YYYY; return them as YYYY-MM-DD.
+In rawText, transcribe every readable line exactly as printed (keep umlauts, prices and line order).`;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+export const MAX_RAW_TEXT = 20_000;
 
 /** Drops values that do not match the expected format instead of trusting the model blindly. */
 export function sanitizeExtraction(raw: ReceiptExtraction): ReceiptExtraction {
@@ -62,6 +70,7 @@ export function sanitizeExtraction(raw: ReceiptExtraction): ReceiptExtraction {
   const date = raw.purchaseDate && DATE_RE.test(raw.purchaseDate) && !Number.isNaN(Date.parse(raw.purchaseDate)) ? raw.purchaseDate : null;
 
   return {
+    rawText: typeof raw.rawText === 'string' ? raw.rawText.replace(/\r\n?/g, '\n').trim().slice(0, MAX_RAW_TEXT) : '',
     documentType: ['receipt', 'warranty_card', 'invoice', 'other'].includes(raw.documentType) ? raw.documentType : 'other',
     merchant: text(raw.merchant, 120),
     purchaseDate: date,

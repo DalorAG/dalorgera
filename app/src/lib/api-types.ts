@@ -46,6 +46,8 @@ export type DeviceInput = {
 };
 
 export type ReceiptExtraction = {
+  /** Full text of the document, line by line. */
+  rawText?: string;
   documentType: DocumentKind;
   merchant: string | null;
   purchaseDate: string | null;
@@ -68,6 +70,7 @@ export type DocumentItem = {
   sizeBytes: number | null;
   storagePath: string;
   extracted: ReceiptExtraction | null;
+  rawText: string | null;
   createdAt: string;
 };
 

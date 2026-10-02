@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 import { PaginationQuery } from '../../common/pagination.dto.js';
 import { Constants, type Enums } from '../../supabase/database.types.js';
@@ -65,6 +65,12 @@ export class UpdateDocumentDto {
 }
 
 export class ListDocumentsQuery extends PaginationQuery {
+  @ApiPropertyOptional({ description: 'Full-text search in the receipt text, e.g. "MediaWorld Kopfhörer"' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  q?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()

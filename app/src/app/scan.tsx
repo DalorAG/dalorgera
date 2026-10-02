@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { ProgressBar } from '@/components/progress';
 import { Text } from '@/components/text';
+import { preparePhoto } from '@/features/prepare-photo';
 import { useUploadDocument } from '@/features/use-upload-document';
 import type { DocumentKind, DocumentMimeType, ReceiptExtraction } from '@/lib/api-types';
 import { apiErrorMessage } from '@/lib/format';
@@ -54,7 +55,9 @@ export default function ScanScreen() {
     const retry = () => process(uri, mimeType);
     try {
       setPhase({ name: 'uploading', uri });
-      const doc = await upload({ uri, mimeType, kind, deviceId });
+      // Smaller upload; if the image cannot be processed, the original is sent as is.
+      const photo = await preparePhoto(uri).catch(() => ({ uri, mimeType }));
+      const doc = await upload({ ...photo, kind, deviceId });
 
       if (deviceId) {
         setPhase({ name: 'done', uri });
@@ -78,14 +81,15 @@ export default function ScanScreen() {
   };
 
   const takePhoto = async () => {
-    const photo = await camera.current?.takePictureAsync({ quality: 0.7 });
+    // Full quality here; preparePhoto() scales down and compresses once.
+    const photo = await camera.current?.takePictureAsync({ quality: 1 });
     if (photo) await process(photo.uri, 'image/jpeg');
   };
 
   const pickFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      quality: 0.8,
+      quality: 1,
       // Asks iOS for JPEG instead of HEIC, which the recognizer cannot read.
       preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     });

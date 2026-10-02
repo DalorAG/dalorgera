@@ -3,6 +3,7 @@ import { sanitizeExtraction } from './receipt-extraction.js';
 describe('sanitizeExtraction', () => {
   it('keeps valid values and drops malformed ones', () => {
     const result = sanitizeExtraction({
+      rawText: '  TECHNIKMARKT\r\nTotal 978,99 €  ',
       documentType: 'receipt',
       merchant: '  TechnikMarkt ',
       purchaseDate: '12.09.2023',
@@ -14,6 +15,7 @@ describe('sanitizeExtraction', () => {
       ],
     });
     expect(result).toEqual({
+      rawText: 'TECHNIKMARKT\nTotal 978,99 €',
       documentType: 'receipt',
       merchant: 'TechnikMarkt',
       purchaseDate: null,
@@ -25,7 +27,7 @@ describe('sanitizeExtraction', () => {
 
   it('accepts ISO dates', () => {
     expect(
-      sanitizeExtraction({ documentType: 'invoice', merchant: null, purchaseDate: '2023-09-12', totalCents: null, currency: 'EUR', products: [] })
+      sanitizeExtraction({ rawText: '', documentType: 'invoice', merchant: null, purchaseDate: '2023-09-12', totalCents: null, currency: 'EUR', products: [] })
         .purchaseDate,
     ).toBe('2023-09-12');
   });

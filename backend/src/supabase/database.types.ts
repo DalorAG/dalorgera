@@ -83,6 +83,8 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["document_kind"]
           mime_type: string
+          raw_text: string | null
+          search: unknown
           size_bytes: number | null
           storage_path: string
           user_id: string
@@ -95,6 +97,8 @@ export type Database = {
           id?: string
           kind: Database["public"]["Enums"]["document_kind"]
           mime_type: string
+          raw_text?: string | null
+          search?: unknown
           size_bytes?: number | null
           storage_path: string
           user_id?: string
@@ -107,6 +111,8 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["document_kind"]
           mime_type?: string
+          raw_text?: string | null
+          search?: unknown
           size_bytes?: number | null
           storage_path?: string
           user_id?: string

@@ -16,11 +16,14 @@ import {
 } from './dto/document.dto.js';
 
 const DOWNLOAD_URL_TTL_SECONDS = 10 * 60;
+/** Everything except the generated full-text column. */
+const DOCUMENT_COLUMNS =
+  'id, user_id, device_id, kind, storage_path, mime_type, size_bytes, extracted, raw_text, extracted_at, created_at';
 const RECOGNITION_URL_TTL_SECONDS = 5 * 60;
 /** Image types the vision model accepts. The app converts camera photos to JPEG. */
 const RECOGNIZABLE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-function toDocumentResponse(row: Tables<'documents'>) {
+function toDocumentResponse(row: Omit<Tables<'documents'>, 'search'>) {
   return {
     id: row.id,
     deviceId: row.device_id,
@@ -29,6 +32,7 @@ function toDocumentResponse(row: Tables<'documents'>) {
     sizeBytes: row.size_bytes,
     storagePath: row.storage_path,
     extracted: row.extracted as ReceiptExtraction | null,
+    rawText: row.raw_text,
     createdAt: row.created_at,
   };
 }
@@ -74,7 +78,7 @@ export class DocumentsService {
           size_bytes: dto.sizeBytes ?? null,
           device_id: dto.deviceId ?? null,
         })
-        .select()
+        .select(DOCUMENT_COLUMNS)
         .single(),
     );
     return toDocumentResponse(row);
@@ -84,11 +88,12 @@ export class DocumentsService {
     let q = this.supabase
       .forUser(user.accessToken)
       .from('documents')
-      .select()
+      .select(DOCUMENT_COLUMNS)
       .order('created_at', { ascending: false })
       .range(query.offset, query.offset + query.limit - 1);
     if (query.deviceId) q = q.eq('device_id', query.deviceId);
     if (query.kind) q = q.eq('kind', query.kind);
+    if (query.q) q = q.textSearch('search', query.q, { config: 'german', type: 'websearch' });
     return unwrap(await q).map(toDocumentResponse);
   }
 
@@ -97,7 +102,13 @@ export class DocumentsService {
     if (dto.kind !== undefined) patch.kind = dto.kind;
     if (dto.deviceId !== undefined) patch.device_id = dto.deviceId;
     const row = unwrap(
-      await this.supabase.forUser(user.accessToken).from('documents').update(patch).eq('id', id).select().single(),
+      await this.supabase
+        .forUser(user.accessToken)
+        .from('documents')
+        .update(patch)
+        .eq('id', id)
+        .select(DOCUMENT_COLUMNS)
+        .single(),
     );
     return toDocumentResponse(row);
   }
@@ -108,8 +119,10 @@ export class DocumentsService {
    */
   async recognize(user: AuthUser, id: string): Promise<ReceiptExtraction> {
     const db = this.supabase.forUser(user.accessToken);
-    const doc = unwrap(await db.from('documents').select('storage_path, mime_type, extracted').eq('id', id).single());
-    if (doc.extracted) return doc.extracted as ReceiptExtraction;
+    const doc = unwrap(
+      await db.from('documents').select('storage_path, mime_type, extracted, raw_text').eq('id', id).single(),
+    );
+    if (doc.extracted) return { ...(doc.extracted as Omit<ReceiptExtraction, 'rawText'>), rawText: doc.raw_text ?? '' };
     if (!RECOGNIZABLE_TYPES.has(doc.mime_type)) throw new BadRequestException('Only JPEG, PNG and WebP photos can be recognized');
 
     const { data, error } = await db.storage
@@ -118,9 +131,10 @@ export class DocumentsService {
     if (error) throw toHttpError({ message: error.message });
 
     const extracted = await this.recognizer.extract(data.signedUrl);
+    const { rawText, ...fields } = extracted;
     const { error: saveError } = await db
       .from('documents')
-      .update({ extracted: extracted as unknown as Json, extracted_at: new Date().toISOString() })
+      .update({ extracted: fields as unknown as Json, raw_text: rawText || null, extracted_at: new Date().toISOString() })
       .eq('id', id);
     if (saveError) this.logger.warn(`Could not cache recognition for ${id}: ${saveError.message}`);
     return extracted;
