@@ -1,26 +1,51 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Text } from '@/components/text';
+import { Button } from '@/components/button';
+import { DocumentsList } from '@/components/documents-list';
+import { ScreenHeader } from '@/components/screen-header';
+import { StateView } from '@/components/state-view';
+import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
 import { spacing, useTheme } from '@/theme';
 
-export default function BelegeScreen() {
+export default function ReceiptsScreen() {
   const theme = useTheme();
+  const { data, isLoading, isFetching, error, refetch } = useGetDocumentsQuery();
+  const { data: devices } = useGetDevicesQuery();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={styles.center}>
-        <Ionicons name="document-text-outline" size={48} color={theme.textTertiary} />
-        <Text variant="title">Belege</Text>
-        <Text variant="body" color="textSecondary">
-          Kommt bald.
-        </Text>
-      </View>
+    <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}>
+        <ScreenHeader
+          icon={<Ionicons name="document-text" size={40} color={theme.brand} />}
+          title="Belege"
+          subtitle="Kassenbons, Rechnungen und Garantiescheine."
+        />
+        {isLoading ? (
+          <StateView kind="loading" />
+        ) : error ? (
+          <StateView kind="error" error={error} onRetry={refetch} />
+        ) : data?.length ? (
+          <DocumentsList documents={data} devices={devices ?? []} />
+        ) : (
+          <StateView
+            kind="empty"
+            icon="receipt-outline"
+            title="Noch keine Belege"
+            message="Fotografiere einen Kassenbon oder Garantieschein."
+            action={<Button label="Beleg scannen" icon="camera-outline" onPress={() => router.push('/scan')} />}
+          />
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  flex: { flex: 1 },
+  content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
 });

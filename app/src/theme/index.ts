@@ -1,6 +1,6 @@
 import { Platform, useColorScheme } from 'react-native';
 
-import { colors, type ThemeColors } from './colors';
+import { colors, type ColorScheme, type ThemeColors } from './colors';
 
 export * from './colors';
 
@@ -48,7 +48,16 @@ export const shadow = (color: string) =>
     default: { boxShadow: '0 4px 12px rgba(12,39,38,0.06)' },
   });
 
+/**
+ * Pin the app to one scheme. Set to `null` to follow the system setting.
+ */
+export const FORCED_SCHEME: ColorScheme | null = 'light';
+
+export function useScheme(): ColorScheme {
+  const system = useColorScheme();
+  return FORCED_SCHEME ?? (system === 'dark' ? 'dark' : 'light');
+}
+
 export function useTheme(): ThemeColors {
-  const scheme = useColorScheme();
-  return colors[scheme === 'dark' ? 'dark' : 'light'];
+  return colors[useScheme()];
 }

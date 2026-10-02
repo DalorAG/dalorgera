@@ -1,17 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import type { Device } from '@/data/devices';
 import { radius, useTheme } from '@/theme';
 
-export function DeviceThumb({ icon, size = 72 }: { icon: Device['icon']; size?: number }) {
+type Props = { icon: ComponentProps<typeof Ionicons>['name']; size?: number };
+
+export function DeviceThumb({ icon, size = 72 }: Props) {
   const theme = useTheme();
   return (
-    <View
-      style={[
-        styles.thumb,
-        { width: size, height: size, backgroundColor: theme.surfaceMuted },
-      ]}>
+    <View style={[styles.thumb, { width: size, height: size, backgroundColor: theme.surfaceMuted }]}>
       <Ionicons name={icon} size={size * 0.48} color={theme.text} />
     </View>
   );

@@ -1,23 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Card } from '@/components/card';
-import { DeviceThumb } from '@/components/device-thumb';
+import { Button } from '@/components/button';
+import { WarrantyCard } from '@/components/devices/warranty-card';
 import { InfoBanner } from '@/components/info-banner';
-import { ProgressBar, ProgressRing } from '@/components/progress';
 import { ScreenHeader } from '@/components/screen-header';
-import { Text } from '@/components/text';
-import { devices, type Device } from '@/data/devices';
+import { StateView } from '@/components/state-view';
+import { useGetDevicesQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
 export default function OverviewScreen() {
   const theme = useTheme();
+  const { data: devices, isLoading, isFetching, error, refetch } = useGetDevicesQuery();
+
+  // Sorted by deadline on the server; expired devices live in the Tresor.
+  const protectedDevices = devices?.filter((d) => d.status !== 'expired') ?? [];
+  const expiring = protectedDevices.filter((d) => d.status === 'expiring').length;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}>
         <ScreenHeader
           icon={
             <View style={[styles.logo, { backgroundColor: theme.brandSoft, borderColor: theme.brand }]}>
@@ -26,69 +32,38 @@ export default function OverviewScreen() {
           }
           title="Garantie-Radar"
           subtitle="Deine Geräte. Deine Sicherheit."
-          actions={<Ionicons name="person-outline" size={24} color={theme.text} />}
+          actions={
+            <Ionicons name="person-outline" size={24} color={theme.text} onPress={() => router.push('/mehr')} />
+          }
         />
 
         <InfoBanner
-          title="Wir behalten deine Garantien im Blick."
+          title={
+            expiring > 0
+              ? `${expiring} ${expiring === 1 ? 'Garantie läuft' : 'Garantien laufen'} bald ab`
+              : 'Wir behalten deine Garantien im Blick.'
+          }
           subtitle="Einfach, sicher und automatisch."
         />
 
-        {devices.slice(0, 2).map((d) => (
-          <WarrantyCard key={d.id} device={d} />
-        ))}
+        {isLoading ? (
+          <StateView kind="loading" />
+        ) : error ? (
+          <StateView kind="error" error={error} onRetry={refetch} />
+        ) : protectedDevices.length === 0 ? (
+          <StateView
+            kind="empty"
+            icon="receipt-outline"
+            title="Noch keine Geräte"
+            message="Scanne deinen ersten Kassenbon oder Garantieschein. Wir erinnern dich, bevor der Schutz endet."
+          />
+        ) : (
+          protectedDevices.map((d) => <WarrantyCard key={d.id} device={d} />)
+        )}
 
-        <Pressable
-          onPress={() => router.push('/scan')}
-          style={({ pressed }) => [
-            styles.cta,
-            { backgroundColor: pressed ? theme.brandPressed : theme.brand },
-          ]}>
-          <Ionicons name="add" size={20} color={theme.textOnBrand} />
-          <Text variant="bodyStrong" color="textOnBrand">
-            Gerät hinzufügen
-          </Text>
-        </Pressable>
+        <Button label="Gerät hinzufügen" icon="add" onPress={() => router.push('/scan')} />
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function WarrantyCard({ device }: { device: Device }) {
-  const theme = useTheme();
-  const ok = device.status === 'ok';
-  const accent = ok ? theme.success : theme.warning;
-
-  return (
-    <Card onPress={() => {}} style={styles.card}>
-      <View style={styles.row}>
-        <DeviceThumb icon={device.icon} size={80} />
-        <View style={styles.flex}>
-          <Text variant="headline">{device.name}</Text>
-          <Text variant="caption" color="textSecondary">
-            {device.category}
-          </Text>
-          <Text variant="caption" color="textSecondary" style={styles.meta}>
-            Gekauft am {device.purchasedAt}
-            {'\n'}bei {device.store}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
-      </View>
-
-      <View style={styles.row}>
-        <ProgressRing progress={device.progress} color={accent} />
-        <View style={[styles.flex, styles.statusCol]}>
-          <Text variant="headline" color={ok ? 'successText' : 'warningText'}>
-            {ok ? `${device.remainingLabel} geschützt` : `Achtung: ${device.remainingLabel}`}
-          </Text>
-          <Text variant="caption" color="textSecondary">
-            Garantie bis {device.warrantyUntil}
-          </Text>
-          <ProgressBar progress={device.progress} color={accent} />
-        </View>
-      </View>
-    </Card>
   );
 }
 
@@ -102,17 +77,5 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  card: { gap: spacing.lg },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  meta: { marginTop: spacing.xs },
-  statusCol: { gap: spacing.xs },
-  cta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    height: 52,
-    borderRadius: radius.pill,
   },
 });

@@ -1,23 +1,22 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { WarrantyStatus } from '@/data/devices';
-import { radius, spacing, useTheme } from '@/theme';
+import type { Tone } from '@/lib/device-ui';
+import { radius, spacing, useTheme, type ThemeColor } from '@/theme';
 
 import { Text } from './text';
 
-export function StatusBadge({ status, label }: { status: WarrantyStatus; label: string }) {
+const TONES: Record<Tone, { bg: ThemeColor; border: ThemeColor; text: ThemeColor }> = {
+  success: { bg: 'successSoft', border: 'successSoftBorder', text: 'successText' },
+  warning: { bg: 'warningSoft', border: 'warningSoftBorder', text: 'warningText' },
+  danger: { bg: 'dangerSoft', border: 'dangerSoft', text: 'danger' },
+};
+
+export function StatusBadge({ tone, label }: { tone: Tone; label: string }) {
   const theme = useTheme();
-  const ok = status === 'ok';
+  const t = TONES[tone];
   return (
-    <View
-      style={[
-        styles.badge,
-        {
-          backgroundColor: ok ? theme.successSoft : theme.warningSoft,
-          borderColor: ok ? theme.successSoftBorder : theme.warningSoftBorder,
-        },
-      ]}>
-      <Text variant="micro" color={ok ? 'successText' : 'warningText'} style={styles.label}>
+    <View style={[styles.badge, { backgroundColor: theme[t.bg], borderColor: theme[t.border] }]}>
+      <Text variant="micro" color={t.text} style={styles.label}>
         {label}
       </Text>
     </View>
