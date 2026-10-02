@@ -33,6 +33,9 @@ export const api = createApi({
       query: () => 'me',
       providesTags: ['Me'],
     }),
+    deleteAccount: build.mutation<void, void>({
+      query: () => ({ url: 'me', method: 'DELETE' }),
+    }),
     acceptTerms: build.mutation<void, { version: string }>({
       query: (body) => ({ url: 'me/terms', method: 'POST', body }),
       invalidatesTags: ['Me'],
@@ -109,6 +112,7 @@ export const api = createApi({
 export const {
   useGetMeQuery,
   useAcceptTermsMutation,
+  useDeleteAccountMutation,
   useGetDevicesQuery,
   useGetDeviceQuery,
   useCreateDeviceMutation,

@@ -1,9 +1,19 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Logger,
+  Post,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
 import { toHttpError } from '../common/db-error.js';
-import { SupabaseService } from '../supabase/supabase.service.js';
+import { DOCUMENTS_BUCKET, SupabaseService } from '../supabase/supabase.service.js';
 import type { AuthUser } from './auth.types.js';
 import { CurrentUser } from './decorators.js';
 import { CURRENT_TERMS_VERSION } from './terms.js';
@@ -18,6 +28,8 @@ export class AcceptTermsDto {
 @ApiBearerAuth()
 @Controller('me')
 export class MeController {
+  private readonly logger = new Logger(MeController.name);
+
   constructor(private readonly supabase: SupabaseService) {}
 
   @Get()
@@ -48,5 +60,31 @@ export class MeController {
       .from('terms_acceptances')
       .upsert({ user_id: user.id, version: dto.version }, { onConflict: 'user_id,version', ignoreDuplicates: true });
     if (error) throw toHttpError(error);
+  }
+
+  /**
+   * Deletes the account (DSGVO Art. 17). Files are removed first; all table rows
+   * go with the auth user through ON DELETE CASCADE.
+   * The app must sign out afterwards: existing access tokens stay valid until they expire.
+   */
+  @Delete()
+  @HttpCode(204)
+  async deleteAccount(@CurrentUser() user: AuthUser): Promise<void> {
+    const admin = this.supabase.admin;
+    if (!admin) throw new ServiceUnavailableException('Account deletion is not configured');
+
+    // Remove every file in the user's folder, including uploads never registered as documents.
+    const bucket = admin.storage.from(DOCUMENTS_BUCKET);
+    for (;;) {
+      const { data: files, error } = await bucket.list(user.id, { limit: 100 });
+      if (error) throw toHttpError({ message: error.message });
+      if (!files.length) break;
+      const { error: removeError } = await bucket.remove(files.map((f) => `${user.id}/${f.name}`));
+      if (removeError) throw toHttpError({ message: removeError.message });
+    }
+
+    const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
+    if (deleteError) throw toHttpError({ message: deleteError.message });
+    this.logger.log(`Deleted account ${user.id}`);
   }
 }
