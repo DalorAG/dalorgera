@@ -1,5 +1,12 @@
 // Response shapes of the Garantie-Radar API (backend/src/**/*.service.ts).
 
+export type Me = {
+  id: string;
+  email: string | null;
+  isAnonymous: boolean;
+  terms: { currentVersion: string; accepted: boolean; acceptedAt: string | null };
+};
+
 export type DeviceStatus = 'active' | 'expiring' | 'expired';
 export type DocumentKind = 'receipt' | 'warranty_card' | 'invoice' | 'other';
 export type DocumentMimeType = 'image/jpeg' | 'image/png' | 'image/heic' | 'image/webp' | 'application/pdf';

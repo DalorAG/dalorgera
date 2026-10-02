@@ -7,6 +7,7 @@ import type {
   DocumentItem,
   DocumentKind,
   DocumentMimeType,
+  Me,
   ReceiptExtraction,
   Reminder,
   UploadUrl,
@@ -26,8 +27,17 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Device', 'Document', 'Reminder'],
+  tagTypes: ['Me', 'Device', 'Document', 'Reminder'],
   endpoints: (build) => ({
+    getMe: build.query<Me, void>({
+      query: () => 'me',
+      providesTags: ['Me'],
+    }),
+    acceptTerms: build.mutation<void, { version: string }>({
+      query: (body) => ({ url: 'me/terms', method: 'POST', body }),
+      invalidatesTags: ['Me'],
+    }),
+
     getDevices: build.query<Device[], { status?: DeviceStatus } | void>({
       query: (params) => ({ url: 'devices', params: params ?? undefined }),
       providesTags: (result) => [
@@ -97,6 +107,8 @@ export const api = createApi({
 });
 
 export const {
+  useGetMeQuery,
+  useAcceptTermsMutation,
   useGetDevicesQuery,
   useGetDeviceQuery,
   useCreateDeviceMutation,

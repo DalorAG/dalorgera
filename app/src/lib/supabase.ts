@@ -10,7 +10,10 @@ export const supabase = createClient(env.supabaseUrl, env.supabaseKey, {
     ...(Platform.OS !== 'web' ? { storage: AsyncStorage } : {}),
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // PKCE: OAuth (Google) returns a one-time code that is exchanged for a session.
+    flowType: 'pkce',
+    // On web the OAuth redirect lands on /auth-callback and the client exchanges the code itself.
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });
 
