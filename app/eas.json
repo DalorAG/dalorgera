@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 24.8.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "base": {
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://lunokowximvnzefgfnib.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_8YNaBjn3sw_c7rgdIpi1YA_erDXetfz",
+        "EXPO_PUBLIC_API_URL": "https://gewaga.dalorstudio.com/v1"
+      }
+    },
+    "release-apk": {
+      "extends": "base",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "extends": "base",
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}
