@@ -46,6 +46,10 @@ npm run start:dev      # http://localhost:3000, API docs at /docs
 | PUT | `/push-tokens` | register an Expo push token |
 | DELETE | `/push-tokens/:token` | on sign-out |
 
+## Deploy
+
+See [DEPLOY.md](DEPLOY.md) (Coolify, `Dockerfile`).
+
 ## Database
 
 Migrations are in `supabase/migrations/` and are already applied to the project `dalorgewa`.

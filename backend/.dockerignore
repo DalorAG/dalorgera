@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+test
+supabase
+*.md
+.env
+.env.*
+Dockerfile
+.dockerignore
