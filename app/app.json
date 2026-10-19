@@ -50,7 +50,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Garantie-Radar greift auf deine Fotos zu, damit du Belege aus der Galerie hinzufügen kannst.",
-          "cameraPermission": false,
+          "cameraPermission": "Garantie-Radar nutzt die Kamera, um Kassenbons und Garantiescheine zu fotografieren.",
           "microphonePermission": false
         }
       ],
