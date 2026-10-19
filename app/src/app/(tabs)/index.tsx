@@ -34,7 +34,7 @@ export default function OverviewScreen() {
   // Sorted by deadline on the server; expired devices live in the Tresor,
   // an overdue Wartung stays here because it still needs doing.
   const current = devices?.filter((d) => d.status !== 'expired' || d.kind === 'maintenance') ?? [];
-  const expiring = current.filter((d) => d.kind !== 'maintenance' && d.status === 'expiring').length;
+  const expiring = current.filter((d) => (d.kind === 'warranty' || d.kind === 'statutory') && d.status === 'expiring').length;
   const shown = filter === 'all' ? current : current.filter((d) => d.kind === filter);
   const now = new Date();
   const spent = spentInMonth(devices ?? [], now);

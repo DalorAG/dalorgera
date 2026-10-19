@@ -5,6 +5,7 @@ const row = (overrides: Partial<Tables<'devices'>> = {}): Tables<'devices'> => (
   id: 'd1',
   kind: 'warranty',
   maintenance_interval_months: null,
+  valid_until: null,
   user_id: 'u1',
   name: 'iPhone 15',
   category: 'Smartphone',
@@ -62,6 +63,7 @@ describe('toDeviceInsert', () => {
       purchase_date: '2024-03-03',
       warranty_months: 0,
       maintenance_interval_months: null,
+      valid_until: null,
     });
     expect(
       toDeviceInsert({ kind: 'maintenance', name: 'Auto', purchaseDate: '2024-03-03', maintenanceIntervalMonths: 12 }),
@@ -71,6 +73,20 @@ describe('toDeviceInsert', () => {
       purchase_date: '2024-03-03',
       warranty_months: 0,
       maintenance_interval_months: 12,
+      valid_until: null,
+    });
+  });
+
+  it('keeps the end date only for vignettes', () => {
+    expect(
+      toDeviceInsert({ kind: 'vignette', name: 'Vignette 2027', purchaseDate: '2026-12-01', validUntil: '2028-01-31' }),
+    ).toEqual({
+      kind: 'vignette',
+      name: 'Vignette 2027',
+      purchase_date: '2026-12-01',
+      warranty_months: 0,
+      maintenance_interval_months: null,
+      valid_until: '2028-01-31',
     });
   });
 });

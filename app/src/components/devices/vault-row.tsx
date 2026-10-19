@@ -7,7 +7,7 @@ import { Card } from '@/components/card';
 import { DeviceThumb } from '@/components/device-thumb';
 import { Text } from '@/components/text';
 import type { Device } from '@/lib/api-types';
-import { badgeLabel, deadlineLabel, iconForDevice, toneForStatus } from '@/lib/device-ui';
+import { badgeLabel, deadlineLabel, iconForDevice, startDateLabel, toneForStatus } from '@/lib/device-ui';
 import { formatDate } from '@/lib/format';
 import { spacing, useTheme } from '@/theme';
 
@@ -37,18 +37,24 @@ export function VaultRow({ device }: { device: Device }) {
           <View style={styles.flex}>
             <Meta
               icon="calendar-outline"
-              text={`${device.kind === 'maintenance' ? 'Letzte Wartung am' : 'Gekauft am'} ${formatDate(device.purchaseDate)}`}
+              text={`${startDateLabel(device.kind)} ${formatDate(device.purchaseDate)}`}
             />
             {device.store ? <Meta icon="storefront-outline" text={device.store} /> : null}
             {device.documentsCount ? (
               <Meta icon="document-attach-outline" text={`${device.documentsCount} Beleg(e)`} />
             ) : null}
             <View style={styles.meta}>
-              <Ionicons name={device.kind === 'maintenance' ? 'construct' : 'shield-checkmark'} size={14} color={color} />
+              <Ionicons
+                name={device.kind === 'maintenance' ? 'construct' : device.kind === 'vignette' ? 'car' : 'shield-checkmark'}
+                size={14}
+                color={color}
+              />
               <Text
                 variant="caption"
                 color={tone === 'success' ? 'successText' : tone === 'warning' ? 'warningText' : 'danger'}>
-                {device.kind === 'maintenance' ? deadlineLabel(device) : `Geschützt bis ${formatDate(device.protectedUntil)}`}
+                {device.kind === 'maintenance' || device.kind === 'vignette'
+                  ? deadlineLabel(device)
+                  : `Geschützt bis ${formatDate(device.protectedUntil)}`}
               </Text>
             </View>
           </View>

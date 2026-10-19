@@ -7,7 +7,7 @@ import { DeviceThumb } from '@/components/device-thumb';
 import { ProgressBar, ProgressRing } from '@/components/progress';
 import { Text } from '@/components/text';
 import type { Device, DocumentItem } from '@/lib/api-types';
-import { deadlineLabel, headlineFor, iconForDevice, toneForStatus } from '@/lib/device-ui';
+import { deadlineLabel, headlineFor, iconForDevice, startDateLabel, toneForStatus } from '@/lib/device-ui';
 import { formatDate } from '@/lib/format';
 import { spacing, useTheme } from '@/theme';
 
@@ -30,7 +30,7 @@ export function WarrantyCard({ device, photo }: { device: Device; photo?: Docume
             </Text>
           ) : null}
           <Text variant="caption" color="textSecondary" style={styles.meta}>
-            {device.kind === 'maintenance' ? 'Letzte Wartung am' : 'Gekauft am'} {formatDate(device.purchaseDate)}
+            {startDateLabel(device.kind)} {formatDate(device.purchaseDate)}
             {device.store ? `\nbei ${device.store}` : ''}
           </Text>
         </View>

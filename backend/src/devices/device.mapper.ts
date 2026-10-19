@@ -22,8 +22,10 @@ export function toDeviceInsert(dto: CreateDeviceDto | UpdateDeviceDto): Partial<
     notes: dto.notes,
   };
   // Keep the row consistent with its kind (enforced by check constraints as well).
-  if (dto.kind === 'statutory' || dto.kind === 'maintenance') row.warranty_months = 0;
+  if (dto.kind && dto.kind !== 'warranty') row.warranty_months = 0;
   if (dto.kind) row.maintenance_interval_months = dto.kind === 'maintenance' ? dto.maintenanceIntervalMonths : null;
+  if (dto.kind) row.valid_until = dto.kind === 'vignette' ? dto.validUntil : null;
+  else if (dto.validUntil !== undefined) row.valid_until = dto.validUntil;
   return Object.fromEntries(Object.entries(row).filter(([, v]) => v !== undefined));
 }
 
@@ -34,7 +36,7 @@ function daysUntil(date: string, today: Date): number {
 /** API shape: camelCase plus values the UI needs (days left, progress ring, status). */
 export function toDeviceResponse(row: DeviceRow, now = new Date()) {
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  // Generated column: the later of Garantie and Gewährleistung, or the next Wartung.
+  // Generated column: the later of Garantie and Gewährleistung, the next Wartung or the end of a Vignette.
   const protectedUntil = row.protected_until!;
   const daysLeft = daysUntil(protectedUntil, today);
   const totalDays = Math.max(1, daysUntil(protectedUntil, new Date(`${row.purchase_date}T00:00:00Z`)));
@@ -52,6 +54,7 @@ export function toDeviceResponse(row: DeviceRow, now = new Date()) {
     currency: row.currency,
     warrantyMonths: row.warranty_months,
     maintenanceIntervalMonths: row.maintenance_interval_months,
+    validUntil: row.valid_until,
     warrantyUntil: row.warranty_months > 0 ? row.warranty_until : null,
     statutoryUntil: row.statutory_until,
     protectedUntil,

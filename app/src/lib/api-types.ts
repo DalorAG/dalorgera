@@ -8,8 +8,8 @@ export type Me = {
 };
 
 export type DeviceStatus = 'active' | 'expiring' | 'expired';
-/** statutory = Gewährleistung only, warranty = Garantie, maintenance = recurring Wartung. */
-export type DeviceKind = 'statutory' | 'warranty' | 'maintenance';
+/** statutory = Gewährleistung only, warranty = Garantie, maintenance = recurring Wartung, vignette = Autobahnvignette. */
+export type DeviceKind = 'statutory' | 'warranty' | 'maintenance' | 'vignette';
 export type DocumentKind = 'receipt' | 'warranty_card' | 'invoice' | 'other';
 export type DocumentMimeType = 'image/jpeg' | 'image/png' | 'image/heic' | 'image/webp' | 'application/pdf';
 
@@ -25,9 +25,11 @@ export type Device = {
   currency: string;
   warrantyMonths: number;
   maintenanceIntervalMonths: number | null;
+  /** Last valid day of a vignette. */
+  validUntil: string | null;
   warrantyUntil: string | null;
   statutoryUntil: string;
-  /** End of protection, or the next Wartung for maintenance. */
+  /** End of protection, the next Wartung, or the last valid day of a vignette. */
   protectedUntil: string;
   daysLeft: number;
   progress: number;
@@ -49,6 +51,7 @@ export type DeviceInput = {
   currency?: string;
   warrantyMonths?: number;
   maintenanceIntervalMonths?: number;
+  validUntil?: string;
   notes?: string;
 };
 
@@ -85,7 +88,7 @@ export type Reminder = {
   id: string;
   deviceId: string;
   deviceName: string | null;
-  kind: 'warranty' | 'statutory' | 'maintenance';
+  kind: 'warranty' | 'statutory' | 'maintenance' | 'vignette';
   daysBefore: number;
   dueDate: string;
   remindAt: string;

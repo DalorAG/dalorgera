@@ -14,6 +14,12 @@ describe('reminderMessage', () => {
     expect(reminderMessage({ ...base, kind: 'statutory', days_before: 7 }).title).toBe('Gewährleistung endet bald');
   });
 
+  it('formats vignette reminders', () => {
+    expect(reminderMessage({ ...base, kind: 'vignette', device_name: 'Autobahnvignette 2026', days_before: 7 }).title).toBe(
+      'Vignette läuft ab',
+    );
+  });
+
   it('formats maintenance reminders', () => {
     expect(reminderMessage({ ...base, kind: 'maintenance', device_name: 'Auto' })).toEqual({
       title: 'Wartung steht an',

@@ -48,7 +48,18 @@ export const DEVICE_KIND_OPTIONS: { kind: DeviceKind; label: string; description
     description: 'Wiederkehrende Termine wie Pickerl, Service oder Heizungswartung.',
     icon: 'construct-outline',
   },
+  {
+    kind: 'vignette',
+    label: 'Vignette',
+    description: 'Autobahn-Pickerl: Jahres-, 2-Monats- oder 10-Tages-Vignette. Wir erinnern dich vor Ablauf.',
+    icon: 'car-outline',
+  },
 ];
+
+/** Label for purchase_date: Kaufdatum, last Wartung or first valid day of a vignette. */
+export function startDateLabel(kind: DeviceKind): string {
+  return kind === 'maintenance' ? 'Letzte Wartung am' : kind === 'vignette' ? 'Gültig ab' : 'Gekauft am';
+}
 
 export const DEVICE_KIND_LABELS = Object.fromEntries(DEVICE_KIND_OPTIONS.map((o) => [o.kind, o.label])) as Record<
   DeviceKind,
@@ -57,7 +68,9 @@ export const DEVICE_KIND_LABELS = Object.fromEntries(DEVICE_KIND_OPTIONS.map((o)
 
 /** Short status for badges: remaining time, or "Überfällig" for a missed Wartung. */
 export function badgeLabel(device: Device): string {
-  return device.kind === 'maintenance' && device.daysLeft < 0 ? 'Überfällig' : remainingLabel(device.daysLeft);
+  if (device.kind === 'maintenance' && device.daysLeft < 0) return 'Überfällig';
+  if (device.kind === 'vignette' && device.purchaseDate > new Date().toISOString().slice(0, 10)) return 'Noch nicht gültig';
+  return remainingLabel(device.daysLeft);
 }
 
 /** Card headline, e.g. "Noch 5 Monate geschützt" or "Wartung überfällig". */
@@ -65,6 +78,10 @@ export function headlineFor(device: Device): string {
   if (device.kind === 'maintenance') {
     if (device.status === 'expired') return 'Wartung überfällig';
     return device.status === 'expiring' ? `Wartung bald: ${remainingLabel(device.daysLeft)}` : `Wartung: ${remainingLabel(device.daysLeft)}`;
+  }
+  if (device.kind === 'vignette') {
+    if (device.status === 'expired') return 'Vignette abgelaufen';
+    return device.status === 'expiring' ? `Vignette läuft ab: ${remainingLabel(device.daysLeft)}` : `Vignette gültig: ${remainingLabel(device.daysLeft)}`;
   }
   if (device.status === 'active') return `${remainingLabel(device.daysLeft)} geschützt`;
   return device.status === 'expiring' ? `Achtung: ${remainingLabel(device.daysLeft)}` : 'Schutz abgelaufen';
@@ -74,6 +91,7 @@ export function headlineFor(device: Device): string {
 export function deadlineLabel(device: Device): string {
   const date = formatDate(device.protectedUntil);
   if (device.kind === 'maintenance') return `Nächste Wartung am ${date}`;
+  if (device.kind === 'vignette') return `Gültig bis ${date}`;
   return `${device.warrantyUntil && device.warrantyUntil === device.protectedUntil ? 'Garantie' : 'Gewährleistung'} bis ${date}`;
 }
 

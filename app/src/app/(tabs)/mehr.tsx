@@ -86,6 +86,8 @@ export default function MoreScreen() {
                   <Text variant="caption" color="textSecondary">
                     {r.kind === 'maintenance'
                       ? `Wartung fällig am ${formatDate(r.dueDate)}`
+                      : r.kind === 'vignette'
+                        ? `Vignette gültig bis ${formatDate(r.dueDate)}`
                       : `${r.kind === 'warranty' ? 'Garantie' : 'Gewährleistung'} endet am ${formatDate(r.dueDate)}`}{' '}
                     · Erinnerung am{' '}
                     {formatDate(r.remindAt)}

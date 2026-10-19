@@ -101,7 +101,12 @@ export default function DeviceScreen() {
       <Card style={styles.protection}>
         <ProgressRing progress={device.progress} color={accent} size={84} />
         <View style={[styles.flex, styles.rows]}>
-          {device.kind === 'maintenance' ? (
+          {device.kind === 'vignette' ? (
+            <>
+              <Row label="Gültig ab" value={formatDate(device.purchaseDate)} />
+              <Row label="Gültig bis" value={formatDate(device.protectedUntil)} strong />
+            </>
+          ) : device.kind === 'maintenance' ? (
             <>
               <Row label="Letzte Wartung" value={formatDate(device.purchaseDate)} />
               <Row label="Intervall" value={`${device.maintenanceIntervalMonths} Monate`} />
@@ -119,7 +124,7 @@ export default function DeviceScreen() {
         </View>
       </Card>
 
-      {device.kind !== 'maintenance' && device.status !== 'expired' ? (
+      {(device.kind === 'warranty' || device.kind === 'statutory') && device.status !== 'expired' ? (
         <Card style={styles.insurance}>
           <View style={styles.insuranceHead}>
             <Ionicons name="umbrella-outline" size={24} color={theme.brandIcon} />
@@ -147,7 +152,7 @@ export default function DeviceScreen() {
       ) : null}
 
       <Card style={styles.rows}>
-        {device.kind !== 'maintenance' ? <Row label="Kaufdatum" value={formatDate(device.purchaseDate)} /> : null}
+        {device.kind === 'warranty' || device.kind === 'statutory' ? <Row label="Kaufdatum" value={formatDate(device.purchaseDate)} /> : null}
         {device.store ? <Row label="Gekauft bei" value={device.store} /> : null}
         {device.priceCents != null ? <Row label="Preis" value={formatPrice(device.priceCents, device.currency)} /> : null}
       </Card>

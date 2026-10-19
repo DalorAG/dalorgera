@@ -15,6 +15,12 @@ export function reminderMessage(r: DueReminder): { title: string; body: string }
       body: `${r.device_name}: noch ${r.days_before} Tage Garantie (bis ${until}). Jetzt prüfen, ob alles funktioniert.`,
     };
   }
+  if (r.kind === 'vignette') {
+    return {
+      title: 'Vignette läuft ab',
+      body: `${r.device_name}: gültig nur noch ${r.days_before} Tage (bis ${until}). Rechtzeitig eine neue kaufen.`,
+    };
+  }
   if (r.kind === 'maintenance') {
     return {
       title: 'Wartung steht an',

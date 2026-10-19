@@ -10,15 +10,23 @@ import { TextField } from '@/components/text-field';
 import type { DeviceKind, ReceiptExtraction } from '@/lib/api-types';
 import { apiErrorMessage, formatDate, parseDate, parsePrice } from '@/lib/format';
 import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  currentVignetteYear,
+  selectableVignetteYears,
+  VIGNETTE_TYPES,
+  vignettePeriod,
+  type VignetteType,
+} from '@/lib/vignette';
 import { useCreateDeviceMutation, useUpdateDocumentMutation } from '@/store/api';
 import { scanCleared } from '@/store/scan-slice';
 import { spacing, useTheme } from '@/theme';
 
-const DEVICE_KINDS: DeviceKind[] = ['statutory', 'warranty', 'maintenance'];
+const DEVICE_KINDS: DeviceKind[] = ['statutory', 'warranty', 'maintenance', 'vignette'];
 const TITLES: Record<DeviceKind, string> = {
   statutory: 'Gewährleistung hinzufügen',
   warranty: 'Garantie hinzufügen',
   maintenance: 'Wartung hinzufügen',
+  vignette: 'Vignette hinzufügen',
 };
 
 const WARRANTY_OPTIONS = [
@@ -74,6 +82,14 @@ export default function NewDeviceScreen() {
   const [savedProducts, setSavedProducts] = useState<number[]>([]);
   const [firstDeviceId, setFirstDeviceId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(() => formFromExtraction(scan.extraction));
+  const [vignetteType, setVignetteType] = useState<VignetteType>('year');
+  const [vignetteYear, setVignetteYear] = useState(currentVignetteYear);
+  const vignetteLabel = VIGNETTE_TYPES.find((v) => v.type === vignetteType)!.label;
+  const defaultVignetteName = vignetteType === 'year' ? `${vignetteLabel} ${vignetteYear}` : vignetteLabel;
+  // For a vignette purchaseDate is the first valid day; the Jahresvignette has fixed dates.
+  const vignetteStart = vignetteType === 'year' ? null : parseDate(form.purchaseDate);
+  const vignette =
+    vignetteType === 'year' || vignetteStart ? vignettePeriod(vignetteType, vignetteStart ?? '', vignetteYear) : null;
   const [errors, setErrors] = useState<Partial<Record<keyof Form | 'submit', string>>>({});
   const [createDevice, { isLoading: creating }] = useCreateDeviceMutation();
   const [updateDocument, { isLoading: linking }] = useUpdateDocumentMutation();
@@ -86,12 +102,15 @@ export default function NewDeviceScreen() {
   };
 
   const save = async () => {
-    const purchaseDate = parseDate(form.purchaseDate);
+    const purchaseDate = kind === 'vignette' ? (vignette?.validFrom ?? null) : parseDate(form.purchaseDate);
+    const name = form.name.trim() || (kind === 'vignette' ? defaultVignetteName : '');
     const priceCents = form.price.trim() ? parsePrice(form.price) : undefined;
     const next: typeof errors = {};
-    if (!form.name.trim()) next.name = 'Bitte gib einen Namen ein.';
+    if (!name) next.name = 'Bitte gib einen Namen ein.';
     if (!purchaseDate) next.purchaseDate = 'Format: TT.MM.JJJJ';
-    else if (purchaseDate > new Date().toISOString().slice(0, 10)) next.purchaseDate = 'Das Datum liegt in der Zukunft.';
+    // A vignette can be bought in advance; purchases and services cannot lie in the future.
+    else if (kind !== 'vignette' && purchaseDate > new Date().toISOString().slice(0, 10))
+      next.purchaseDate = 'Das Datum liegt in der Zukunft.';
     if (priceCents === null) next.price = 'Ungültiger Betrag';
     setErrors(next);
     if (Object.keys(next).length) return;
@@ -99,8 +118,8 @@ export default function NewDeviceScreen() {
     try {
       const device = await createDevice({
         kind,
-        name: form.name.trim(),
-        category: form.category.trim() || undefined,
+        name,
+        category: kind === 'vignette' ? 'Vignette' : form.category.trim() || undefined,
         brand: form.brand.trim() || undefined,
         store: form.store.trim() || undefined,
         purchaseDate: purchaseDate!,
@@ -108,6 +127,7 @@ export default function NewDeviceScreen() {
         currency: scan.extraction?.currency ?? undefined,
         warrantyMonths: kind === 'warranty' ? form.warrantyMonths : undefined,
         maintenanceIntervalMonths: kind === 'maintenance' ? form.intervalMonths : undefined,
+        validUntil: kind === 'vignette' ? vignette?.validUntil : undefined,
       }).unwrap();
       if (scan.documentId && !firstDeviceId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
 
@@ -171,24 +191,75 @@ export default function NewDeviceScreen() {
           </View>
         ) : null}
 
-        <TextField
-          label={kind === 'maintenance' ? 'Was wird gewartet? *' : 'Gerät *'}
-          value={form.name}
-          onChangeText={(v) => set('name', v)}
-          placeholder={kind === 'maintenance' ? 'z. B. Auto (Pickerl)' : 'z. B. iPhone 15'}
-          error={errors.name}
-        />
-        <TextField label="Kategorie" value={form.category} onChangeText={(v) => set('category', v)} placeholder="z. B. Smartphone" />
-        <TextField label="Marke" value={form.brand} onChangeText={(v) => set('brand', v)} />
-        <TextField label={kind === 'maintenance' ? 'Werkstatt / Firma' : 'Gekauft bei'} value={form.store} onChangeText={(v) => set('store', v)} placeholder="z. B. TechnikMarkt" />
-        <TextField
-          label={kind === 'maintenance' ? 'Letzte Wartung *' : 'Kaufdatum *'}
-          value={form.purchaseDate}
-          onChangeText={(v) => set('purchaseDate', v)}
-          placeholder="TT.MM.JJJJ"
-          keyboardType="numbers-and-punctuation"
-          error={errors.purchaseDate}
-        />
+        {kind === 'vignette' ? (
+          <>
+            <View style={styles.group}>
+              <Text variant="captionStrong">Art der Vignette</Text>
+              <View style={styles.chips}>
+                {VIGNETTE_TYPES.map((v) => (
+                  <Chip key={v.type} label={v.label} selected={vignetteType === v.type} onPress={() => setVignetteType(v.type)} />
+                ))}
+              </View>
+            </View>
+            {vignetteType === 'year' ? (
+              <View style={styles.group}>
+                <Text variant="captionStrong">Jahr</Text>
+                <View style={styles.chips}>
+                  {selectableVignetteYears().map((y) => (
+                    <Chip key={y} label={String(y)} selected={vignetteYear === y} onPress={() => setVignetteYear(y)} />
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <TextField
+                label="Gültig ab *"
+                value={form.purchaseDate}
+                onChangeText={(v) => set('purchaseDate', v)}
+                placeholder="TT.MM.JJJJ"
+                keyboardType="numbers-and-punctuation"
+                error={errors.purchaseDate}
+              />
+            )}
+            {vignette ? (
+              <InfoBanner
+                title={`Gültig von ${formatDate(vignette.validFrom)} bis ${formatDate(vignette.validUntil)}`}
+                subtitle="Wir erinnern dich 30 und 7 Tage vor Ablauf."
+              />
+            ) : null}
+            <TextField
+              label="Bezeichnung"
+              value={form.name}
+              onChangeText={(v) => set('name', v)}
+              placeholder={defaultVignetteName}
+              hint="Optional, z. B. mit Kennzeichen: „Vignette W-12345“"
+              error={errors.name}
+            />
+            <Text variant="caption" color="textSecondary">
+              Digitale Vignetten, die online gekauft werden, gelten für Privatkunden erst ab dem 18. Tag nach dem Kauf.
+            </Text>
+          </>
+        ) : (
+          <>
+          <TextField
+            label={kind === 'maintenance' ? 'Was wird gewartet? *' : 'Gerät *'}
+            value={form.name}
+            onChangeText={(v) => set('name', v)}
+            placeholder={kind === 'maintenance' ? 'z. B. Auto (Pickerl)' : 'z. B. iPhone 15'}
+            error={errors.name}
+          />
+          <TextField label="Kategorie" value={form.category} onChangeText={(v) => set('category', v)} placeholder="z. B. Smartphone" />
+          <TextField label="Marke" value={form.brand} onChangeText={(v) => set('brand', v)} />
+          <TextField label={kind === 'maintenance' ? 'Werkstatt / Firma' : 'Gekauft bei'} value={form.store} onChangeText={(v) => set('store', v)} placeholder="z. B. TechnikMarkt" />
+          <TextField
+            label={kind === 'maintenance' ? 'Letzte Wartung *' : 'Kaufdatum *'}
+            value={form.purchaseDate}
+            onChangeText={(v) => set('purchaseDate', v)}
+            placeholder="TT.MM.JJJJ"
+            keyboardType="numbers-and-punctuation"
+            error={errors.purchaseDate}
+          />
+          </>
+        )}
         <TextField
           label="Preis (€)"
           value={form.price}
@@ -222,11 +293,11 @@ export default function NewDeviceScreen() {
               Wir erinnern dich 30 und 7 Tage vor der nächsten Wartung.
             </Text>
           </View>
-        ) : (
+        ) : kind === 'statutory' ? (
           <Text variant="caption" color="textSecondary">
             Gesetzliche Gewährleistung: 2 Jahre ab Kaufdatum.
           </Text>
-        )}
+        ) : null}
 
         {errors.submit ? (
           <Text variant="body" color="danger">

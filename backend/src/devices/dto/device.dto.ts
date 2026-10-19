@@ -24,7 +24,8 @@ export class CreateDeviceDto {
   @ApiPropertyOptional({
     enum: DEVICE_KINDS,
     default: 'warranty',
-    description: 'statutory = Gewährleistung only, warranty = Garantie, maintenance = recurring Wartung',
+    description:
+      'statutory = Gewährleistung only, warranty = Garantie, maintenance = recurring Wartung, vignette = Autobahnvignette',
   })
   @IsOptional()
   @IsIn(DEVICE_KINDS)
@@ -53,7 +54,7 @@ export class CreateDeviceDto {
   @MaxLength(120)
   store?: string;
 
-  @ApiProperty({ example: '2023-09-12', description: 'Date of purchase, or of the last service for maintenance (YYYY-MM-DD)' })
+  @ApiProperty({ example: '2023-09-12', description: 'Date of purchase, last service (maintenance) or first valid day (vignette), YYYY-MM-DD' })
   @IsISO8601({ strict: true })
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   purchaseDate: string;
@@ -85,6 +86,12 @@ export class CreateDeviceDto {
   @Min(1)
   @Max(120)
   maintenanceIntervalMonths?: number;
+
+  @ApiPropertyOptional({ example: '2027-01-31', description: 'Last valid day, required for kind = vignette' })
+  @ValidateIf((o: CreateDeviceDto) => o.kind === 'vignette' || o.validUntil !== undefined)
+  @IsISO8601({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  validUntil?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
