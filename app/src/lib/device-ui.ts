@@ -13,6 +13,8 @@ const CATEGORY_ICONS: [RegExp, IconName][] = [
   [/tv|fernseh|monitor/i, 'tv-outline'],
   [/kamera|camera|foto/i, 'camera-outline'],
   [/küche|kitchen|kaffee|coffee/i, 'cafe-outline'],
+  [/haushalt|wasch|trockner|spül|staubsauger/i, 'water-outline'],
+  [/vignette|auto|fahrzeug|pickerl/i, 'car-outline'],
   [/uhr|watch/i, 'watch-outline'],
   [/spiel|game|konsole/i, 'game-controller-outline'],
   [/fahrrad|bike/i, 'bicycle-outline'],

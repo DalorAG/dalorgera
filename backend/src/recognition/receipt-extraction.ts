@@ -41,9 +41,16 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
         additionalProperties: false,
         required: ['name', 'brand', 'category', 'priceCents', 'warrantyMonths'],
         properties: {
-          name: { type: 'string', description: 'Short product name, e.g. "iPhone 15 128 GB"' },
+          name: {
+            type: 'string',
+            description:
+              'Name a person would use: product type and model, e.g. "Waschmaschine WGG14400", "iPhone 15 128 GB", "Kopfhörer WH-1000XM5". Never only a model number.',
+          },
           brand: nullable('string'),
-          category: { ...nullable('string'), description: 'German category, e.g. Smartphone, Küchengerät, Audio' },
+          category: {
+            ...nullable('string'),
+            description: 'German category, e.g. Smartphone, Laptop, TV, Audio, Haushaltsgerät (Waschmaschine, Staubsauger), Küchengerät (Kaffeemaschine)',
+          },
           priceCents: nullable('integer'),
           warrantyMonths: {
             ...nullable('integer'),
