@@ -36,7 +36,7 @@ export class Env {
 
   @IsString()
   @IsOptional()
-  OPENAI_MODEL = 'gpt-4o-mini';
+  OPENAI_MODEL = 'gpt-4.1';
 
   /** Comma separated list, `*` allows every origin. */
   @IsString()

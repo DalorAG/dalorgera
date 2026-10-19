@@ -56,9 +56,17 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
 } as const;
 
 export const EXTRACTION_PROMPT = `You read photos of German receipts (Kassenbon), invoices and warranty cards (Garantieschein).
-Extract the purchase data. Use null for anything that is not clearly readable; never guess dates or prices.
-Dates on German receipts are DD.MM.YYYY; return them as YYYY-MM-DD.
-In rawText, transcribe every readable line exactly as printed (keep umlauts, prices and line order).`;
+The photo may be skewed, curved, shadowed or partly cut off. Read carefully before answering.
+
+Rules:
+- Use null for anything that is not clearly readable. Never guess dates, prices or product names.
+- Dates are DD.MM.YYYY (or DD.MM.YY); return them as YYYY-MM-DD. Use the purchase date ("Datum"), not print, due or warranty dates.
+- Prices use a decimal comma ("1.299,00" is 129900 cents). Convert to integer cents.
+- totalCents is the final amount paid ("Summe", "Gesamt", "Total", "zu zahlen"), not a subtotal, VAT ("MwSt") or change ("Rückgeld").
+- A product spans its own line(s): name, then optionally "2 x 49,90" (quantity x unit price) or a model number on the next line. Use the unit price for priceCents and keep one entry per distinct product. Discount lines ("Rabatt") belong to the product above them.
+- merchant is the store name from the header (logo or top lines), not the street address or payment terminal.
+- Do not mix up lines of different products. If a line is ambiguous, leave its fields null.
+- In rawText, transcribe every readable line exactly as printed (keep umlauts, prices and line order).`;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 export const MAX_RAW_TEXT = 20_000;
