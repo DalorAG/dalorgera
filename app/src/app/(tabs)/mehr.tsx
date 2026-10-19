@@ -69,6 +69,12 @@ export default function MoreScreen() {
           subtitle={email ?? ''}
         />
 
+        <Card style={styles.links}>
+          <LinkRow icon="person-outline" label="Profil bearbeiten" onPress={() => router.push('/profile')} />
+          <View style={[styles.separator, { backgroundColor: theme.border }]} />
+          <LinkRow icon="pricetags-outline" label="Tarife" onPress={() => router.push('/pricing')} />
+        </Card>
+
         <Text variant="title">Nächste Erinnerungen</Text>
         <Card style={styles.list}>
           {reminders?.length ? (

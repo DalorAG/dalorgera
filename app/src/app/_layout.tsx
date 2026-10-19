@@ -69,6 +69,8 @@ function RootNavigator() {
             name="device/new"
             options={{ presentation: 'modal', headerShown: true, title: 'Gerät hinzufügen' }}
           />
+          <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen name="pricing" options={{ headerShown: true, title: 'Tarife', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !termsAccepted}>

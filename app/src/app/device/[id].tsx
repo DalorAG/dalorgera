@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -22,6 +23,11 @@ import {
 } from '@/store/api';
 import { useAppDispatch } from '@/store';
 import { spacing, useTheme } from '@/theme';
+
+function notify(title: string, message: string) {
+  if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
+  else Alert.alert(title, message);
+}
 
 function confirm(title: string, message: string, onConfirm: () => void) {
   if (Platform.OS === 'web') {
@@ -113,6 +119,29 @@ export default function DeviceScreen() {
         </View>
       </Card>
 
+      {device.kind !== 'maintenance' && device.status !== 'expired' ? (
+        <Card style={styles.insurance}>
+          <View style={styles.insuranceHead}>
+            <Ionicons name="umbrella-outline" size={24} color={theme.brandIcon} />
+            <Text variant="headline" style={styles.flex}>
+              Schutz verlängern
+            </Text>
+          </View>
+          <Text variant="caption" color="textSecondary">
+            Verlängere die Garantie oder schließe eine Geräteversicherung ab, bevor der Schutz am{' '}
+            {formatDate(device.protectedUntil)} endet.
+          </Text>
+          <Button
+            label="Versicherung ansehen"
+            variant="secondary"
+            icon="shield-outline"
+            onPress={() =>
+              notify('Bald verfügbar', 'Angebote zur Garantieverlängerung und Geräteversicherung kommen in Kürze.')
+            }
+          />
+        </Card>
+      ) : null}
+
       {device.kind === 'maintenance' ? (
         <Button label="Wartung erledigt" icon="checkmark" onPress={markServiced} loading={servicing} />
       ) : null}
@@ -166,6 +195,8 @@ const styles = StyleSheet.create({
   rows: { gap: spacing.md },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md },
   rowLabel: { flexShrink: 1 },
+  insurance: { gap: spacing.md },
+  insuranceHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   docs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   doc: { alignItems: 'center', gap: spacing.xs },
 });
