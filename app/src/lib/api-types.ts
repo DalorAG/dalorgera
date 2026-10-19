@@ -85,7 +85,7 @@ export type Reminder = {
   id: string;
   deviceId: string;
   deviceName: string | null;
-  kind: 'warranty' | 'statutory';
+  kind: 'warranty' | 'statutory' | 'maintenance';
   daysBefore: number;
   dueDate: string;
   remindAt: string;

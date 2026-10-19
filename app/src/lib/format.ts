@@ -28,6 +28,13 @@ export function parsePrice(input: string): number | null {
   return Number.isFinite(value) && value >= 0 ? Math.round(value * 100) : null;
 }
 
+/** Sum of prices for purchases (and services) in the given month, e.g. for "Im Oktober ausgegeben". */
+export function spentInMonth(items: { purchaseDate: string; priceCents: number | null; currency: string }[], month: Date) {
+  const prefix = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
+  const inMonth = items.filter((i) => i.purchaseDate.startsWith(prefix) && i.priceCents != null && i.currency === 'EUR');
+  return { cents: inMonth.reduce((sum, i) => sum + i.priceCents!, 0), count: inMonth.length };
+}
+
 /** Human readable remaining time for badges and cards. */
 export function remainingLabel(daysLeft: number): string {
   if (daysLeft < 0) return 'Abgelaufen';

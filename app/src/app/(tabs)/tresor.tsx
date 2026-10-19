@@ -7,19 +7,43 @@ import { VaultRow } from '@/components/devices/vault-row';
 import { DocumentsList } from '@/components/documents-list';
 import { InfoBanner } from '@/components/info-banner';
 import { ScreenHeader } from '@/components/screen-header';
+import { SearchField } from '@/components/search-field';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
+import type { Device } from '@/lib/api-types';
 import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
 type Segment = 'devices' | 'documents';
 
+const OTHER_CATEGORY = 'Sonstiges';
+
+/** Devices grouped by category (alphabetical, "Sonstiges" last), keeping the deadline order inside a group. */
+function groupByCategory(devices: Device[]): [string, Device[]][] {
+  const groups = new Map<string, Device[]>();
+  for (const d of devices) {
+    const category = d.category?.trim() || OTHER_CATEGORY;
+    groups.set(category, [...(groups.get(category) ?? []), d]);
+  }
+  return [...groups].sort(([a], [b]) =>
+    a === OTHER_CATEGORY ? 1 : b === OTHER_CATEGORY ? -1 : a.localeCompare(b, 'de'),
+  );
+}
+
+function matches(device: Device, query: string): boolean {
+  const text = [device.name, device.brand, device.category, device.store].filter(Boolean).join(' ').toLowerCase();
+  return query.split(/\s+/).every((word) => text.includes(word));
+}
+
 export default function VaultScreen() {
   const theme = useTheme();
   const [segment, setSegment] = useState<Segment>('devices');
+  const [search, setSearch] = useState('');
   const devices = useGetDevicesQuery();
   const documents = useGetDocumentsQuery();
   const active = segment === 'devices' ? devices : documents;
+  const query = search.trim().toLowerCase();
+  const shownDevices = query ? (devices.data ?? []).filter((d) => matches(d, query)) : (devices.data ?? []);
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
@@ -70,13 +94,28 @@ export default function VaultScreen() {
           })}
         </View>
 
+        {segment === 'devices' && devices.data?.length ? (
+          <SearchField value={search} onChangeText={setSearch} placeholder="Geräte durchsuchen" />
+        ) : null}
+
         {active.isLoading ? (
           <StateView kind="loading" />
         ) : active.error ? (
           <StateView kind="error" error={active.error} onRetry={active.refetch} />
         ) : segment === 'devices' ? (
-          devices.data?.length ? (
-            devices.data.map((d) => <VaultRow key={d.id} device={d} />)
+          shownDevices.length ? (
+            groupByCategory(shownDevices).map(([category, items]) => (
+              <View key={category} style={styles.group}>
+                <Text variant="captionStrong" color="textSecondary">
+                  {category} ({items.length})
+                </Text>
+                {items.map((d) => (
+                  <VaultRow key={d.id} device={d} />
+                ))}
+              </View>
+            ))
+          ) : query ? (
+            <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Kein Gerät passt zu „${search.trim()}“.`} />
           ) : (
             <StateView kind="empty" icon="cube-outline" title="Keine Geräte" message="Füge dein erstes Gerät mit dem + hinzu." />
           )
@@ -110,6 +149,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  group: { gap: spacing.md },
   segments: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
   segment: {
     flex: 1,

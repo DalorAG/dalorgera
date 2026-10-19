@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
@@ -70,6 +70,9 @@ export default function NewDeviceScreen() {
   const products = scan.extraction?.products ?? [];
 
   const [productIndex, setProductIndex] = useState(0);
+  // A receipt can list several devices: each one is saved on its own, the photo goes to the first.
+  const [savedProducts, setSavedProducts] = useState<number[]>([]);
+  const [firstDeviceId, setFirstDeviceId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(() => formFromExtraction(scan.extraction));
   const [errors, setErrors] = useState<Partial<Record<keyof Form | 'submit', string>>>({});
   const [createDevice, { isLoading: creating }] = useCreateDeviceMutation();
@@ -106,10 +109,35 @@ export default function NewDeviceScreen() {
         warrantyMonths: kind === 'warranty' ? form.warrantyMonths : undefined,
         maintenanceIntervalMonths: kind === 'maintenance' ? form.intervalMonths : undefined,
       }).unwrap();
-      if (scan.documentId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
-      dispatch(scanCleared());
-      router.dismissAll();
-      router.push(`/device/${device.id}`);
+      if (scan.documentId && !firstDeviceId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
+
+      const saved = [...savedProducts, productIndex];
+      const nextProduct = products.findIndex((_, i) => !saved.includes(i));
+      const finish = () => {
+        dispatch(scanCleared());
+        router.dismissAll();
+        router.push(`/device/${firstDeviceId ?? device.id}`);
+      };
+      if (products.length < 2 || nextProduct < 0) return finish();
+
+      setSavedProducts(saved);
+      setFirstDeviceId(firstDeviceId ?? device.id);
+      const title = `„${device.name}“ gespeichert`;
+      const message = `Auf dem Beleg ist noch „${products[nextProduct].name}“. Ebenfalls hinzufügen?`;
+      if (Platform.OS === 'web') {
+        if (window.confirm(`${title}\n\n${message}`)) pickProduct(nextProduct);
+        else finish();
+        return;
+      }
+      Alert.alert(
+        title,
+        message,
+        [
+          { text: 'Fertig', style: 'cancel', onPress: finish },
+          { text: 'Hinzufügen', onPress: () => pickProduct(nextProduct) },
+        ],
+        { cancelable: false },
+      );
     } catch (err) {
       setErrors({ submit: apiErrorMessage(err) });
     }
@@ -132,7 +160,12 @@ export default function NewDeviceScreen() {
             <Text variant="captionStrong">Welches Gerät?</Text>
             <View style={styles.chips}>
               {products.map((p, i) => (
-                <Chip key={`${p.name}-${i}`} label={p.name} selected={i === productIndex} onPress={() => pickProduct(i)} />
+                <Chip
+                  key={`${p.name}-${i}`}
+                  label={savedProducts.includes(i) ? `✓ ${p.name}` : p.name}
+                  selected={i === productIndex}
+                  onPress={() => !savedProducts.includes(i) && pickProduct(i)}
+                />
               ))}
             </View>
           </View>

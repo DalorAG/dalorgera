@@ -78,7 +78,10 @@ export default function MoreScreen() {
                 <View style={styles.flex}>
                   <Text variant="bodyStrong">{r.deviceName}</Text>
                   <Text variant="caption" color="textSecondary">
-                    {r.kind === 'warranty' ? 'Garantie' : 'Gewährleistung'} endet am {formatDate(r.dueDate)} · Erinnerung am{' '}
+                    {r.kind === 'maintenance'
+                      ? `Wartung fällig am ${formatDate(r.dueDate)}`
+                      : `${r.kind === 'warranty' ? 'Garantie' : 'Gewährleistung'} endet am ${formatDate(r.dueDate)}`}{' '}
+                    · Erinnerung am{' '}
                     {formatDate(r.remindAt)}
                   </Text>
                 </View>

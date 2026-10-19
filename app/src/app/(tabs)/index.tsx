@@ -5,13 +5,16 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { WarrantyCard } from '@/components/devices/warranty-card';
 import { InfoBanner } from '@/components/info-banner';
 import { ScreenHeader } from '@/components/screen-header';
 import { StateView } from '@/components/state-view';
+import { Text } from '@/components/text';
 import type { DeviceKind } from '@/lib/api-types';
 import { DEVICE_KIND_OPTIONS } from '@/lib/device-ui';
+import { formatPrice, spentInMonth } from '@/lib/format';
 import { isPreviewable } from '@/components/device-thumb';
 import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
@@ -33,6 +36,8 @@ export default function OverviewScreen() {
   const current = devices?.filter((d) => d.status !== 'expired' || d.kind === 'maintenance') ?? [];
   const expiring = current.filter((d) => d.kind !== 'maintenance' && d.status === 'expiring').length;
   const shown = filter === 'all' ? current : current.filter((d) => d.kind === filter);
+  const now = new Date();
+  const spent = spentInMonth(devices ?? [], now);
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
@@ -60,6 +65,21 @@ export default function OverviewScreen() {
           }
           subtitle="Einfach, sicher und automatisch."
         />
+
+        {devices?.length ? (
+          <Card style={styles.spent}>
+            <Ionicons name="wallet-outline" size={26} color={theme.brandIcon} />
+            <View style={styles.flex}>
+              <Text variant="caption" color="textSecondary">
+                Im {now.toLocaleDateString('de-DE', { month: 'long' })} ausgegeben
+              </Text>
+              <Text variant="headline">{formatPrice(spent.cents)}</Text>
+            </View>
+            <Text variant="caption" color="textSecondary">
+              {spent.count} {spent.count === 1 ? 'Kauf' : 'Käufe'}
+            </Text>
+          </Card>
+        ) : null}
 
         {current.length > 0 ? (
           <View style={styles.chips}>
@@ -97,6 +117,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  spent: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   logo: {
     width: 60,
     height: 60,
