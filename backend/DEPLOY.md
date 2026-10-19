@@ -35,7 +35,7 @@ Set these under *Environment Variables* (mark the keys as secret):
 | `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` |
 | `SUPABASE_SECRET_KEY` | secret key from Supabase → Project Settings → API Keys |
 | `OPENAI_API_KEY` | your OpenAI key |
-| `OPENAI_MODEL` | `gpt-4o-mini` |
+| `OPENAI_MODEL` | `gpt-4.1` (or leave unset) |
 | `REMINDERS_WORKER_ENABLED` | `true` |
 | `CORS_ORIGINS` | `*` or the web app origin(s), comma separated |
 | `EXPO_ACCESS_TOKEN` | optional |

@@ -2,7 +2,7 @@ import { LegalDocument, type LegalSection } from '@/components/legal-document';
 
 // DRAFT for the MVP (Art. 13 DSGVO). Fill in every [ … ] placeholder and have it
 // legally reviewed before the public launch.
-const VERSION = '02.10.2026';
+const VERSION = '19.10.2026';
 
 const SECTIONS: LegalSection[] = [
   {
@@ -16,10 +16,11 @@ const SECTIONS: LegalSection[] = [
   {
     title: '2. Welche Daten wir verarbeiten',
     body: [
-      '• Kontodaten: E-Mail-Adresse und Passwort (nur verschlüsselt gespeichert). Bei Anmeldung mit Google zusätzlich Name, E-Mail-Adresse und Google-Kennung, die Google uns übermittelt.',
-      '• Geräte: Name, Kategorie, Marke, Händler, Kaufdatum, Preis und Notizen, die du eingibst.',
+      '• Kontodaten: E-Mail-Adresse und Passwort (nur verschlüsselt gespeichert). Bei Anmeldung mit Google zusätzlich Name, E-Mail-Adresse und Google-Kennung, die Google uns übermittelt. Optional dein Name, wenn du ihn im Profil einträgst.',
+      '• Geräte und Wartungen: Name, Kategorie, Marke, Händler bzw. Werkstatt, Kaufdatum bzw. Datum der letzten Wartung, Wartungsintervall, Preis und Notizen, die du eingibst.',
       '• Belege: Fotos von Kassenbons, Rechnungen und Garantiescheinen. Sie können weitere Angaben enthalten, z. B. deinen Namen, die Filiale oder Teile einer Kartennummer.',
-      '• Erkannte Angaben: Händler, Kaufdatum, Produkte und Preise, die aus einem Foto ausgelesen wurden.',
+      '• Erkannte Angaben: Händler, Kaufdatum, Produkte und Preise sowie der vollständige Text des Belegs, der aus einem Foto ausgelesen wird, damit du deine Belege durchsuchen kannst.',
+      '• Wenn du einen Beleg als PDF exportierst, wird die Datei nur vorübergehend auf deinem Telefon erstellt und nicht bei uns gespeichert.',
       '• Push-Token deines Geräts, um dir Erinnerungen zu senden.',
       '• Deine Zustimmung zu den Nutzungsbedingungen (Version und Zeitpunkt).',
       '• Technische Daten beim Aufruf unserer Server (z. B. IP-Adresse, Zeitpunkt, Fehlermeldungen).',
