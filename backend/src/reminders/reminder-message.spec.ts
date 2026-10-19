@@ -13,4 +13,11 @@ describe('reminderMessage', () => {
   it('formats statutory reminders', () => {
     expect(reminderMessage({ ...base, kind: 'statutory', days_before: 7 }).title).toBe('Gewährleistung endet bald');
   });
+
+  it('formats maintenance reminders', () => {
+    expect(reminderMessage({ ...base, kind: 'maintenance', device_name: 'Auto' })).toEqual({
+      title: 'Wartung steht an',
+      body: 'Auto: nächste Wartung in 30 Tagen (14.10.2025). Jetzt einen Termin vereinbaren.',
+    });
+  });
 });

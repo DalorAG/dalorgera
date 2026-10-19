@@ -11,11 +11,25 @@ import {
   Max,
   MaxLength,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
 import { PaginationQuery } from '../../common/pagination.dto.js';
+import { Constants, type Enums } from '../../supabase/database.types.js';
+
+export const DEVICE_KINDS = Constants.public.Enums.device_kind;
+export type DeviceKind = Enums<'device_kind'>;
 
 export class CreateDeviceDto {
+  @ApiPropertyOptional({
+    enum: DEVICE_KINDS,
+    default: 'warranty',
+    description: 'statutory = Gewährleistung only, warranty = Garantie, maintenance = recurring Wartung',
+  })
+  @IsOptional()
+  @IsIn(DEVICE_KINDS)
+  kind?: DeviceKind;
+
   @ApiProperty({ example: 'iPhone 15' })
   @IsString()
   @Length(1, 120)
@@ -39,7 +53,7 @@ export class CreateDeviceDto {
   @MaxLength(120)
   store?: string;
 
-  @ApiProperty({ example: '2023-09-12', description: 'Date of purchase (YYYY-MM-DD)' })
+  @ApiProperty({ example: '2023-09-12', description: 'Date of purchase, or of the last service for maintenance (YYYY-MM-DD)' })
   @IsISO8601({ strict: true })
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   purchaseDate: string;
@@ -64,6 +78,14 @@ export class CreateDeviceDto {
   @Max(240)
   warrantyMonths?: number;
 
+  @ApiPropertyOptional({ example: 12, description: 'Wartung interval, required for kind = maintenance' })
+  @ValidateIf((o: CreateDeviceDto) => o.kind === 'maintenance' || o.maintenanceIntervalMonths !== undefined)
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(120)
+  maintenanceIntervalMonths?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -81,4 +103,9 @@ export class ListDevicesQuery extends PaginationQuery {
   @IsOptional()
   @IsIn(DEVICE_STATUSES)
   status?: DeviceStatus;
+
+  @ApiPropertyOptional({ enum: DEVICE_KINDS })
+  @IsOptional()
+  @IsIn(DEVICE_KINDS)
+  kind?: DeviceKind;
 }

@@ -1,23 +1,38 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { Chip } from '@/components/chip';
 import { WarrantyCard } from '@/components/devices/warranty-card';
 import { InfoBanner } from '@/components/info-banner';
 import { ScreenHeader } from '@/components/screen-header';
 import { StateView } from '@/components/state-view';
-import { useGetDevicesQuery } from '@/store/api';
+import type { DeviceKind } from '@/lib/api-types';
+import { DEVICE_KIND_OPTIONS } from '@/lib/device-ui';
+import { isPreviewable } from '@/components/device-thumb';
+import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
 export default function OverviewScreen() {
   const theme = useTheme();
+  const [filter, setFilter] = useState<DeviceKind | 'all'>('all');
   const { data: devices, isLoading, isFetching, error, refetch } = useGetDevicesQuery();
 
-  // Sorted by deadline on the server; expired devices live in the Tresor.
-  const protectedDevices = devices?.filter((d) => d.status !== 'expired') ?? [];
-  const expiring = protectedDevices.filter((d) => d.status === 'expiring').length;
+  const { data: documents } = useGetDocumentsQuery();
+  // Newest photo per device (documents come newest first).
+  const photos = new Map<string, NonNullable<typeof documents>[number]>();
+  for (const doc of documents ?? []) {
+    if (doc.deviceId && isPreviewable(doc) && !photos.has(doc.deviceId)) photos.set(doc.deviceId, doc);
+  }
+
+  // Sorted by deadline on the server; expired devices live in the Tresor,
+  // an overdue Wartung stays here because it still needs doing.
+  const current = devices?.filter((d) => d.status !== 'expired' || d.kind === 'maintenance') ?? [];
+  const expiring = current.filter((d) => d.kind !== 'maintenance' && d.status === 'expiring').length;
+  const shown = filter === 'all' ? current : current.filter((d) => d.kind === filter);
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
@@ -46,22 +61,33 @@ export default function OverviewScreen() {
           subtitle="Einfach, sicher und automatisch."
         />
 
+        {current.length > 0 ? (
+          <View style={styles.chips}>
+            <Chip label="Alle" selected={filter === 'all'} onPress={() => setFilter('all')} />
+            {DEVICE_KIND_OPTIONS.map((o) => (
+              <Chip key={o.kind} label={o.label} selected={filter === o.kind} onPress={() => setFilter(o.kind)} />
+            ))}
+          </View>
+        ) : null}
+
         {isLoading ? (
           <StateView kind="loading" />
         ) : error ? (
           <StateView kind="error" error={error} onRetry={refetch} />
-        ) : protectedDevices.length === 0 ? (
+        ) : current.length === 0 ? (
           <StateView
             kind="empty"
             icon="receipt-outline"
             title="Noch keine Geräte"
             message="Scanne deinen ersten Kassenbon oder Garantieschein. Wir erinnern dich, bevor der Schutz endet."
           />
+        ) : shown.length === 0 ? (
+          <StateView kind="empty" icon="file-tray-outline" title="Nichts in dieser Kategorie" message="Füge etwas mit dem + hinzu." />
         ) : (
-          protectedDevices.map((d) => <WarrantyCard key={d.id} device={d} />)
+          shown.map((d) => <WarrantyCard key={d.id} device={d} photo={photos.get(d.id)} />)
         )}
 
-        <Button label="Gerät hinzufügen" icon="add" onPress={() => router.push('/scan')} />
+        <Button label="Hinzufügen" icon="add" onPress={() => router.push('/add')} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -70,6 +96,7 @@ export default function OverviewScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   logo: {
     width: 60,
     height: 60,

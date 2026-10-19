@@ -13,7 +13,7 @@ import { ProgressBar } from '@/components/progress';
 import { Text } from '@/components/text';
 import { preparePhoto } from '@/features/prepare-photo';
 import { useUploadDocument } from '@/features/use-upload-document';
-import type { DocumentKind, DocumentMimeType, ReceiptExtraction } from '@/lib/api-types';
+import type { DeviceKind, DocumentKind, DocumentMimeType, ReceiptExtraction } from '@/lib/api-types';
 import { apiErrorMessage } from '@/lib/format';
 import { useAppDispatch } from '@/store';
 import { useRecognizeDocumentMutation } from '@/store/api';
@@ -38,8 +38,9 @@ type Phase =
 export default function ScanScreen() {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  // Set when adding a photo to an existing device: no recognition, no form.
-  const { deviceId } = useLocalSearchParams<{ deviceId?: string }>();
+  // deviceId: adding a photo to an existing device, no recognition, no form.
+  // kind: what was picked on "+", handed on to the device form.
+  const { deviceId, kind: deviceKind } = useLocalSearchParams<{ deviceId?: string; kind?: DeviceKind }>();
   const [permission, requestPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
   const [kind, setKind] = useState<DocumentKind>('receipt');
@@ -74,7 +75,7 @@ export default function ScanScreen() {
       }
       setPhase({ name: 'done', uri });
       dispatch(scanCompleted({ documentId: doc.id, kind, extraction }));
-      router.replace('/device/new');
+      router.replace({ pathname: '/device/new', params: deviceKind ? { kind: deviceKind } : {} });
     } catch (err) {
       setPhase({ name: 'error', uri, message: apiErrorMessage(err), retry });
     }

@@ -8,11 +8,14 @@ export type Me = {
 };
 
 export type DeviceStatus = 'active' | 'expiring' | 'expired';
+/** statutory = Gewährleistung only, warranty = Garantie, maintenance = recurring Wartung. */
+export type DeviceKind = 'statutory' | 'warranty' | 'maintenance';
 export type DocumentKind = 'receipt' | 'warranty_card' | 'invoice' | 'other';
 export type DocumentMimeType = 'image/jpeg' | 'image/png' | 'image/heic' | 'image/webp' | 'application/pdf';
 
 export type Device = {
   id: string;
+  kind: DeviceKind;
   name: string;
   category: string | null;
   brand: string | null;
@@ -21,8 +24,10 @@ export type Device = {
   priceCents: number | null;
   currency: string;
   warrantyMonths: number;
+  maintenanceIntervalMonths: number | null;
   warrantyUntil: string | null;
   statutoryUntil: string;
+  /** End of protection, or the next Wartung for maintenance. */
   protectedUntil: string;
   daysLeft: number;
   progress: number;
@@ -34,6 +39,7 @@ export type Device = {
 };
 
 export type DeviceInput = {
+  kind?: DeviceKind;
   name: string;
   category?: string;
   brand?: string;
@@ -42,6 +48,7 @@ export type DeviceInput = {
   priceCents?: number;
   currency?: string;
   warrantyMonths?: number;
+  maintenanceIntervalMonths?: number;
   notes?: string;
 };
 

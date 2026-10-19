@@ -32,6 +32,7 @@ export class DevicesService {
     if (query.status === 'expired') q = q.lt('protected_until', isoDate(today));
     if (query.status === 'expiring') q = q.gte('protected_until', isoDate(today)).lte('protected_until', isoDate(soon));
     if (query.status === 'active') q = q.gt('protected_until', isoDate(soon));
+    if (query.kind) q = q.eq('kind', query.kind);
 
     return unwrap(await q).map((row) => toDeviceResponse(row));
   }

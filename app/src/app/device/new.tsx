@@ -1,24 +1,38 @@
-import { router } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { Chip } from '@/components/chip';
 import { InfoBanner } from '@/components/info-banner';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
-import type { ReceiptExtraction } from '@/lib/api-types';
+import type { DeviceKind, ReceiptExtraction } from '@/lib/api-types';
 import { apiErrorMessage, formatDate, parseDate, parsePrice } from '@/lib/format';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useCreateDeviceMutation, useUpdateDocumentMutation } from '@/store/api';
 import { scanCleared } from '@/store/scan-slice';
-import { radius, spacing, useTheme } from '@/theme';
+import { spacing, useTheme } from '@/theme';
+
+const DEVICE_KINDS: DeviceKind[] = ['statutory', 'warranty', 'maintenance'];
+const TITLES: Record<DeviceKind, string> = {
+  statutory: 'Gewährleistung hinzufügen',
+  warranty: 'Garantie hinzufügen',
+  maintenance: 'Wartung hinzufügen',
+};
 
 const WARRANTY_OPTIONS = [
-  { months: 0, label: 'Keine' },
   { months: 12, label: '1 Jahr' },
   { months: 24, label: '2 Jahre' },
   { months: 36, label: '3 Jahre' },
   { months: 60, label: '5 Jahre' },
+];
+
+const INTERVAL_OPTIONS = [
+  { months: 6, label: 'Halbjährlich' },
+  { months: 12, label: 'Jährlich' },
+  { months: 24, label: 'Alle 2 Jahre' },
+  { months: 36, label: 'Alle 3 Jahre' },
 ];
 
 type Form = {
@@ -29,6 +43,7 @@ type Form = {
   purchaseDate: string;
   price: string;
   warrantyMonths: number;
+  intervalMonths: number;
 };
 
 function formFromExtraction(extraction: ReceiptExtraction | null, productIndex = 0): Form {
@@ -41,13 +56,16 @@ function formFromExtraction(extraction: ReceiptExtraction | null, productIndex =
     store: extraction?.merchant ?? '',
     purchaseDate: extraction?.purchaseDate ? formatDate(extraction.purchaseDate) : '',
     price: cents != null ? (cents / 100).toFixed(2).replace('.', ',') : '',
-    warrantyMonths: product?.warrantyMonths ?? 24,
+    warrantyMonths: product?.warrantyMonths || 24,
+    intervalMonths: 12,
   };
 }
 
 export default function NewDeviceScreen() {
   const theme = useTheme();
   const dispatch = useAppDispatch();
+  const params = useLocalSearchParams<{ kind?: string }>();
+  const kind = DEVICE_KINDS.find((k) => k === params.kind) ?? 'warranty';
   const scan = useAppSelector((s) => s.scan);
   const products = scan.extraction?.products ?? [];
 
@@ -77,6 +95,7 @@ export default function NewDeviceScreen() {
 
     try {
       const device = await createDevice({
+        kind,
         name: form.name.trim(),
         category: form.category.trim() || undefined,
         brand: form.brand.trim() || undefined,
@@ -84,7 +103,8 @@ export default function NewDeviceScreen() {
         purchaseDate: purchaseDate!,
         priceCents: priceCents ?? undefined,
         currency: scan.extraction?.currency ?? undefined,
-        warrantyMonths: form.warrantyMonths,
+        warrantyMonths: kind === 'warranty' ? form.warrantyMonths : undefined,
+        maintenanceIntervalMonths: kind === 'maintenance' ? form.intervalMonths : undefined,
       }).unwrap();
       if (scan.documentId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
       dispatch(scanCleared());
@@ -99,6 +119,7 @@ export default function NewDeviceScreen() {
     <KeyboardAvoidingView
       style={[styles.flex, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Stack.Screen options={{ title: TITLES[kind] }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {scan.extraction ? (
           <InfoBanner title="Automatisch erkannt" subtitle="Bitte prüfe die Angaben, bevor du speicherst." />
@@ -117,12 +138,18 @@ export default function NewDeviceScreen() {
           </View>
         ) : null}
 
-        <TextField label="Gerät *" value={form.name} onChangeText={(v) => set('name', v)} placeholder="z. B. iPhone 15" error={errors.name} />
+        <TextField
+          label={kind === 'maintenance' ? 'Was wird gewartet? *' : 'Gerät *'}
+          value={form.name}
+          onChangeText={(v) => set('name', v)}
+          placeholder={kind === 'maintenance' ? 'z. B. Auto (Pickerl)' : 'z. B. iPhone 15'}
+          error={errors.name}
+        />
         <TextField label="Kategorie" value={form.category} onChangeText={(v) => set('category', v)} placeholder="z. B. Smartphone" />
         <TextField label="Marke" value={form.brand} onChangeText={(v) => set('brand', v)} />
-        <TextField label="Gekauft bei" value={form.store} onChangeText={(v) => set('store', v)} placeholder="z. B. TechnikMarkt" />
+        <TextField label={kind === 'maintenance' ? 'Werkstatt / Firma' : 'Gekauft bei'} value={form.store} onChangeText={(v) => set('store', v)} placeholder="z. B. TechnikMarkt" />
         <TextField
-          label="Kaufdatum *"
+          label={kind === 'maintenance' ? 'Letzte Wartung *' : 'Kaufdatum *'}
           value={form.purchaseDate}
           onChangeText={(v) => set('purchaseDate', v)}
           placeholder="TT.MM.JJJJ"
@@ -138,17 +165,35 @@ export default function NewDeviceScreen() {
           error={errors.price}
         />
 
-        <View style={styles.group}>
-          <Text variant="captionStrong">Herstellergarantie</Text>
-          <View style={styles.chips}>
-            {WARRANTY_OPTIONS.map((o) => (
-              <Chip key={o.months} label={o.label} selected={form.warrantyMonths === o.months} onPress={() => set('warrantyMonths', o.months)} />
-            ))}
+        {kind === 'warranty' ? (
+          <View style={styles.group}>
+            <Text variant="captionStrong">Herstellergarantie</Text>
+            <View style={styles.chips}>
+              {WARRANTY_OPTIONS.map((o) => (
+                <Chip key={o.months} label={o.label} selected={form.warrantyMonths === o.months} onPress={() => set('warrantyMonths', o.months)} />
+              ))}
+            </View>
+            <Text variant="caption" color="textSecondary">
+              Die gesetzliche Gewährleistung von 2 Jahren wird automatisch berücksichtigt.
+            </Text>
           </View>
+        ) : kind === 'maintenance' ? (
+          <View style={styles.group}>
+            <Text variant="captionStrong">Intervall</Text>
+            <View style={styles.chips}>
+              {INTERVAL_OPTIONS.map((o) => (
+                <Chip key={o.months} label={o.label} selected={form.intervalMonths === o.months} onPress={() => set('intervalMonths', o.months)} />
+              ))}
+            </View>
+            <Text variant="caption" color="textSecondary">
+              Wir erinnern dich 30 und 7 Tage vor der nächsten Wartung.
+            </Text>
+          </View>
+        ) : (
           <Text variant="caption" color="textSecondary">
-            Die gesetzliche Gewährleistung von 2 Jahren wird automatisch berücksichtigt.
+            Gesetzliche Gewährleistung: 2 Jahre ab Kaufdatum.
           </Text>
-        </View>
+        )}
 
         {errors.submit ? (
           <Text variant="body" color="danger">
@@ -161,36 +206,9 @@ export default function NewDeviceScreen() {
   );
 }
 
-function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      style={[
-        styles.chip,
-        selected
-          ? { backgroundColor: theme.brand, borderColor: theme.brand }
-          : { backgroundColor: theme.surface, borderColor: theme.borderStrong },
-      ]}>
-      <Text variant="captionStrong" color={selected ? 'textOnBrand' : 'text'} numberOfLines={1}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl * 2 },
   group: { gap: spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    maxWidth: '100%',
-  },
 });

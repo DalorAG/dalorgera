@@ -6,26 +6,20 @@ import { Card } from '@/components/card';
 import { DeviceThumb } from '@/components/device-thumb';
 import { ProgressBar, ProgressRing } from '@/components/progress';
 import { Text } from '@/components/text';
-import type { Device } from '@/lib/api-types';
-import { iconForDevice, toneForStatus } from '@/lib/device-ui';
-import { formatDate, remainingLabel } from '@/lib/format';
+import type { Device, DocumentItem } from '@/lib/api-types';
+import { deadlineLabel, headlineFor, iconForDevice, toneForStatus } from '@/lib/device-ui';
+import { formatDate } from '@/lib/format';
 import { spacing, useTheme } from '@/theme';
 
-export function WarrantyCard({ device }: { device: Device }) {
+export function WarrantyCard({ device, photo }: { device: Device; photo?: DocumentItem }) {
   const theme = useTheme();
   const tone = toneForStatus(device.status);
   const accent = tone === 'success' ? theme.success : tone === 'warning' ? theme.warning : theme.danger;
-  const headline =
-    device.status === 'active'
-      ? `${remainingLabel(device.daysLeft)} geschützt`
-      : device.status === 'expiring'
-        ? `Achtung: ${remainingLabel(device.daysLeft)}`
-        : 'Schutz abgelaufen';
 
   return (
     <Card onPress={() => router.push(`/device/${device.id}`)} style={styles.card}>
       <View style={styles.row}>
-        <DeviceThumb icon={iconForDevice(device.category, device.name)} size={80} />
+        <DeviceThumb icon={iconForDevice(device.category, device.name)} size={80} photo={photo} />
         <View style={styles.flex}>
           <Text variant="headline" numberOfLines={1}>
             {device.name}
@@ -36,7 +30,7 @@ export function WarrantyCard({ device }: { device: Device }) {
             </Text>
           ) : null}
           <Text variant="caption" color="textSecondary" style={styles.meta}>
-            Gekauft am {formatDate(device.purchaseDate)}
+            {device.kind === 'maintenance' ? 'Letzte Wartung am' : 'Gekauft am'} {formatDate(device.purchaseDate)}
             {device.store ? `\nbei ${device.store}` : ''}
           </Text>
         </View>
@@ -49,11 +43,10 @@ export function WarrantyCard({ device }: { device: Device }) {
           <Text
             variant="headline"
             color={tone === 'success' ? 'successText' : tone === 'warning' ? 'warningText' : 'danger'}>
-            {headline}
+            {headlineFor(device)}
           </Text>
           <Text variant="caption" color="textSecondary">
-            {device.warrantyUntil && device.warrantyUntil === device.protectedUntil ? 'Garantie' : 'Gewährleistung'} bis{' '}
-            {formatDate(device.protectedUntil)}
+            {deadlineLabel(device)}
           </Text>
           <ProgressBar progress={device.progress} color={accent} />
         </View>

@@ -3,6 +3,8 @@ import { toDeviceInsert, toDeviceResponse } from './device.mapper.js';
 
 const row = (overrides: Partial<Tables<'devices'>> = {}): Tables<'devices'> => ({
   id: 'd1',
+  kind: 'warranty',
+  maintenance_interval_months: null,
   user_id: 'u1',
   name: 'iPhone 15',
   category: 'Smartphone',
@@ -50,6 +52,25 @@ describe('toDeviceInsert', () => {
       name: 'Kopfhörer',
       purchase_date: '2024-03-03',
       warranty_months: 12,
+    });
+  });
+
+  it('drops the manufacturer warranty for Gewährleistung and Wartung', () => {
+    expect(toDeviceInsert({ kind: 'statutory', name: 'Toaster', purchaseDate: '2024-03-03', warrantyMonths: 24 })).toEqual({
+      kind: 'statutory',
+      name: 'Toaster',
+      purchase_date: '2024-03-03',
+      warranty_months: 0,
+      maintenance_interval_months: null,
+    });
+    expect(
+      toDeviceInsert({ kind: 'maintenance', name: 'Auto', purchaseDate: '2024-03-03', maintenanceIntervalMonths: 12 }),
+    ).toEqual({
+      kind: 'maintenance',
+      name: 'Auto',
+      purchase_date: '2024-03-03',
+      warranty_months: 0,
+      maintenance_interval_months: 12,
     });
   });
 });

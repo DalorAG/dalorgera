@@ -24,6 +24,8 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          kind: Database["public"]["Enums"]["device_kind"]
+          maintenance_interval_months: number | null
           name: string
           notes: string | null
           price_cents: number | null
@@ -42,6 +44,8 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          kind?: Database["public"]["Enums"]["device_kind"]
+          maintenance_interval_months?: number | null
           name: string
           notes?: string | null
           price_cents?: number | null
@@ -60,6 +64,8 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          kind?: Database["public"]["Enums"]["device_kind"]
+          maintenance_interval_months?: number | null
           name?: string
           notes?: string | null
           price_cents?: number | null
@@ -232,8 +238,9 @@ export type Database = {
       }
     }
     Enums: {
+      device_kind: "statutory" | "warranty" | "maintenance"
       document_kind: "receipt" | "warranty_card" | "invoice" | "other"
-      reminder_kind: "warranty" | "statutory"
+      reminder_kind: "warranty" | "statutory" | "maintenance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -251,8 +258,9 @@ export type Enums<T extends keyof DefaultSchema["Enums"]> = DefaultSchema["Enums
 export const Constants = {
   public: {
     Enums: {
+      device_kind: ["statutory", "warranty", "maintenance"],
       document_kind: ["receipt", "warranty_card", "invoice", "other"],
-      reminder_kind: ["warranty", "statutory"],
+      reminder_kind: ["warranty", "statutory", "maintenance"],
     },
   },
 } as const

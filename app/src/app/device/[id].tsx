@@ -11,9 +11,15 @@ import { ProgressRing } from '@/components/progress';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
 import type { DocumentItem } from '@/lib/api-types';
-import { DOCUMENT_KIND_LABELS, iconForDevice, toneForStatus } from '@/lib/device-ui';
-import { apiErrorMessage, formatDate, formatPrice, remainingLabel } from '@/lib/format';
-import { api, useDeleteDeviceMutation, useGetDeviceQuery, useGetDocumentsQuery } from '@/store/api';
+import { badgeLabel, DEVICE_KIND_LABELS, DOCUMENT_KIND_LABELS, iconForDevice, toneForStatus } from '@/lib/device-ui';
+import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
+import {
+  api,
+  useDeleteDeviceMutation,
+  useGetDeviceQuery,
+  useGetDocumentsQuery,
+  useUpdateDeviceMutation,
+} from '@/store/api';
 import { useAppDispatch } from '@/store';
 import { spacing, useTheme } from '@/theme';
 
@@ -35,6 +41,7 @@ export default function DeviceScreen() {
   const { data: device, isLoading, error, refetch } = useGetDeviceQuery(id);
   const { data: documents } = useGetDocumentsQuery({ deviceId: id });
   const [deleteDevice, { isLoading: deleting }] = useDeleteDeviceMutation();
+  const [updateDevice, { isLoading: servicing }] = useUpdateDeviceMutation();
 
   if (isLoading) return <StateView kind="loading" />;
   if (error || !device) return <StateView kind="error" error={error} onRetry={refetch} />;
@@ -48,6 +55,15 @@ export default function DeviceScreen() {
       await WebBrowser.openBrowserAsync(url);
     } catch (err) {
       Alert.alert('Beleg kann nicht geöffnet werden', apiErrorMessage(err));
+    }
+  };
+
+  // Today becomes the last service date; the next one and its reminders follow from the interval.
+  const markServiced = async () => {
+    try {
+      await updateDevice({ id: device.id, purchaseDate: new Date().toISOString().slice(0, 10) }).unwrap();
+    } catch (err) {
+      Alert.alert('Speichern fehlgeschlagen', apiErrorMessage(err));
     }
   };
 
@@ -70,23 +86,39 @@ export default function DeviceScreen() {
         <View style={styles.flex}>
           <Text variant="title">{device.name}</Text>
           <Text variant="body" color="textSecondary">
-            {[device.brand, device.category].filter(Boolean).join(' · ')}
+            {[DEVICE_KIND_LABELS[device.kind], device.brand, device.category].filter(Boolean).join(' · ')}
           </Text>
         </View>
-        <StatusBadge tone={tone} label={remainingLabel(device.daysLeft)} />
+        <StatusBadge tone={tone} label={badgeLabel(device)} />
       </View>
 
       <Card style={styles.protection}>
         <ProgressRing progress={device.progress} color={accent} size={84} />
         <View style={[styles.flex, styles.rows]}>
-          <Row label="Garantie bis" value={device.warrantyUntil ? formatDate(device.warrantyUntil) : 'keine'} />
-          <Row label="Gewährleistung bis" value={formatDate(device.statutoryUntil)} />
-          <Row label="Geschützt bis" value={formatDate(device.protectedUntil)} strong />
+          {device.kind === 'maintenance' ? (
+            <>
+              <Row label="Letzte Wartung" value={formatDate(device.purchaseDate)} />
+              <Row label="Intervall" value={`${device.maintenanceIntervalMonths} Monate`} />
+              <Row label="Nächste Wartung" value={formatDate(device.protectedUntil)} strong />
+            </>
+          ) : (
+            <>
+              {device.kind === 'warranty' ? (
+                <Row label="Garantie bis" value={device.warrantyUntil ? formatDate(device.warrantyUntil) : 'keine'} />
+              ) : null}
+              <Row label="Gewährleistung bis" value={formatDate(device.statutoryUntil)} />
+              <Row label="Geschützt bis" value={formatDate(device.protectedUntil)} strong />
+            </>
+          )}
         </View>
       </Card>
 
+      {device.kind === 'maintenance' ? (
+        <Button label="Wartung erledigt" icon="checkmark" onPress={markServiced} loading={servicing} />
+      ) : null}
+
       <Card style={styles.rows}>
-        <Row label="Kaufdatum" value={formatDate(device.purchaseDate)} />
+        {device.kind !== 'maintenance' ? <Row label="Kaufdatum" value={formatDate(device.purchaseDate)} /> : null}
         {device.store ? <Row label="Gekauft bei" value={device.store} /> : null}
         {device.priceCents != null ? <Row label="Preis" value={formatPrice(device.priceCents, device.currency)} /> : null}
       </Card>

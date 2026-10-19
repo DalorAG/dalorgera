@@ -63,9 +63,9 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
       {items.slice(0, 2)}
       <View style={styles.item}>
         <Pressable
-          onPress={() => router.push('/scan')}
+          onPress={() => router.push('/add')}
           accessibilityRole="button"
-          accessibilityLabel="Beleg scannen"
+          accessibilityLabel="Hinzufügen"
           style={({ pressed }) => [
             styles.fab,
             { backgroundColor: pressed ? theme.brandPressed : theme.brand },

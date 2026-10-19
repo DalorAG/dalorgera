@@ -63,6 +63,7 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={termsAccepted}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="add" options={{ presentation: 'modal', headerShown: true, title: 'Hinzufügen' }} />
           <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
           <Stack.Screen
             name="device/new"
