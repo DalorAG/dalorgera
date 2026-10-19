@@ -65,7 +65,7 @@ export const api = createApi({
       invalidatesTags: [{ type: 'Device', id: 'LIST' }, 'Document', 'Reminder'],
     }),
 
-    getDocuments: build.query<DocumentItem[], { deviceId?: string } | void>({
+    getDocuments: build.query<DocumentItem[], { deviceId?: string; q?: string } | void>({
       query: (params) => ({ url: 'documents', params: params ?? undefined }),
       providesTags: ['Document'],
     }),
