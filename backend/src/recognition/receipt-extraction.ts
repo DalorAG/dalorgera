@@ -35,7 +35,8 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
     currency: { ...nullable('string'), description: 'ISO 4217 code, e.g. EUR' },
     products: {
       type: 'array',
-      description: 'Durable goods only (devices, appliances, electronics). Skip accessories under 20 EUR, bags, deposits, services.',
+      description:
+        'Durable goods only (devices, appliances, electronics). Skip accessories under 20 EUR, bags, deposits, services. Extended warranties and insurances are not products.',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -54,7 +55,8 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
           priceCents: nullable('integer'),
           warrantyMonths: {
             ...nullable('integer'),
-            description: 'Manufacturer warranty in months only if printed on the document, otherwise null',
+            description:
+              'Warranty in months only if printed on the document, including an extended warranty bought with it, otherwise null',
           },
         },
       },
@@ -72,6 +74,7 @@ Rules:
 - totalCents is the final amount paid ("Summe", "Gesamt", "Total", "zu zahlen"), not a subtotal, VAT ("MwSt") or change ("Rückgeld").
 - A product spans its own line(s): name, then optionally "2 x 49,90" (quantity x unit price) or a model number on the next line. Use the unit price for priceCents and keep one entry per distinct product. Discount lines ("Rabatt") belong to the product above them.
 - merchant is the store name from the header (logo or top lines), not the street address or payment terminal.
+- Extended warranties and insurances ("Garantieverlängerung", "36M Garantie Kompakt", "Schutzbrief", "Geräteversicherung", "AppleCare") are not products. Leave them out of products and put their total duration into warrantyMonths of the product they cover (usually the line above; "36M" is 36, "3 Jahre" is 36).
 - Do not mix up lines of different products. If a line is ambiguous, leave its fields null.
 - In rawText, transcribe every readable line exactly as printed (keep umlauts, prices and line order).`;
 
@@ -91,7 +94,7 @@ export function sanitizeExtraction(raw: ReceiptExtraction): ReceiptExtraction {
     purchaseDate: date,
     totalCents: int(raw.totalCents, 100_000_000),
     currency: raw.currency && /^[A-Z]{3}$/.test(raw.currency) ? raw.currency : null,
-    products: (raw.products ?? []).slice(0, 20).flatMap((p) => {
+    products: mergeWarrantyExtensions((raw.products ?? []).slice(0, 20).flatMap((p) => {
       const name = text(p.name, 120);
       if (!name) return [];
       return [
@@ -103,6 +106,38 @@ export function sanitizeExtraction(raw: ReceiptExtraction): ReceiptExtraction {
           warrantyMonths: int(p.warrantyMonths, 240),
         },
       ];
-    }),
+    })),
   };
+}
+
+type Product = ReceiptExtraction['products'][number];
+
+const WARRANTY_EXTENSION_RE = /garantie|gewährleistung|schutzbrief|versicherung|applecare/i;
+
+/** "36M BW Garantie Kompakt" is 36, "Garantieverlängerung 3 Jahre" is 36. */
+function extensionMonths(name: string): number | null {
+  const months = /(\d{1,3})\s*M(?:on(?:ate?)?)?\b/i.exec(name);
+  if (months) return Number(months[1]);
+  const years = /(\d{1,2})\s*J(?:ahre?)?\b/i.exec(name);
+  return years ? Number(years[1]) * 12 : null;
+}
+
+/**
+ * An extended warranty sold with a device is not a device of its own: it is dropped from the
+ * products and its duration goes to the device it covers (the product above it, else the first one).
+ * The model is told the same; this catches the cases where it still lists the warranty line.
+ */
+export function mergeWarrantyExtensions(products: Product[]): Product[] {
+  const isExtension = (p: Product) => WARRANTY_EXTENSION_RE.test(p.name);
+  const devices = products.flatMap((p, index) => (isExtension(p) ? [] : [{ index, product: { ...p } }]));
+  if (!devices.length) return products;
+
+  products.forEach((p, index) => {
+    if (!isExtension(p)) return;
+    const months = p.warrantyMonths ?? extensionMonths(p.name);
+    if (!months || months > 240) return;
+    const target = devices.findLast((d) => d.index < index) ?? devices[0];
+    target.product.warrantyMonths = Math.max(target.product.warrantyMonths ?? 0, months);
+  });
+  return devices.map((d) => d.product);
 }

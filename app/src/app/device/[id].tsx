@@ -8,7 +8,6 @@ import { StatusBadge } from '@/components/badge';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { DeviceThumb } from '@/components/device-thumb';
-import { DocumentThumb } from '@/components/document-thumb';
 import { ProgressRing } from '@/components/progress';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
@@ -199,29 +198,6 @@ export default function DeviceScreen() {
         </View>
       </Card>
 
-      {(device.kind === 'warranty' || device.kind === 'statutory') && device.status !== 'expired' ? (
-        <Card style={styles.insurance}>
-          <View style={styles.insuranceHead}>
-            <Ionicons name="umbrella-outline" size={24} color={theme.brandIcon} />
-            <Text variant="headline" style={styles.flex}>
-              Schutz verlängern
-            </Text>
-          </View>
-          <Text variant="caption" color="textSecondary">
-            Verlängere die Garantie oder schließe eine Geräteversicherung ab, bevor der Schutz am{' '}
-            {formatDate(device.protectedUntil)} endet.
-          </Text>
-          <Button
-            label="Versicherung ansehen"
-            variant="secondary"
-            icon="shield-outline"
-            onPress={() =>
-              notify('Bald verfügbar', 'Angebote zur Garantieverlängerung und Geräteversicherung kommen in Kürze.')
-            }
-          />
-        </Card>
-      ) : null}
-
       {device.kind === 'maintenance' ? (
         <Button label="Wartung erledigt" icon="checkmark" onPress={markServiced} loading={servicing} />
       ) : null}
@@ -232,6 +208,46 @@ export default function DeviceScreen() {
         {device.priceCents != null ? <Row label="Preis" value={formatPrice(device.priceCents, device.currency)} /> : null}
       </Card>
 
+      {(device.kind === 'warranty' || device.kind === 'statutory') && device.status !== 'expired' ? (
+        <Button
+          label="Garantie verlängern"
+          variant="secondary"
+          icon="shield-outline"
+          onPress={() =>
+            notify('Bald verfügbar', 'Angebote zur Garantieverlängerung und Geräteversicherung kommen in Kürze.')
+          }
+        />
+      ) : null}
+
+      <Text variant="title">Belege</Text>
+      {receipts.length ? (
+        <Card style={styles.rows}>
+          {receipts.map((doc) => (
+            <View key={doc.id} style={styles.row}>
+              <Pressable
+                onPress={() => openDocument(doc)}
+                accessibilityRole="button"
+                accessibilityLabel={`${DOCUMENT_KIND_LABELS[doc.kind]} öffnen`}
+                style={styles.docOpen}>
+                <Ionicons name="document-text-outline" size={20} color={theme.brandIcon} />
+                <View style={styles.flex}>
+                  <Text variant="body">{DOCUMENT_KIND_LABELS[doc.kind]}</Text>
+                  <Text variant="caption" color="textSecondary">
+                    {formatDate(doc.createdAt)}
+                  </Text>
+                </View>
+              </Pressable>
+              <Pressable onPress={() => removeReceipt(doc)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Beleg löschen">
+                <Ionicons name="trash-outline" size={20} color={theme.danger} />
+              </Pressable>
+            </View>
+          ))}
+        </Card>
+      ) : (
+        <Text variant="body" color="textSecondary">
+          Keine Belege gespeichert.
+        </Text>
+      )}
       {device.kind !== 'vignette' ? (
         <Button
           label={device.brand ? `${device.brand} kontaktieren` : 'Hersteller kontaktieren'}
@@ -240,43 +256,15 @@ export default function DeviceScreen() {
           onPress={() => WebBrowser.openBrowserAsync(manufacturerSupportUrl(device))}
         />
       ) : null}
-
-      <Text variant="title">Belege</Text>
       {receipts.length ? (
-        <>
-          <View style={styles.docs}>
-            {receipts.map((doc) => (
-              <View key={doc.id} style={styles.doc}>
-                <Pressable onPress={() => openDocument(doc)} accessibilityRole="button" accessibilityLabel={DOCUMENT_KIND_LABELS[doc.kind]}>
-                  <DocumentThumb document={doc} size={88} />
-                </Pressable>
-                <Pressable
-                  onPress={() => removeReceipt(doc)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Beleg löschen"
-                  style={[styles.docDelete, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <Ionicons name="trash-outline" size={14} color={theme.danger} />
-                </Pressable>
-                <Text variant="micro" color="textSecondary">
-                  {DOCUMENT_KIND_LABELS[doc.kind]}
-                </Text>
-              </View>
-            ))}
-          </View>
-          <Button
-            label="Herunterladen"
-            variant="secondary"
-            icon="download-outline"
-            onPress={downloadReceipts}
-            loading={downloading}
-          />
-        </>
-      ) : (
-        <Text variant="body" color="textSecondary">
-          Keine Belege gespeichert.
-        </Text>
-      )}
+        <Button
+          label="Herunterladen"
+          variant="secondary"
+          icon="download-outline"
+          onPress={downloadReceipts}
+          loading={downloading}
+        />
+      ) : null}
       <Button label="Gerät löschen" variant="danger" icon="trash-outline" onPress={remove} loading={deleting} />
     </ScrollView>
   );
@@ -303,21 +291,7 @@ const styles = StyleSheet.create({
   rows: { gap: spacing.md },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md },
   rowLabel: { flexShrink: 1 },
-  insurance: { gap: spacing.md },
-  insuranceHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  docs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  doc: { alignItems: 'center', gap: spacing.xs },
-  docDelete: {
-    position: 'absolute',
-    top: -spacing.xs,
-    right: -spacing.xs,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  docOpen: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   photoBadge: {
     position: 'absolute',
     right: -4,
