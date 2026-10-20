@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState, type ComponentProps } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { DocumentThumb } from '@/components/document-thumb';
@@ -11,37 +11,28 @@ import type { Device, DocumentItem } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
 import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
 import { useAppDispatch } from '@/store';
-import { api, useDeleteDocumentMutation } from '@/store/api';
+import { api } from '@/store/api';
 import { scanCompleted } from '@/store/scan-slice';
 import { spacing, useTheme } from '@/theme';
 
 type Props = { documents: DocumentItem[]; devices: Device[] };
 
-function confirmDelete(onConfirm: () => void) {
-  const message = 'Das Foto wird dauerhaft gelöscht. Das Gerät bleibt erhalten.';
-  if (Platform.OS === 'web') {
-    if (window.confirm(`Beleg löschen?\n\n${message}`)) onConfirm();
-    return;
-  }
-  Alert.alert('Beleg löschen?', message, [
-    { text: 'Abbrechen', style: 'cancel' },
-    { text: 'Löschen', style: 'destructive', onPress: onConfirm },
-  ]);
+/** Assigned documents open their detail page, unassigned photos start a new device. */
+export function useOpenDocument() {
+  const dispatch = useAppDispatch();
+  return (doc: DocumentItem) => {
+    if (doc.deviceId) return router.push(`/receipt/${doc.id}`);
+    dispatch(scanCompleted({ documentId: doc.id, kind: doc.kind, extraction: doc.extracted }));
+    router.push('/device/new');
+  };
 }
 
 export function DocumentsList({ documents, devices }: Props) {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const deviceNames = new Map(devices.map((d) => [d.id, d.name]));
-  const [deleteDocument] = useDeleteDocumentMutation();
   const [busyId, setBusyId] = useState<string | null>(null);
-
-  const open = (doc: DocumentItem) => {
-    if (doc.deviceId) return router.push(`/receipt/${doc.id}`);
-    // Unassigned photo: create a device from it.
-    dispatch(scanCompleted({ documentId: doc.id, kind: doc.kind, extraction: doc.extracted }));
-    router.push('/device/new');
-  };
+  const open = useOpenDocument();
 
   const exportPdf = async (doc: DocumentItem) => {
     setBusyId(doc.id);
@@ -54,15 +45,6 @@ export function DocumentsList({ documents, devices }: Props) {
       setBusyId(null);
     }
   };
-
-  const remove = (doc: DocumentItem) =>
-    confirmDelete(async () => {
-      try {
-        await deleteDocument(doc.id).unwrap();
-      } catch (err) {
-        Alert.alert('Löschen fehlgeschlagen', apiErrorMessage(err));
-      }
-    });
 
   return (
     <View style={styles.list}>
@@ -85,7 +67,6 @@ export function DocumentsList({ documents, devices }: Props) {
           ) : (
             <Action icon="download-outline" label="Als PDF herunterladen" onPress={() => exportPdf(doc)} />
           )}
-          <Action icon="trash-outline" label="Beleg löschen" onPress={() => remove(doc)} danger />
         </Card>
       ))}
     </View>

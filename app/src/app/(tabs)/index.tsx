@@ -13,7 +13,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
 import type { DeviceKind } from '@/lib/api-types';
-import { DEVICE_KIND_OPTIONS } from '@/lib/device-ui';
+import { DEVICE_KIND_OPTIONS, isReceipt } from '@/lib/device-ui';
 import { formatPrice, spentInMonth } from '@/lib/format';
 import { isPreviewable } from '@/components/device-thumb';
 import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
@@ -40,6 +40,7 @@ export default function OverviewScreen() {
   const shown = filter === 'all' ? current : current.filter((d) => d.kind === filter);
   const now = new Date();
   const spent = spentInMonth(devices ?? [], now);
+  const receiptsCount = documents?.filter(isReceipt).length ?? 0;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
@@ -83,6 +84,31 @@ export default function OverviewScreen() {
           </Card>
         ) : null}
 
+        {devices?.length ? (
+          <View style={styles.tiles}>
+            <Card onPress={() => router.push('/tresor')} style={[styles.flex, styles.tile]}>
+              <Ionicons name="cube-outline" size={22} color={theme.brandIcon} />
+              <View style={styles.flex}>
+                <Text variant="caption" color="textSecondary">
+                  Geräte
+                </Text>
+                <Text variant="headline">{devices.length}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
+            </Card>
+            <Card onPress={() => router.push('/posteingang')} style={[styles.flex, styles.tile]}>
+              <Ionicons name="document-text-outline" size={22} color={theme.brandIcon} />
+              <View style={styles.flex}>
+                <Text variant="caption" color="textSecondary">
+                  Alle Belege
+                </Text>
+                <Text variant="headline">{receiptsCount}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
+            </Card>
+          </View>
+        ) : null}
+
         {current.length > 0 ? (
           <View style={styles.chips}>
             <Chip label="Alle" selected={filter === 'all'} onPress={() => setFilter('all')} />
@@ -120,6 +146,8 @@ const styles = StyleSheet.create({
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   spent: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  tiles: { flexDirection: 'row', gap: spacing.md },
+  tile: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   logo: {
     width: 60,
     height: 60,

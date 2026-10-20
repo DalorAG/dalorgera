@@ -27,7 +27,6 @@ import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
 import {
   api,
   useDeleteDeviceMutation,
-  useDeleteDocumentMutation,
   useGetDeviceQuery,
   useGetDocumentsQuery,
   useUpdateDeviceMutation,
@@ -59,7 +58,6 @@ export default function DeviceScreen() {
   const { data: documents } = useGetDocumentsQuery({ deviceId: id });
   const [deleteDevice, { isLoading: deleting }] = useDeleteDeviceMutation();
   const [updateDevice, { isLoading: servicing }] = useUpdateDeviceMutation();
-  const [deleteDocument] = useDeleteDocumentMutation();
   const [downloading, setDownloading] = useState(false);
   const receipts = documents?.filter(isReceipt) ?? [];
   // Newest first, so this is the latest Produktfoto.
@@ -98,15 +96,6 @@ export default function DeviceScreen() {
       { text: 'Abbrechen', style: 'cancel' },
     ]);
   };
-
-  const removeReceipt = (doc: DocumentItem) =>
-    confirm('Beleg löschen?', 'Das Foto wird dauerhaft gelöscht. Das Gerät bleibt erhalten.', async () => {
-      try {
-        await deleteDocument(doc.id).unwrap();
-      } catch (err) {
-        notify('Löschen fehlgeschlagen', apiErrorMessage(err));
-      }
-    });
 
   const downloadReceipts = async () => {
     setDownloading(true);
@@ -236,9 +225,6 @@ export default function DeviceScreen() {
                     {formatDate(doc.createdAt)}
                   </Text>
                 </View>
-              </Pressable>
-              <Pressable onPress={() => removeReceipt(doc)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Beleg löschen">
-                <Ionicons name="trash-outline" size={20} color={theme.danger} />
               </Pressable>
             </View>
           ))}
