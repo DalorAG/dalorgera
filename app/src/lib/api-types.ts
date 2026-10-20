@@ -10,7 +10,7 @@ export type Me = {
 export type DeviceStatus = 'active' | 'expiring' | 'expired';
 /** statutory = Gewährleistung only, warranty = Garantie, maintenance = recurring Wartung, vignette = Autobahnvignette. */
 export type DeviceKind = 'statutory' | 'warranty' | 'maintenance' | 'vignette';
-export type DocumentKind = 'receipt' | 'warranty_card' | 'invoice' | 'other';
+export type DocumentKind = 'receipt' | 'warranty_card' | 'invoice' | 'other' | 'product_photo';
 export type DocumentMimeType = 'image/jpeg' | 'image/png' | 'image/heic' | 'image/webp' | 'application/pdf';
 
 export type Device = {

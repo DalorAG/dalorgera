@@ -37,7 +37,7 @@ export function DocumentsList({ documents, devices }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const open = (doc: DocumentItem) => {
-    if (doc.deviceId) return router.push(`/device/${doc.deviceId}`);
+    if (doc.deviceId) return router.push(`/receipt/${doc.id}`);
     // Unassigned photo: create a device from it.
     dispatch(scanCompleted({ documentId: doc.id, kind: doc.kind, extraction: doc.extracted }));
     router.push('/device/new');

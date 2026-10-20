@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { StatusBadge } from '@/components/badge';
 import { Button } from '@/components/button';
@@ -11,12 +12,23 @@ import { DocumentThumb } from '@/components/document-thumb';
 import { ProgressRing } from '@/components/progress';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
+import { shareDocumentsAsPdf } from '@/features/export-pdf';
+import { useProductPhoto, type PhotoSource } from '@/features/use-product-photo';
 import type { DocumentItem } from '@/lib/api-types';
-import { badgeLabel, DEVICE_KIND_LABELS, DOCUMENT_KIND_LABELS, iconForDevice, toneForStatus } from '@/lib/device-ui';
+import {
+  badgeLabel,
+  DEVICE_KIND_LABELS,
+  DOCUMENT_KIND_LABELS,
+  iconForDevice,
+  isReceipt,
+  manufacturerSupportUrl,
+  toneForStatus,
+} from '@/lib/device-ui';
 import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
 import {
   api,
   useDeleteDeviceMutation,
+  useDeleteDocumentMutation,
   useGetDeviceQuery,
   useGetDocumentsQuery,
   useUpdateDeviceMutation,
@@ -48,6 +60,12 @@ export default function DeviceScreen() {
   const { data: documents } = useGetDocumentsQuery({ deviceId: id });
   const [deleteDevice, { isLoading: deleting }] = useDeleteDeviceMutation();
   const [updateDevice, { isLoading: servicing }] = useUpdateDeviceMutation();
+  const [deleteDocument] = useDeleteDocumentMutation();
+  const [downloading, setDownloading] = useState(false);
+  const receipts = documents?.filter(isReceipt) ?? [];
+  // Newest first, so this is the latest Produktfoto.
+  const productPhoto = documents?.find((d) => d.kind === 'product_photo');
+  const { choose: chooseProductPhoto, saving: savingPhoto } = useProductPhoto(id, productPhoto);
 
   if (isLoading) return <StateView kind="loading" />;
   if (error || !device) return <StateView kind="error" error={error} onRetry={refetch} />;
@@ -61,6 +79,50 @@ export default function DeviceScreen() {
       await WebBrowser.openBrowserAsync(url);
     } catch (err) {
       Alert.alert('Beleg kann nicht geöffnet werden', apiErrorMessage(err));
+    }
+  };
+
+  const saveProductPhoto = async (source: PhotoSource) => {
+    try {
+      await chooseProductPhoto(source);
+    } catch (err) {
+      notify('Foto konnte nicht gespeichert werden', apiErrorMessage(err));
+    }
+  };
+
+  const pickProductPhoto = () => {
+    // The browser file dialog offers the camera itself where there is one.
+    if (Platform.OS === 'web') return saveProductPhoto('library');
+    Alert.alert('Produktfoto', undefined, [
+      { text: 'Foto aufnehmen', onPress: () => saveProductPhoto('camera') },
+      { text: 'Aus Galerie wählen', onPress: () => saveProductPhoto('library') },
+      { text: 'Abbrechen', style: 'cancel' },
+    ]);
+  };
+
+  const removeReceipt = (doc: DocumentItem) =>
+    confirm('Beleg löschen?', 'Das Foto wird dauerhaft gelöscht. Das Gerät bleibt erhalten.', async () => {
+      try {
+        await deleteDocument(doc.id).unwrap();
+      } catch (err) {
+        notify('Löschen fehlgeschlagen', apiErrorMessage(err));
+      }
+    });
+
+  const downloadReceipts = async () => {
+    setDownloading(true);
+    try {
+      const files = await Promise.all(
+        receipts.map(async (document) => ({
+          document,
+          url: (await dispatch(api.endpoints.getDocumentUrl.initiate(document.id)).unwrap()).url,
+        })),
+      );
+      await shareDocumentsAsPdf(files, device.name);
+    } catch (err) {
+      notify('PDF konnte nicht erstellt werden', apiErrorMessage(err));
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -88,7 +150,20 @@ export default function DeviceScreen() {
       <Stack.Screen options={{ title: device.name }} />
 
       <View style={styles.header}>
-        <DeviceThumb icon={iconForDevice(device.category, device.name)} size={72} />
+        <Pressable
+          onPress={pickProductPhoto}
+          disabled={savingPhoto}
+          accessibilityRole="button"
+          accessibilityLabel={productPhoto ? 'Produktfoto ändern' : 'Produktfoto hinzufügen'}>
+          <DeviceThumb icon={iconForDevice(device.category, device.name)} size={72} photo={productPhoto} />
+          <View style={[styles.photoBadge, { backgroundColor: theme.brand, borderColor: theme.background }]}>
+            {savingPhoto ? (
+              <ActivityIndicator size="small" color={theme.textOnBrand} />
+            ) : (
+              <Ionicons name="camera" size={14} color={theme.textOnBrand} />
+            )}
+          </View>
+        </Pressable>
         <View style={styles.flex}>
           <Text variant="title">{device.name}</Text>
           <Text variant="body" color="textSecondary">
@@ -157,23 +232,51 @@ export default function DeviceScreen() {
         {device.priceCents != null ? <Row label="Preis" value={formatPrice(device.priceCents, device.currency)} /> : null}
       </Card>
 
+      {device.kind !== 'vignette' ? (
+        <Button
+          label={device.brand ? `${device.brand} kontaktieren` : 'Hersteller kontaktieren'}
+          variant="secondary"
+          icon="chatbubbles-outline"
+          onPress={() => WebBrowser.openBrowserAsync(manufacturerSupportUrl(device))}
+        />
+      ) : null}
+
       <Text variant="title">Belege</Text>
-      <View style={styles.docs}>
-        {documents?.map((doc) => (
-          <Pressable key={doc.id} onPress={() => openDocument(doc)} style={styles.doc} accessibilityRole="button">
-            <DocumentThumb document={doc} size={88} />
-            <Text variant="micro" color="textSecondary">
-              {DOCUMENT_KIND_LABELS[doc.kind]}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-      <Button
-        label="Beleg hinzufügen"
-        variant="secondary"
-        icon="camera-outline"
-        onPress={() => router.push({ pathname: '/scan', params: { deviceId: device.id } })}
-      />
+      {receipts.length ? (
+        <>
+          <View style={styles.docs}>
+            {receipts.map((doc) => (
+              <View key={doc.id} style={styles.doc}>
+                <Pressable onPress={() => openDocument(doc)} accessibilityRole="button" accessibilityLabel={DOCUMENT_KIND_LABELS[doc.kind]}>
+                  <DocumentThumb document={doc} size={88} />
+                </Pressable>
+                <Pressable
+                  onPress={() => removeReceipt(doc)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Beleg löschen"
+                  style={[styles.docDelete, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Ionicons name="trash-outline" size={14} color={theme.danger} />
+                </Pressable>
+                <Text variant="micro" color="textSecondary">
+                  {DOCUMENT_KIND_LABELS[doc.kind]}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <Button
+            label="Herunterladen"
+            variant="secondary"
+            icon="download-outline"
+            onPress={downloadReceipts}
+            loading={downloading}
+          />
+        </>
+      ) : (
+        <Text variant="body" color="textSecondary">
+          Keine Belege gespeichert.
+        </Text>
+      )}
       <Button label="Gerät löschen" variant="danger" icon="trash-outline" onPress={remove} loading={deleting} />
     </ScrollView>
   );
@@ -204,4 +307,26 @@ const styles = StyleSheet.create({
   insuranceHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   docs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   doc: { alignItems: 'center', gap: spacing.xs },
+  docDelete: {
+    position: 'absolute',
+    top: -spacing.xs,
+    right: -spacing.xs,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoBadge: {
+    position: 'absolute',
+    right: -4,
+    bottom: -4,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

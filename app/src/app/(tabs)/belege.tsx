@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -10,6 +10,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { SearchField } from '@/components/search-field';
 import { StateView } from '@/components/state-view';
 import { useDebouncedValue } from '@/features/use-debounced-value';
+import { isReceipt } from '@/lib/device-ui';
 import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
 import { spacing, useTheme } from '@/theme';
 
@@ -18,7 +19,9 @@ export default function ReceiptsScreen() {
   const [search, setSearch] = useState('');
   // Full-text search in the recognized receipt text (store, products, ...).
   const q = useDebouncedValue(search.trim());
-  const { data, isLoading, isFetching, error, refetch } = useGetDocumentsQuery(q ? { q } : undefined);
+  const { data: documents, isLoading, isFetching, error, refetch } = useGetDocumentsQuery(q ? { q } : undefined);
+  // Produktfotos belong to the device, not to the Belege.
+  const data = documents?.filter(isReceipt);
   const { data: devices } = useGetDevicesQuery();
 
   return (

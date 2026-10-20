@@ -11,6 +11,43 @@ function fileName(document: DocumentItem): string {
   return `${DOCUMENT_KIND_LABELS[document.kind]}-${document.createdAt.slice(0, 10)}.pdf`;
 }
 
+function exportDir(): Directory {
+  const dir = new Directory(Paths.cache, 'export');
+  dir.create({ idempotent: true });
+  return dir;
+}
+
+function freshFile(dir: Directory, name: string): File {
+  const file = new File(dir, name);
+  if (file.exists) file.delete();
+  return file;
+}
+
+/** Embedded as base64 so the page never renders before the image has loaded. */
+async function photoDataUri(dir: Directory, document: DocumentItem, url: string): Promise<string> {
+  const photo = await File.downloadFileAsync(url, new File(dir, `photo-${document.id}`), { idempotent: true });
+  const data = `data:${document.mimeType};base64,${await photo.base64()}`;
+  photo.delete();
+  return data;
+}
+
+/** One A4 page per photo. */
+async function photosToPdf(photos: string[], target: File): Promise<void> {
+  const pages = photos
+    .map(
+      (src, i) => `<div style="height:100vh;display:flex;justify-content:center;align-items:center;${
+        i < photos.length - 1 ? 'page-break-after:always;' : ''
+      }"><img src="${src}" style="max-width:100%;max-height:100vh;object-fit:contain" /></div>`,
+    )
+    .join('');
+  const { uri } = await Print.printToFileAsync({ html: `<html><body style="margin:0">${pages}</body></html>` });
+  await new File(uri).move(target);
+}
+
+function share(target: File): Promise<void> {
+  return Sharing.shareAsync(target.uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: target.name });
+}
+
 /**
  * Turns a stored receipt photo into an A4 PDF and opens the share sheet
  * ("In Dateien sichern", mail, ...). PDFs are shared as they are.
@@ -22,25 +59,34 @@ export async function shareDocumentAsPdf(document: DocumentItem, url: string): P
     return;
   }
 
-  const dir = new Directory(Paths.cache, 'export');
-  dir.create({ idempotent: true });
-  const target = new File(dir, fileName(document));
-  if (target.exists) target.delete();
+  const dir = exportDir();
+  const target = freshFile(dir, fileName(document));
+  if (document.mimeType === 'application/pdf') await File.downloadFileAsync(url, target);
+  else await photosToPdf([await photoDataUri(dir, document, url)], target);
+  await share(target);
+}
 
-  if (document.mimeType === 'application/pdf') {
-    await File.downloadFileAsync(url, target);
-  } else {
-    // Embedded as base64 so the page never renders before the image has loaded.
-    const photo = await File.downloadFileAsync(url, new File(dir, `photo-${document.id}`), { idempotent: true });
-    const data = `data:${document.mimeType};base64,${await photo.base64()}`;
-    photo.delete();
-    const { uri } = await Print.printToFileAsync({
-      html: `<html><body style="margin:0;display:flex;justify-content:center">
-        <img src="${data}" style="max-width:100%;max-height:100vh;object-fit:contain" />
-      </body></html>`,
-    });
-    await new File(uri).move(target);
+/**
+ * All Belege of a device in one PDF, one page per photo ("Belege-Kaffeemaschine.pdf").
+ * A single document goes through shareDocumentAsPdf; stored PDFs cannot be merged and are left out.
+ */
+export async function shareDocumentsAsPdf(
+  documents: { document: DocumentItem; url: string }[],
+  title: string,
+): Promise<void> {
+  if (documents.length === 1) return shareDocumentAsPdf(documents[0].document, documents[0].url);
+  if (Platform.OS === 'web') {
+    for (const { url } of documents) window.open(url, '_blank');
+    return;
   }
 
-  await Sharing.shareAsync(target.uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: target.name });
+  const dir = exportDir();
+  const photos = [];
+  for (const { document, url } of documents) {
+    if (document.mimeType !== 'application/pdf') photos.push(await photoDataUri(dir, document, url));
+  }
+  if (!photos.length) return shareDocumentAsPdf(documents[0].document, documents[0].url);
+  const target = freshFile(dir, `Belege-${title.replace(/[\\/:*?"<>|]/g, '').trim() || 'Gerät'}.pdf`);
+  await photosToPdf(photos, target);
+  await share(target);
 }

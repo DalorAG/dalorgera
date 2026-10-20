@@ -25,10 +25,12 @@ export default function OverviewScreen() {
   const { data: devices, isLoading, isFetching, error, refetch } = useGetDevicesQuery();
 
   const { data: documents } = useGetDocumentsQuery();
-  // Newest photo per device (documents come newest first).
+  // Per device: its Produktfoto, otherwise the newest receipt photo (documents come newest first).
   const photos = new Map<string, NonNullable<typeof documents>[number]>();
   for (const doc of documents ?? []) {
-    if (doc.deviceId && isPreviewable(doc) && !photos.has(doc.deviceId)) photos.set(doc.deviceId, doc);
+    if (!doc.deviceId || !isPreviewable(doc)) continue;
+    const shown = photos.get(doc.deviceId);
+    if (!shown || (doc.kind === 'product_photo' && shown.kind !== 'product_photo')) photos.set(doc.deviceId, doc);
   }
 
   // Sorted by deadline on the server; expired devices live in the Tresor,

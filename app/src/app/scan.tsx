@@ -38,9 +38,8 @@ type Phase =
 export default function ScanScreen() {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  // deviceId: adding a photo to an existing device, no recognition, no form.
   // kind: what was picked on "+", handed on to the device form.
-  const { deviceId, kind: deviceKind } = useLocalSearchParams<{ deviceId?: string; kind?: DeviceKind }>();
+  const { kind: deviceKind } = useLocalSearchParams<{ kind?: DeviceKind }>();
   const [permission, requestPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
   const [kind, setKind] = useState<DocumentKind>('receipt');
@@ -58,13 +57,7 @@ export default function ScanScreen() {
       setPhase({ name: 'uploading', uri });
       // Smaller upload; if the image cannot be processed, the original is sent as is.
       const photo = await preparePhoto(uri).catch(() => ({ uri, mimeType }));
-      const doc = await upload({ ...photo, kind, deviceId });
-
-      if (deviceId) {
-        setPhase({ name: 'done', uri });
-        router.back();
-        return;
-      }
+      const doc = await upload({ ...photo, kind });
 
       setPhase({ name: 'recognizing', uri });
       let extraction: ReceiptExtraction | null = null;
@@ -108,7 +101,6 @@ export default function ScanScreen() {
       {permission?.granted && !previewUri ? (
         <CameraView ref={camera} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} />
       ) : null}
-      {previewUri ? <Image source={{ uri: previewUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : null}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: scannerColors.overlay }]} />
 
       <SafeAreaView edges={['top']} style={styles.flex}>
@@ -143,7 +135,10 @@ export default function ScanScreen() {
         </View>
 
         <View style={styles.viewfinder}>
-          {permission && !permission.granted && !previewUri ? (
+          {previewUri ? (
+            // The whole photo, not cropped to the screen and not hidden behind the frame or the sheet.
+            <Image source={{ uri: previewUri }} style={styles.preview} contentFit="contain" />
+          ) : permission && !permission.granted ? (
             <View style={styles.permission}>
               <Ionicons name="camera-outline" size={40} color={scannerColors.text} />
               <Text variant="body" style={[styles.center, { color: scannerColors.text }]}>
@@ -301,6 +296,7 @@ const styles = StyleSheet.create({
   kind: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.pill },
   viewfinder: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xxxl },
   frame: { width: '100%', maxWidth: 320, aspectRatio: 0.7 },
+  preview: { flex: 1, alignSelf: 'stretch', marginVertical: spacing.lg },
   permission: { alignItems: 'center', gap: spacing.lg, maxWidth: 280 },
   corner: { position: 'absolute', width: 28, height: 28, borderColor: scannerColors.frame, borderRadius: 4 },
   sideControls: { position: 'absolute', right: spacing.lg, top: spacing.lg, gap: spacing.md },

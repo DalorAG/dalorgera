@@ -1,7 +1,7 @@
 import type { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 
-import type { Device, DeviceKind, DeviceStatus, DocumentKind } from './api-types';
+import type { Device, DeviceKind, DeviceStatus, DocumentItem, DocumentKind } from './api-types';
 import { formatDate, remainingLabel } from './format';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -102,4 +102,36 @@ export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
   warranty_card: 'Garantieschein',
   invoice: 'Rechnung',
   other: 'Sonstiges',
+  product_photo: 'Produktfoto',
 };
+
+/** Belege are everything except the photo of the device itself. */
+export function isReceipt(document: Pick<DocumentItem, 'kind'>): boolean {
+  return document.kind !== 'product_photo';
+}
+
+// Austrian support pages of common brands; anything else falls back to a web search.
+const MANUFACTURER_SUPPORT: [RegExp, string][] = [
+  [/apple/i, 'https://support.apple.com/de-at'],
+  [/samsung/i, 'https://www.samsung.com/at/support/'],
+  [/bosch/i, 'https://www.bosch-home.at/service'],
+  [/siemens/i, 'https://www.siemens-home.bsh-group.com/at/service'],
+  [/philips/i, 'https://www.philips.at/c-w/support-home.html'],
+  [/xiaomi/i, 'https://www.mi.com/at/support/'],
+  [/^hp\b|hewlett/i, 'https://support.hp.com/at-de'],
+  [/microsoft/i, 'https://support.microsoft.com/de-at'],
+  [/google/i, 'https://support.google.com/store'],
+  [/jura/i, 'https://www.jura.com/de-at/service'],
+  [/asus/i, 'https://www.asus.com/at/support/'],
+  [/tefal/i, 'https://www.tefal.at/service'],
+  [/k(ä|ae|a)rcher/i, 'https://www.kaercher.com/at/services.html'],
+];
+
+/** Support page of the device's manufacturer, or a search for its Kundenservice. */
+export function manufacturerSupportUrl(device: Pick<Device, 'brand' | 'name'>): string {
+  const brand = device.brand?.trim();
+  const known = brand ? MANUFACTURER_SUPPORT.find(([re]) => re.test(brand))?.[1] : undefined;
+  if (known) return known;
+  const query = `${brand && !device.name.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ` : ''}${device.name} Kundenservice`;
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}

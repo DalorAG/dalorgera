@@ -1,13 +1,21 @@
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
 import { useAppSelector } from '@/store';
 import { useRegisterPushTokenMutation } from '@/store/api';
 
-Notifications.setNotificationHandler({
+// Expo Go on Android ships without the expo-notifications native modules, so even importing it crashes.
+const pushUnsupported =
+  Platform.OS === 'web' ||
+  (Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient);
+
+const Notifications: typeof import('expo-notifications') | null = pushUnsupported
+  ? null
+  : require('expo-notifications');
+
+Notifications?.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
     shouldShowList: true,
@@ -25,7 +33,7 @@ export function usePushRegistration() {
   const [register] = useRegisterPushTokenMutation();
 
   useEffect(() => {
-    if (!signedIn || Platform.OS === 'web' || !Device.isDevice) return;
+    if (!signedIn || !Notifications || !Device.isDevice) return;
     const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
     if (!projectId) {
       console.info('Push notifications disabled: no EAS projectId (run `eas init`).');
@@ -45,7 +53,6 @@ export function usePushRegistration() {
         const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
         await register({ token, platform: Platform.OS as 'ios' | 'android' }).unwrap();
       } catch (err) {
-        // E.g. Expo Go on Android does not support remote push.
         console.info('Push registration skipped:', (err as Error).message);
       }
     })();

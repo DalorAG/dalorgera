@@ -242,7 +242,7 @@ export type Database = {
     }
     Enums: {
       device_kind: "statutory" | "warranty" | "maintenance" | "vignette"
-      document_kind: "receipt" | "warranty_card" | "invoice" | "other"
+      document_kind: "receipt" | "warranty_card" | "invoice" | "other" | "product_photo"
       reminder_kind: "warranty" | "statutory" | "maintenance" | "vignette"
     }
     CompositeTypes: {
@@ -262,7 +262,7 @@ export const Constants = {
   public: {
     Enums: {
       device_kind: ["statutory", "warranty", "maintenance", "vignette"],
-      document_kind: ["receipt", "warranty_card", "invoice", "other"],
+      document_kind: ["receipt", "warranty_card", "invoice", "other", "product_photo"],
       reminder_kind: ["warranty", "statutory", "maintenance", "vignette"],
     },
   },
