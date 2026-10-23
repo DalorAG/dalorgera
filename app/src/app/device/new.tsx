@@ -8,7 +8,9 @@ import { Chip } from '@/components/chip';
 import { InfoBanner } from '@/components/info-banner';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
+import { DeviceCodeFields, imeiError } from '@/components/device-code-fields';
 import type { DeviceKind, ReceiptExtraction } from '@/lib/api-types';
+import { hasDeviceCodes, INTERVAL_OPTIONS, WARRANTY_OPTIONS } from '@/lib/device-ui';
 import { apiErrorMessage, currencySymbol, formatDate, parseDate, parsePrice } from '@/lib/format';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
@@ -30,20 +32,6 @@ const TITLES: Record<DeviceKind, string> = {
   vignette: 'Vignette hinzufügen',
 };
 
-const WARRANTY_OPTIONS = [
-  { months: 12, label: '1 Jahr' },
-  { months: 24, label: '2 Jahre' },
-  { months: 36, label: '3 Jahre' },
-  { months: 60, label: '5 Jahre' },
-];
-
-const INTERVAL_OPTIONS = [
-  { months: 6, label: 'Halbjährlich' },
-  { months: 12, label: 'Jährlich' },
-  { months: 24, label: 'Alle 2 Jahre' },
-  { months: 36, label: 'Alle 3 Jahre' },
-];
-
 type Form = {
   name: string;
   category: string;
@@ -53,6 +41,8 @@ type Form = {
   price: string;
   warrantyMonths: number;
   intervalMonths: number;
+  serialNumber: string;
+  imei: string;
 };
 
 function formFromExtraction(extraction: ReceiptExtraction | null, productIndex = 0): Form {
@@ -67,6 +57,8 @@ function formFromExtraction(extraction: ReceiptExtraction | null, productIndex =
     price: cents != null ? (cents / 100).toFixed(2).replace('.', ',') : '',
     warrantyMonths: product?.warrantyMonths || 24,
     intervalMonths: 12,
+    serialNumber: '',
+    imei: '',
   };
 }
 
@@ -130,6 +122,8 @@ export default function NewDeviceScreen() {
     else if (kind !== 'vignette' && purchaseDate > new Date().toISOString().slice(0, 10))
       next.purchaseDate = 'Das Datum liegt in der Zukunft.';
     if (priceCents === null) next.price = 'Ungültiger Betrag';
+    if (hasDeviceCodes(kind)) next.imei = imeiError(form.imei);
+    if (!next.imei) delete next.imei;
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -146,6 +140,8 @@ export default function NewDeviceScreen() {
         warrantyMonths: kind === 'warranty' ? form.warrantyMonths : undefined,
         maintenanceIntervalMonths: kind === 'maintenance' ? form.intervalMonths : undefined,
         validUntil: kind === 'vignette' ? vignette?.validUntil : undefined,
+        serialNumber: hasDeviceCodes(kind) ? form.serialNumber.trim() || undefined : undefined,
+        imei: hasDeviceCodes(kind) ? form.imei || undefined : undefined,
       }).unwrap();
       if (scan.documentId && !firstDeviceId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
 
@@ -305,6 +301,15 @@ export default function NewDeviceScreen() {
           keyboardType="decimal-pad"
           error={errors.price}
         />
+        {hasDeviceCodes(kind) ? (
+          <DeviceCodeFields
+            serialNumber={form.serialNumber}
+            imei={form.imei}
+            showImei
+            onChange={(target, value) => set(target === 'imei' ? 'imei' : 'serialNumber', value)}
+            errors={{ imei: errors.imei }}
+          />
+        ) : null}
 
         {kind === 'warranty' ? (
           <View style={styles.group}>

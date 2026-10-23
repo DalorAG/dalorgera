@@ -20,6 +20,8 @@ export function toDeviceInsert(dto: CreateDeviceDto | UpdateDeviceDto): Partial<
     currency: dto.currency,
     warranty_months: dto.warrantyMonths,
     notes: dto.notes,
+    serial_number: dto.serialNumber,
+    imei: dto.imei,
   };
   // Keep the row consistent with its kind (enforced by check constraints as well).
   if (dto.kind && dto.kind !== 'warranty') row.warranty_months = 0;
@@ -62,6 +64,8 @@ export function toDeviceResponse(row: DeviceRow, now = new Date()) {
     progress: Math.min(1, Math.max(0, 1 - daysLeft / totalDays)),
     status,
     notes: row.notes,
+    serialNumber: row.serial_number,
+    imei: row.imei,
     documentsCount: row.documents?.[0]?.count ?? 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

@@ -35,6 +35,8 @@ export type Device = {
   progress: number;
   status: DeviceStatus;
   notes: string | null;
+  serialNumber: string | null;
+  imei: string | null;
   documentsCount: number;
   createdAt: string;
   updatedAt: string;
@@ -43,16 +45,19 @@ export type Device = {
 export type DeviceInput = {
   kind?: DeviceKind;
   name: string;
-  category?: string;
-  brand?: string;
-  store?: string;
+  /** Optional fields: null clears them on update. */
+  category?: string | null;
+  brand?: string | null;
+  store?: string | null;
   purchaseDate: string;
-  priceCents?: number;
+  priceCents?: number | null;
   currency?: string;
   warrantyMonths?: number;
   maintenanceIntervalMonths?: number;
   validUntil?: string;
-  notes?: string;
+  notes?: string | null;
+  serialNumber?: string | null;
+  imei?: string | null;
 };
 
 export type ReceiptExtraction = {

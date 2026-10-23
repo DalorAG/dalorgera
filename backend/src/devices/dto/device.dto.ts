@@ -10,6 +10,7 @@ import {
   Matches,
   Max,
   MaxLength,
+  MinLength,
   Min,
   ValidateIf,
 } from 'class-validator';
@@ -98,6 +99,18 @@ export class CreateDeviceDto {
   @IsString()
   @MaxLength(2000)
   notes?: string;
+
+  @ApiPropertyOptional({ example: 'C02XK1JHJG5J', description: 'Seriennummer, null clears it' })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(64)
+  serialNumber?: string | null;
+
+  @ApiPropertyOptional({ example: '356938035643809', description: '15 digits, null clears it' })
+  @IsOptional()
+  @Matches(/^\d{15}$/)
+  imei?: string | null;
 }
 
 export class UpdateDeviceDto extends PartialType(CreateDeviceDto) {}

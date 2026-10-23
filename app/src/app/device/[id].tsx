@@ -18,6 +18,9 @@ import {
   addMonths,
   badgeLabel,
   claimGuidance,
+  extensionDaysLabel,
+  extensionWindow,
+  hasDeviceCodes,
   DEVICE_KIND_LABELS,
   DOCUMENT_KIND_LABELS,
   iconForDevice,
@@ -71,6 +74,7 @@ export default function DeviceScreen() {
 
   const tone = toneForStatus(device.status);
   const guidance = device.kind === 'warranty' || device.kind === 'statutory' ? claimGuidance(device) : null;
+  const extension = hasDeviceCodes(device.kind) ? extensionWindow(device.purchaseDate) : null;
   const accent = tone === 'success' ? theme.success : tone === 'warning' ? theme.warning : theme.danger;
 
   const openDocument = async (doc: DocumentItem) => {
@@ -138,7 +142,22 @@ export default function DeviceScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: device.name }} />
+      <Stack.Screen
+        options={{
+          title: device.name,
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push({ pathname: '/device/edit', params: { id: device.id } })}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Bearbeiten">
+              <Text variant="body" color="brand">
+                Bearbeiten
+              </Text>
+            </Pressable>
+          ),
+        }}
+      />
 
       <View style={styles.header}>
         <Pressable
@@ -222,20 +241,36 @@ export default function DeviceScreen() {
         {device.kind === 'warranty' || device.kind === 'statutory' ? <Row label="Kaufdatum" value={formatDate(device.purchaseDate)} /> : null}
         {device.store ? <Row label="Gekauft bei" value={device.store} /> : null}
         {device.priceCents != null ? <Row label="Preis" value={formatPrice(device.priceCents, device.currency)} /> : null}
+        {device.serialNumber ? <Row label="Seriennummer" value={device.serialNumber} selectable /> : null}
+        {device.imei ? <Row label="IMEI" value={device.imei} selectable /> : null}
       </Card>
 
-      {(device.kind === 'warranty' || device.kind === 'statutory') && device.status !== 'expired' ? (
-        <Button
-          label="Garantie verlängern"
-          variant="secondary"
-          icon="shield-outline"
-          onPress={() =>
-            router.push({
-              pathname: '/warranty-request',
-              params: { productName: device.name, ...(receipts[0] ? { documentId: receipts[0].id } : {}) },
-            })
-          }
-        />
+      {extension ? (
+        <Card style={[styles.guidance, { borderColor: theme.brand, borderWidth: 1 }]}>
+          <View style={styles.guidanceHeader}>
+            <Ionicons name="shield-half-outline" size={22} color={theme.brand} />
+            <Text variant="headline" style={styles.flex}>
+              Garantie verlängern möglich
+            </Text>
+            <Text variant="captionStrong" color="brand">
+              {extensionDaysLabel(extension)}
+            </Text>
+          </View>
+          <Text variant="body" color="textSecondary">
+            Eine Garantieverlängerung kannst du bis 4 Wochen nach dem Kauf abschließen, also bis {formatDate(extension.until)}. Über
+            unseren Versicherungspartner geht das direkt aus der App.
+          </Text>
+          <Button
+            label="Garantie verlängern"
+            icon="shield-outline"
+            onPress={() =>
+              router.push({
+                pathname: '/warranty-request',
+                params: { productName: device.name, ...(receipts[0] ? { documentId: receipts[0].id } : {}) },
+              })
+            }
+          />
+        </Card>
       ) : null}
 
       <Text variant="title">Belege</Text>
@@ -286,13 +321,13 @@ export default function DeviceScreen() {
   );
 }
 
-function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+function Row({ label, value, strong, selectable }: { label: string; value: string; strong?: boolean; selectable?: boolean }) {
   return (
     <View style={styles.row}>
       <Text variant="caption" color="textSecondary" style={styles.rowLabel}>
         {label}
       </Text>
-      <Text variant={strong ? 'bodyStrong' : 'body'} numberOfLines={1}>
+      <Text variant={strong ? 'bodyStrong' : 'body'} numberOfLines={1} selectable={selectable}>
         {value}
       </Text>
     </View>

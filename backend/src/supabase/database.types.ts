@@ -24,6 +24,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          imei: string | null
           kind: Database["public"]["Enums"]["device_kind"]
           maintenance_interval_months: number | null
           name: string
@@ -31,6 +32,7 @@ export type Database = {
           price_cents: number | null
           protected_until: string | null
           purchase_date: string
+          serial_number: string | null
           statutory_until: string | null
           store: string | null
           updated_at: string
@@ -45,6 +47,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          imei?: string | null
           kind?: Database["public"]["Enums"]["device_kind"]
           maintenance_interval_months?: number | null
           name: string
@@ -52,6 +55,7 @@ export type Database = {
           price_cents?: number | null
           protected_until?: string | null
           purchase_date: string
+          serial_number?: string | null
           statutory_until?: string | null
           store?: string | null
           updated_at?: string
@@ -66,6 +70,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          imei?: string | null
           kind?: Database["public"]["Enums"]["device_kind"]
           maintenance_interval_months?: number | null
           name?: string
@@ -73,6 +78,7 @@ export type Database = {
           price_cents?: number | null
           protected_until?: string | null
           purchase_date?: string
+          serial_number?: string | null
           statutory_until?: string | null
           store?: string | null
           updated_at?: string

@@ -19,6 +19,8 @@ const row = (overrides: Partial<Tables<'devices'>> = {}): Tables<'devices'> => (
   statutory_until: '2026-01-01',
   protected_until: '2026-01-01',
   notes: null,
+  serial_number: null,
+  imei: null,
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
   ...overrides,

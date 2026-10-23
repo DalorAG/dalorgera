@@ -7,7 +7,7 @@ import { DocumentThumb } from '@/components/document-thumb';
 import { useOpenDocument } from '@/components/documents-list';
 import { Text } from '@/components/text';
 import type { Device, DocumentItem } from '@/lib/api-types';
-import { DOCUMENT_KIND_LABELS, lacksWarranty } from '@/lib/device-ui';
+import { documentExtensionWindow, DOCUMENT_KIND_LABELS, extensionDaysLabel } from '@/lib/device-ui';
 import { formatDate, formatPrice } from '@/lib/format';
 import { useGetWarrantyRequestsQuery } from '@/store/api';
 import { radius, shadow, spacing, useTheme } from '@/theme';
@@ -73,7 +73,7 @@ export function InboxList({ documents, devices }: Props) {
               const sender = doc.extracted?.merchant || DOCUMENT_KIND_LABELS[doc.kind];
               const price = formatPrice(doc.extracted?.totalCents, doc.extracted?.currency ?? 'EUR');
               const device = doc.deviceId ? devicesById.get(doc.deviceId) : undefined;
-              const offerWarranty = lacksWarranty(doc, device);
+              const extension = documentExtensionWindow(doc, device);
               return (
                 <Fragment key={doc.id}>
                   {i > 0 ? <View style={[styles.divider, { backgroundColor: theme.border }]} /> : null}
@@ -121,7 +121,7 @@ export function InboxList({ documents, devices }: Props) {
                             Garantieverlängerung angefragt
                           </Text>
                         </View>
-                      ) : offerWarranty ? (
+                      ) : extension ? (
                         <Pressable
                           onPress={() =>
                             router.push({
@@ -131,11 +131,11 @@ export function InboxList({ documents, devices }: Props) {
                           }
                           hitSlop={6}
                           accessibilityRole="button"
-                          accessibilityLabel="Garantieverlängerung anfragen"
+                          accessibilityLabel={`Garantie verlängern, ${extensionDaysLabel(extension)} möglich`}
                           style={[styles.pill, { backgroundColor: theme.brandSoft, borderColor: theme.brand }]}>
                           <Ionicons name="shield-half-outline" size={14} color={theme.brand} />
                           <Text variant="micro" color="brand" style={styles.pillLabel}>
-                            Garantie verlängern
+                            Garantie verlängern · {extensionDaysLabel(extension)}
                           </Text>
                         </Pressable>
                       ) : null}

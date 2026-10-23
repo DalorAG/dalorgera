@@ -97,6 +97,25 @@ export function deadlineLabel(device: Device): string {
   return `${device.warrantyUntil && device.warrantyUntil === device.protectedUntil ? 'Garantie' : 'Gewährleistung'} bis ${date}`;
 }
 
+export const WARRANTY_OPTIONS = [
+  { months: 12, label: '1 Jahr' },
+  { months: 24, label: '2 Jahre' },
+  { months: 36, label: '3 Jahre' },
+  { months: 60, label: '5 Jahre' },
+];
+
+export const INTERVAL_OPTIONS = [
+  { months: 6, label: 'Halbjährlich' },
+  { months: 12, label: 'Jährlich' },
+  { months: 24, label: 'Alle 2 Jahre' },
+  { months: 36, label: 'Alle 3 Jahre' },
+];
+
+/** Seriennummer and IMEI belong to purchases, not to a Wartung or a Vignette. */
+export function hasDeviceCodes(kind: DeviceKind): boolean {
+  return kind === 'warranty' || kind === 'statutory';
+}
+
 export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
   receipt: 'Kassenbon',
   warranty_card: 'Garantieschein',
@@ -136,14 +155,32 @@ export function manufacturerSupportUrl(device: Pick<Device, 'brand' | 'name'>): 
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
+/** A Garantieverlängerung can only be taken out within 4 weeks of the purchase. */
+export const EXTENSION_WINDOW_DAYS = 28;
+
+export type ExtensionWindow = { until: string; daysLeft: number };
+
+/** Open window for a Garantieverlängerung, or null once the 4 weeks are over. */
+export function extensionWindow(purchaseDate: string, today = new Date().toISOString().slice(0, 10)): ExtensionWindow | null {
+  const [y, m, d] = purchaseDate.slice(0, 10).split('-').map(Number);
+  const until = new Date(Date.UTC(y, m - 1, d + EXTENSION_WINDOW_DAYS)).toISOString().slice(0, 10);
+  const daysLeft = Math.round((Date.parse(until) - Date.parse(today)) / 86_400_000);
+  return daysLeft >= 0 && purchaseDate.slice(0, 10) <= today ? { until, daysLeft } : null;
+}
+
+/** "noch 12 Tage", "nur noch heute" */
+export function extensionDaysLabel(window: ExtensionWindow): string {
+  if (window.daysLeft === 0) return 'nur noch heute';
+  return `noch ${window.daysLeft} ${window.daysLeft === 1 ? 'Tag' : 'Tage'}`;
+}
+
 /**
- * Purchases we can offer an extended warranty / insurance for: an assigned device that has
- * only the Gewährleistung or whose Garantie is running out, or a receipt that shows no
- * manufacturer warranty at all (e.g. clothes).
+ * Window for a receipt in the Posteingang: the device's purchase date, else the recognized one,
+ * else the day it was scanned. Wartung and Vignette cannot be extended.
  */
-export function lacksWarranty(doc: DocumentItem, device?: Device): boolean {
-  if (device) return device.kind === 'statutory' || (device.kind === 'warranty' && device.status !== 'active');
-  return !doc.extracted?.products.some((p) => p.warrantyMonths);
+export function documentExtensionWindow(doc: DocumentItem, device?: Device): ExtensionWindow | null {
+  if (device && !hasDeviceCodes(device.kind)) return null;
+  return extensionWindow(device?.purchaseDate ?? doc.extracted?.purchaseDate ?? doc.createdAt.slice(0, 10));
 }
 
 /** 2024-03-15 + 12 → 2025-03-15 (month ends are clamped: 31.01. + 1 → 28./29.02.). */

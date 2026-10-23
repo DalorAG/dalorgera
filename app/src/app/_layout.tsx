@@ -71,6 +71,10 @@ function RootNavigator() {
           />
           <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="pricing" options={{ headerShown: true, title: 'Tarife', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen
+            name="device/edit"
+            options={{ presentation: 'modal', headerShown: true, title: 'Bearbeiten' }}
+          />
           <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="receipt/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen
