@@ -70,7 +70,7 @@ Most are German, but they can come from any European country or from the US. The
 Rules:
 - Use null for anything that is not clearly readable. Never guess dates, prices or product names.
 - First decide where the document is from: language, currency symbol, address, phone number, tax wording ("MwSt"/"VAT"/"TVA" is European, "Sales Tax" and a US state is American). Use that to read dates and numbers.
-- Dates: return them as YYYY-MM-DD. European documents write day first (DD.MM.YYYY, DD.MM.YY, DD/MM/YYYY, DD-MM-YYYY). US documents write month first (MM/DD/YYYY, MM/DD/YY). A part above 12 is always the day. Written months ("Oct 5, 2024", "5. Okt. 2024") and YYYY-MM-DD are unambiguous. If day and month could be swapped and the origin is unclear, use null. Use the purchase date ("Datum", "Date"), not print, due or warranty dates.
+- Dates: return them as YYYY-MM-DD. The year is always the LAST part (or the first when it has 4 digits, YYYY-MM-DD). European documents write day first: DD.MM.YYYY, DD.MM.YY, DD/MM/YYYY, DD-MM-YYYY, so "22.10.26" is 2026-10-22 and "05.03.25" is 2025-03-05. US documents write month first: MM/DD/YYYY, MM/DD/YY, so "10/22/26" is 2026-10-22. Between day and month, a part above 12 is the day. Two-digit years are 20YY. Written months ("Oct 5, 2024", "5. Okt. 2024") are unambiguous. If day and month could be swapped and the origin is unclear, use null. Use the purchase date ("Datum", "Date"), not print, due or warranty dates. A purchase date is never after today's date given below.
 - Prices: the separator followed by exactly two digits at the end is the decimal separator, the other one groups thousands. European: "1.299,00" or "1 299,00" is 129900 cents. US: "1,299.00" is 129900 cents. "49,90" and "49.90" are both 4990 cents. Convert to integer cents.
 - currency is the ISO 4217 code of the amounts: "€" is EUR, "$" on a US document is USD, "CHF", "£" is GBP. Do not assume EUR when the document shows another currency.
 - totalCents is the final amount paid ("Summe", "Gesamt", "Total", "zu zahlen", "Amount Due", "Balance Due"), not a subtotal, tax ("MwSt", "VAT", "Sales Tax") or change ("Rückgeld", "Change").
@@ -81,13 +81,62 @@ Rules:
 - In rawText, transcribe every readable line exactly as printed (keep umlauts, prices, separators and line order).`;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const NUMERIC_DATE_RE = /(?<!\d)(\d{1,2})([./-])(\d{1,2})\2(\d{4}|\d{2})(?!\d)/g;
+const ISO_DATE_RE = /(?<!\d)(\d{4})-(\d{2})-(\d{2})(?!\d)/g;
+
+function isoDate(y: number, m: number, d: number): string | null {
+  const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const date = new Date(`${iso}T00:00:00Z`);
+  return y >= 2000 && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(iso) ? iso : null;
+}
+
+/**
+ * Dates printed on the document, read the way the document writes them: day first in Europe
+ * ("22.10.26" is 2026-10-22), month first on US documents with slashes ("10/22/26").
+ */
+export function datesInText(rawText: string, currency: string | null): string[] {
+  const us = currency === 'USD';
+  const found: string[] = [];
+  for (const [, a, sep, b, y] of rawText.matchAll(NUMERIC_DATE_RE)) {
+    const year = y.length === 2 ? 2000 + Number(y) : Number(y);
+    // Dots are always day first; slashes follow the document's origin.
+    const [day, month] = us && sep === '/' ? [Number(b), Number(a)] : [Number(a), Number(b)];
+    const date = isoDate(year, month, day);
+    if (date) found.push(date);
+  }
+  for (const [, y, m, d] of rawText.matchAll(ISO_DATE_RE)) {
+    const date = isoDate(Number(y), Number(m), Number(d));
+    if (date) found.push(date);
+  }
+  return found;
+}
+
+const parts = (iso: string) => [Number(iso.slice(2, 4)), Number(iso.slice(5, 7)), Number(iso.slice(8, 10))].sort((x, y) => x - y).join();
+
+/**
+ * The model sometimes swaps day, month and year ("22.10.26" read as 2022-10-26) or returns a future
+ * date. Prefer the date as printed when it is made of the same numbers, and never accept a future one.
+ */
+export function correctPurchaseDate(date: string | null, rawText: string, currency: string | null, today: string): string | null {
+  // null means the model could not read it; that stays null.
+  if (!date) return null;
+  const printed = [...new Set(datesInText(rawText, currency).filter((d) => d <= today))];
+  if (printed.includes(date)) return date;
+  const same = printed.find((d) => parts(d) === parts(date));
+  if (same) return same;
+  if (date <= today) return date;
+  // A future date is wrong; use the printed one when there is no doubt which it is.
+  return printed.length === 1 ? printed[0] : null;
+}
 export const MAX_RAW_TEXT = 20_000;
 
 /** Drops values that do not match the expected format instead of trusting the model blindly. */
-export function sanitizeExtraction(raw: ReceiptExtraction): ReceiptExtraction {
+export function sanitizeExtraction(raw: ReceiptExtraction, today = new Date().toISOString().slice(0, 10)): ReceiptExtraction {
   const int = (v: number | null, max: number) => (Number.isInteger(v) && v! >= 0 && v! <= max ? v : null);
   const text = (v: string | null, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
-  const date = raw.purchaseDate && DATE_RE.test(raw.purchaseDate) && !Number.isNaN(Date.parse(raw.purchaseDate)) ? raw.purchaseDate : null;
+  const modelDate = raw.purchaseDate && DATE_RE.test(raw.purchaseDate) && !Number.isNaN(Date.parse(raw.purchaseDate)) ? raw.purchaseDate : null;
+  const currency = raw.currency && /^[A-Z]{3}$/.test(raw.currency) ? raw.currency : null;
+  const date = correctPurchaseDate(modelDate, typeof raw.rawText === 'string' ? raw.rawText : '', currency, today);
 
   return {
     rawText: typeof raw.rawText === 'string' ? raw.rawText.replace(/\r\n?/g, '\n').trim().slice(0, MAX_RAW_TEXT) : '',
@@ -95,7 +144,7 @@ export function sanitizeExtraction(raw: ReceiptExtraction): ReceiptExtraction {
     merchant: text(raw.merchant, 120),
     purchaseDate: date,
     totalCents: int(raw.totalCents, 100_000_000),
-    currency: raw.currency && /^[A-Z]{3}$/.test(raw.currency) ? raw.currency : null,
+    currency,
     products: mergeWarrantyExtensions((raw.products ?? []).slice(0, 20).flatMap((p) => {
       const name = text(p.name, 120);
       if (!name) return [];

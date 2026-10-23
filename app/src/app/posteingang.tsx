@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
@@ -10,10 +9,11 @@ import { InboxList } from '@/components/inbox-list';
 import { ScreenHeader } from '@/components/screen-header';
 import { SearchField } from '@/components/search-field';
 import { StateView } from '@/components/state-view';
+import { Text } from '@/components/text';
 import { useDebouncedValue } from '@/features/use-debounced-value';
 import { isReceipt } from '@/lib/device-ui';
 import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
-import { spacing, useTheme } from '@/theme';
+import { radius, spacing, useTheme } from '@/theme';
 
 export default function InboxScreen() {
   const theme = useTheme();
@@ -29,7 +29,7 @@ export default function InboxScreen() {
   const { data: devices } = useGetDevicesQuery();
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
+    <View style={[styles.flex, { backgroundColor: theme.background }]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}>
@@ -42,6 +42,24 @@ export default function InboxScreen() {
               : 'Alles zugeordnet. Neue Scans landen hier.'
           }
         />
+        <Pressable
+          onPress={() => router.push('/warranty-request')}
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            styles.insurance,
+            { backgroundColor: pressed ? theme.brandSoft : theme.surface, borderColor: theme.brand },
+          ]}>
+          <View style={[styles.insuranceIcon, { backgroundColor: theme.brand }]}>
+            <Ionicons name="shield-half" size={20} color={theme.textOnBrand} />
+          </View>
+          <View style={styles.flex}>
+            <Text variant="bodyStrong">Zusatzversicherung anfragen</Text>
+            <Text variant="caption" color="textSecondary">
+              Foto machen, absenden: Garantieverlängerung oder Versicherung über unseren Partner.
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.brand} />
+        </Pressable>
         <SearchField value={search} onChangeText={setSearch} placeholder="Belege durchsuchen, z. B. Media Markt" />
         <View style={styles.filters}>
           <Chip label="Alle" selected={!onlyOpen} onPress={() => setOnlyOpen(false)} />
@@ -67,12 +85,14 @@ export default function InboxScreen() {
           />
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   filters: { flexDirection: 'row', gap: spacing.sm },
+  insurance: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1 },
+  insuranceIcon: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
 });

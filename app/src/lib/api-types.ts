@@ -103,11 +103,29 @@ export type UploadUrl = { storagePath: string; signedUrl: string; token: string 
 
 export type WarrantyRequestStatus = 'new' | 'contacted' | 'closed';
 
-/** A Garantieverlängerung request sent to our insurance team. */
+export type WarrantyRequestKind = 'extension' | 'luxury';
+export type LuxuryCategory = 'watch' | 'jewelry' | 'bag' | 'other';
+
+/** A Garantieverlängerung or Luxus-Versicherung request sent to our insurance team. */
 export type WarrantyRequest = {
   id: string;
+  kind: WarrantyRequestKind;
   documentId: string | null;
+  /** For luxury items the model, e.g. Submariner */
   productName: string;
+  category: LuxuryCategory | null;
+  brand: string | null;
   status: WarrantyRequestStatus;
   createdAt: string;
+};
+
+export type CreateWarrantyRequest = {
+  kind?: WarrantyRequestKind;
+  documentId?: string;
+  productName: string;
+  message?: string;
+  category?: LuxuryCategory;
+  brand?: string;
+  serialNumber?: string;
+  valueCents?: number;
 };

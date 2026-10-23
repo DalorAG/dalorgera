@@ -92,9 +92,19 @@ export default function NewDeviceScreen() {
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((f) => ({ ...f, [key]: value }));
 
-  const pickProduct = (index: number) => {
+  // Unsaved edits per product, so switching between products does not lose them.
+  const [drafts, setDrafts] = useState<Record<number, Form>>({});
+  const pickProduct = (index: number, keepDraft = true) => {
+    if (index === productIndex) return;
+    if (keepDraft) setDrafts((d) => ({ ...d, [productIndex]: form }));
     setProductIndex(index);
-    setForm(formFromExtraction(scan.extraction, index));
+    setForm(drafts[index] ?? formFromExtraction(scan.extraction, index));
+    setErrors({});
+  };
+  /** Tapping a product edits it (and ticks it if needed). */
+  const editProduct = (index: number) => {
+    if (!included.includes(index)) setIncluded([...included, index]);
+    pickProduct(index);
   };
 
   /** Ticked products not saved yet, in receipt order. */
@@ -156,8 +166,7 @@ export default function NewDeviceScreen() {
       setSavedProducts(saved);
       setFirstDeviceId(firstDeviceId ?? device.id);
       setLastSaved(device.name);
-      setErrors({});
-      pickProduct(next);
+      pickProduct(next, false);
     } catch (err) {
       setErrors({ submit: apiErrorMessage(err) });
     }
@@ -192,37 +201,83 @@ export default function NewDeviceScreen() {
             {products.map((p, i) => {
               const saved = savedProducts.includes(i);
               const checked = saved || included.includes(i);
+              const editing = i === productIndex && !saved;
               return (
                 <Pressable
                   key={`${p.name}-${i}`}
-                  onPress={() => !saved && toggleProduct(i)}
+                  onPress={() => !saved && editProduct(i)}
                   disabled={saved}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked, disabled: saved }}
+                  accessibilityRole="button"
+                  accessibilityLabel={saved ? `${p.name}, gespeichert` : editing ? `${p.name}, wird bearbeitet` : `${p.name} bearbeiten`}
                   style={[
                     styles.product,
-                    { borderColor: i === productIndex ? theme.brand : theme.border, backgroundColor: theme.surface },
+                    editing
+                      ? { borderColor: theme.brand, backgroundColor: theme.brandSoft, borderWidth: 2 }
+                      : { borderColor: theme.border, backgroundColor: theme.surface },
                   ]}>
-                  <Ionicons
-                    name={saved ? 'checkmark-circle' : checked ? 'checkbox' : 'square-outline'}
-                    size={22}
-                    color={saved ? theme.success : checked ? theme.brand : theme.textSecondary}
-                  />
-                  <Text variant="body" numberOfLines={1} style={styles.flex} color={checked ? 'text' : 'textSecondary'}>
+                  <Pressable
+                    onPress={() => !saved && toggleProduct(i)}
+                    disabled={saved}
+                    hitSlop={10}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={`${p.name} übernehmen`}
+                    accessibilityState={{ checked, disabled: saved }}>
+                    <Ionicons
+                      name={saved ? 'checkmark-circle' : checked ? 'checkbox' : 'square-outline'}
+                      size={24}
+                      color={saved ? theme.success : checked ? theme.brand : theme.textSecondary}
+                    />
+                  </Pressable>
+                  <Text
+                    variant={editing ? 'bodyStrong' : 'body'}
+                    numberOfLines={1}
+                    style={styles.flex}
+                    color={checked ? 'text' : 'textSecondary'}>
                     {p.name}
                   </Text>
-                  <Text variant="caption" color="textSecondary">
-                    {saved ? 'Gespeichert' : i === productIndex ? 'Wird bearbeitet' : ''}
-                  </Text>
+                  {saved ? (
+                    <Text variant="captionStrong" color="success">
+                      Gespeichert
+                    </Text>
+                  ) : editing ? (
+                    <View style={[styles.editingBadge, { backgroundColor: theme.brand }]}>
+                      <Ionicons name="pencil" size={12} color={theme.textOnBrand} />
+                      <Text variant="micro" color="textOnBrand" style={styles.badgeLabel}>
+                        Wird bearbeitet
+                      </Text>
+                    </View>
+                  ) : checked ? (
+                    <View style={[styles.editButton, { borderColor: theme.brand }]}>
+                      <Ionicons name="pencil-outline" size={12} color={theme.brand} />
+                      <Text variant="micro" color="brand" style={styles.badgeLabel}>
+                        Bearbeiten
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text variant="caption" color="textSecondary">
+                      Nicht übernehmen
+                    </Text>
+                  )}
                 </Pressable>
               );
             })}
             <Text variant="caption" color="textSecondary">
-              Nicht benötigte Positionen (z. B. Lebensmittel) einfach abwählen.
+              Tippe auf ein Produkt, um es zu bearbeiten. Nicht benötigte Positionen (z. B. Lebensmittel) per Kästchen abwählen.
             </Text>
           </View>
         ) : null}
         {lastSaved ? <InfoBanner title={`„${lastSaved}“ gespeichert`} subtitle="Jetzt das nächste Produkt prüfen." /> : null}
+        {products.length > 1 && products[productIndex] && !savedProducts.includes(productIndex) ? (
+          <View style={[styles.formHeader, { borderColor: theme.brand }]}>
+            <Ionicons name="pencil" size={16} color={theme.brand} />
+            <Text variant="headline" numberOfLines={1} style={styles.flex}>
+              Angaben zu „{products[productIndex].name}“
+            </Text>
+            <Text variant="caption" color="textSecondary">
+              {pending(included).indexOf(productIndex) + 1 + savedProducts.length} von {pending(included).length + savedProducts.length}
+            </Text>
+          </View>
+        ) : null}
 
         {kind === 'vignette' ? (
           <>
@@ -377,6 +432,25 @@ const styles = StyleSheet.create({
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl * 2 },
   group: { gap: spacing.sm },
   groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  editingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: radius.pill,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  badgeLabel: { fontWeight: '600' },
+  formHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingLeft: spacing.sm, borderLeftWidth: 3 },
   product: {
     flexDirection: 'row',
     alignItems: 'center',

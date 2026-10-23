@@ -1,4 +1,4 @@
-import { mergeWarrantyExtensions, sanitizeExtraction } from './receipt-extraction.js';
+import { correctPurchaseDate, datesInText, mergeWarrantyExtensions, sanitizeExtraction } from './receipt-extraction.js';
 
 describe('sanitizeExtraction', () => {
   it('keeps valid values and drops malformed ones', () => {
@@ -65,5 +65,42 @@ describe('mergeWarrantyExtensions', () => {
 
   it('drops the warranty line even when its duration is unreadable', () => {
     expect(mergeWarrantyExtensions([product('iPhone 15'), product('Geräteversicherung')])).toEqual([product('iPhone 15')]);
+  });
+});
+
+describe('purchase dates', () => {
+  const today = '2026-10-23';
+
+  it('reads printed dates day first, two-digit years as 20YY', () => {
+    expect(datesInText('Datum: 22.10.26 14:05\nBon 05.03.2025', 'EUR')).toEqual(['2026-10-22', '2025-03-05']);
+  });
+
+  it('reads US slash dates month first', () => {
+    expect(datesInText('10/22/26 2:05 PM', 'USD')).toEqual(['2026-10-22']);
+    expect(datesInText('22/10/26', 'EUR')).toEqual(['2026-10-22']);
+  });
+
+  it('fixes a model date with day and year swapped', () => {
+    expect(correctPurchaseDate('2022-10-26', 'MEDIAMARKT\n22.10.26 14:05', 'EUR', today)).toBe('2026-10-22');
+  });
+
+  it('keeps a model date that is printed or plausible', () => {
+    expect(correctPurchaseDate('2026-10-22', '22.10.26', 'EUR', today)).toBe('2026-10-22');
+    expect(correctPurchaseDate('2025-06-01', 'no date in text', 'EUR', today)).toBe('2025-06-01');
+    expect(correctPurchaseDate(null, '22.10.26', 'EUR', today)).toBeNull();
+  });
+
+  it('never returns a future date', () => {
+    expect(correctPurchaseDate('2027-01-01', 'Datum 21.10.2026', 'EUR', today)).toBe('2026-10-21');
+    expect(correctPurchaseDate('2027-01-01', 'nothing', 'EUR', today)).toBeNull();
+  });
+
+  it('is applied by sanitizeExtraction', () => {
+    expect(
+      sanitizeExtraction(
+        { rawText: 'OBI\n22.10.26', documentType: 'receipt', merchant: 'OBI', purchaseDate: '2022-10-26', totalCents: null, currency: 'EUR', products: [] },
+        today,
+      ).purchaseDate,
+    ).toBe('2026-10-22');
   });
 });

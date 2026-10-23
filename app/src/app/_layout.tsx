@@ -71,15 +71,21 @@ function RootNavigator() {
           />
           <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="pricing" options={{ headerShown: true, title: 'Tarife', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen name="posteingang" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen
             name="device/edit"
             options={{ presentation: 'modal', headerShown: true, title: 'Bearbeiten' }}
           />
           <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="receipt/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen name="document/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen
             name="warranty-request"
             options={{ presentation: 'modal', headerShown: true, title: 'Garantie verlängern' }}
+          />
+          <Stack.Screen
+            name="luxury-request"
+            options={{ presentation: 'modal', headerShown: true, title: 'Luxusartikel versichern' }}
           />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !termsAccepted}>

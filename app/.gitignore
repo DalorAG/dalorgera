@@ -44,3 +44,6 @@ example
 
 # local env
 .env
+
+# local iOS archives (scripts/testflight.sh)
+/build

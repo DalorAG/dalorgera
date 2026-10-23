@@ -9,8 +9,12 @@
     "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.dalorstudio.garantieradar",
-      "buildNumber": "1"
+      "bundleIdentifier": "com.dalor.gewaga",
+      "buildNumber": "1",
+      "appleTeamId": "JU7XHAGP62",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

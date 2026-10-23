@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 import type {
+  CreateWarrantyRequest,
   Device,
   DeviceInput,
   DeviceStatus,
@@ -101,7 +102,7 @@ export const api = createApi({
       query: () => 'warranty-requests',
       providesTags: ['WarrantyRequest'],
     }),
-    createWarrantyRequest: build.mutation<WarrantyRequest, { documentId?: string; productName: string; message?: string }>({
+    createWarrantyRequest: build.mutation<WarrantyRequest, CreateWarrantyRequest>({
       query: (body) => ({ url: 'warranty-requests', method: 'POST', body }),
       invalidatesTags: ['WarrantyRequest'],
     }),

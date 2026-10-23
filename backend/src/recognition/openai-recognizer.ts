@@ -45,7 +45,7 @@ export class OpenAiRecognizer {
           {
             role: 'user',
             content: [
-              { type: 'text', text: 'Extract the purchase data from this document.' },
+              { type: 'text', text: `Extract the purchase data from this document. Today is ${new Date().toISOString().slice(0, 10)}.` },
               { type: 'image_url', image_url: { url: imageUrl, detail: 'high' } },
             ],
           },

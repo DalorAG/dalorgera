@@ -1,5 +1,4 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -8,10 +7,11 @@ import { VaultRow } from '@/components/devices/vault-row';
 import { DocumentThumb } from '@/components/document-thumb';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
+import { openDocument } from '@/features/open-document';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
 import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
 import { useAppDispatch } from '@/store';
-import { api, useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
+import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
 import { scanCompleted } from '@/store/scan-slice';
 import { spacing, useTheme } from '@/theme';
 
@@ -34,8 +34,7 @@ export default function ReceiptScreen() {
 
   const openPhoto = async () => {
     try {
-      const { url } = await dispatch(api.endpoints.getDocumentUrl.initiate(doc.id)).unwrap();
-      await WebBrowser.openBrowserAsync(url);
+      await openDocument(doc, dispatch);
     } catch (err) {
       Alert.alert('Beleg kann nicht geöffnet werden', apiErrorMessage(err));
     }

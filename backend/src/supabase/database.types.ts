@@ -230,43 +230,58 @@ export type Database = {
       }
       warranty_requests: {
         Row: {
+          brand: string | null
+          category: string | null
           created_at: string
           currency: string | null
           document_id: string | null
           id: string
+          kind: string
           message: string | null
           price_cents: number | null
           product_name: string
           purchase_date: string | null
+          serial_number: string | null
           status: string
           store: string | null
           user_id: string
+          value_cents: number | null
         }
         Insert: {
+          brand?: string | null
+          category?: string | null
           created_at?: string
           currency?: string | null
           document_id?: string | null
           id?: string
+          kind?: string
           message?: string | null
           price_cents?: number | null
           product_name: string
           purchase_date?: string | null
+          serial_number?: string | null
           status?: string
           store?: string | null
           user_id?: string
+          value_cents?: number | null
         }
         Update: {
+          brand?: string | null
+          category?: string | null
           created_at?: string
           currency?: string | null
           document_id?: string | null
           id?: string
+          kind?: string
           message?: string | null
           price_cents?: number | null
           product_name?: string
           purchase_date?: string | null
+          serial_number?: string | null
           status?: string
           store?: string | null
           user_id?: string
+          value_cents?: number | null
         }
         Relationships: [
           {

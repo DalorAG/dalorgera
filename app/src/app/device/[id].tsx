@@ -12,6 +12,7 @@ import { ProgressRing } from '@/components/progress';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
 import { shareDocumentsAsPdf } from '@/features/export-pdf';
+import { openDocument } from '@/features/open-document';
 import { useProductPhoto, type PhotoSource } from '@/features/use-product-photo';
 import type { DocumentItem } from '@/lib/api-types';
 import {
@@ -37,7 +38,7 @@ import {
   useUpdateDeviceMutation,
 } from '@/store/api';
 import { useAppDispatch } from '@/store';
-import { spacing, useTheme } from '@/theme';
+import { radius, spacing, useTheme } from '@/theme';
 
 function notify(title: string, message: string) {
   if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
@@ -77,12 +78,11 @@ export default function DeviceScreen() {
   const extension = hasDeviceCodes(device.kind) ? extensionWindow(device.purchaseDate) : null;
   const accent = tone === 'success' ? theme.success : tone === 'warning' ? theme.warning : theme.danger;
 
-  const openDocument = async (doc: DocumentItem) => {
+  const openReceipt = async (doc: DocumentItem) => {
     try {
-      const { url } = await dispatch(api.endpoints.getDocumentUrl.initiate(doc.id)).unwrap();
-      await WebBrowser.openBrowserAsync(url);
+      await openDocument(doc, dispatch);
     } catch (err) {
-      Alert.alert('Beleg kann nicht geöffnet werden', apiErrorMessage(err));
+      notify('Beleg kann nicht geöffnet werden', apiErrorMessage(err));
     }
   };
 
@@ -148,10 +148,12 @@ export default function DeviceScreen() {
           headerRight: () => (
             <Pressable
               onPress={() => router.push({ pathname: '/device/edit', params: { id: device.id } })}
-              hitSlop={12}
+              hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Bearbeiten">
-              <Text variant="body" color="brand">
+              accessibilityLabel="Bearbeiten"
+              style={({ pressed }) => [styles.editButton, { backgroundColor: pressed ? theme.brandSoft : theme.surface, borderColor: theme.brand }]}>
+              <Ionicons name="pencil" size={14} color={theme.brand} />
+              <Text variant="captionStrong" color="brand">
                 Bearbeiten
               </Text>
             </Pressable>
@@ -279,7 +281,7 @@ export default function DeviceScreen() {
           {receipts.map((doc) => (
             <View key={doc.id} style={styles.row}>
               <Pressable
-                onPress={() => openDocument(doc)}
+                onPress={() => openReceipt(doc)}
                 accessibilityRole="button"
                 accessibilityLabel={`${DOCUMENT_KIND_LABELS[doc.kind]} öffnen`}
                 style={styles.docOpen}>
@@ -336,6 +338,17 @@ function Row({ label, value, strong, selectable }: { label: string; value: strin
 
 const styles = StyleSheet.create({
   guidance: { gap: spacing.sm },
+  // Native headers inset headerRight themselves, the web header does not.
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginRight: Platform.OS === 'web' ? spacing.lg : 0,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
   guidanceHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl * 2 },
