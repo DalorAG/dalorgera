@@ -88,10 +88,21 @@ export type Reminder = {
   id: string;
   deviceId: string;
   deviceName: string | null;
-  kind: 'warranty' | 'statutory' | 'maintenance' | 'vignette';
+  kind: 'warranty' | 'statutory' | 'maintenance' | 'vignette' | 'burden_of_proof';
   daysBefore: number;
   dueDate: string;
   remindAt: string;
 };
 
 export type UploadUrl = { storagePath: string; signedUrl: string; token: string };
+
+export type WarrantyRequestStatus = 'new' | 'contacted' | 'closed';
+
+/** A Garantieverlängerung request sent to our insurance team. */
+export type WarrantyRequest = {
+  id: string;
+  documentId: string | null;
+  productName: string;
+  status: WarrantyRequestStatus;
+  createdAt: string;
+};

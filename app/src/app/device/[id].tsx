@@ -15,7 +15,9 @@ import { shareDocumentsAsPdf } from '@/features/export-pdf';
 import { useProductPhoto, type PhotoSource } from '@/features/use-product-photo';
 import type { DocumentItem } from '@/lib/api-types';
 import {
+  addMonths,
   badgeLabel,
+  claimGuidance,
   DEVICE_KIND_LABELS,
   DOCUMENT_KIND_LABELS,
   iconForDevice,
@@ -68,6 +70,7 @@ export default function DeviceScreen() {
   if (error || !device) return <StateView kind="error" error={error} onRetry={refetch} />;
 
   const tone = toneForStatus(device.status);
+  const guidance = device.kind === 'warranty' || device.kind === 'statutory' ? claimGuidance(device) : null;
   const accent = tone === 'success' ? theme.success : tone === 'warning' ? theme.warning : theme.danger;
 
   const openDocument = async (doc: DocumentItem) => {
@@ -180,12 +183,36 @@ export default function DeviceScreen() {
               {device.kind === 'warranty' ? (
                 <Row label="Garantie bis" value={device.warrantyUntil ? formatDate(device.warrantyUntil) : 'keine'} />
               ) : null}
+              <Row label="Beweislast beim Händler bis" value={formatDate(addMonths(device.purchaseDate, 12))} />
               <Row label="Gewährleistung bis" value={formatDate(device.statutoryUntil)} />
               <Row label="Geschützt bis" value={formatDate(device.protectedUntil)} strong />
             </>
           )}
         </View>
       </Card>
+
+      {guidance ? (
+        <Card style={styles.guidance}>
+          <View style={styles.guidanceHeader}>
+            <Ionicons
+              name={guidance.contact === 'manufacturer' ? 'business-outline' : guidance.contact === 'store' ? 'storefront-outline' : 'alert-circle-outline'}
+              size={22}
+              color={theme.brandIcon}
+            />
+            <Text variant="headline" style={styles.flex}>
+              {guidance.title}
+            </Text>
+          </View>
+          <Text variant="body" color="textSecondary">
+            {guidance.body}
+          </Text>
+          <Pressable onPress={() => router.push('/rechte')} accessibilityRole="link" hitSlop={8}>
+            <Text variant="captionStrong" color="brand">
+              Garantie oder Gewährleistung? Mehr erfahren
+            </Text>
+          </Pressable>
+        </Card>
+      ) : null}
 
       {device.kind === 'maintenance' ? (
         <Button label="Wartung erledigt" icon="checkmark" onPress={markServiced} loading={servicing} />
@@ -203,7 +230,10 @@ export default function DeviceScreen() {
           variant="secondary"
           icon="shield-outline"
           onPress={() =>
-            notify('Bald verfügbar', 'Angebote zur Garantieverlängerung und Geräteversicherung kommen in Kürze.')
+            router.push({
+              pathname: '/warranty-request',
+              params: { productName: device.name, ...(receipts[0] ? { documentId: receipts[0].id } : {}) },
+            })
           }
         />
       ) : null}
@@ -270,6 +300,8 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
 }
 
 const styles = StyleSheet.create({
+  guidance: { gap: spacing.sm },
+  guidanceHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl * 2 },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },

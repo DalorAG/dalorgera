@@ -222,6 +222,56 @@ export type Database = {
         }
         Relationships: []
       }
+      warranty_requests: {
+        Row: {
+          created_at: string
+          currency: string | null
+          document_id: string | null
+          id: string
+          message: string | null
+          price_cents: number | null
+          product_name: string
+          purchase_date: string | null
+          status: string
+          store: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          document_id?: string | null
+          id?: string
+          message?: string | null
+          price_cents?: number | null
+          product_name: string
+          purchase_date?: string | null
+          status?: string
+          store?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          document_id?: string | null
+          id?: string
+          message?: string | null
+          price_cents?: number | null
+          product_name?: string
+          purchase_date?: string | null
+          status?: string
+          store?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranty_requests_document_id_user_id_fkey"
+            columns: ["document_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "user_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -243,7 +293,7 @@ export type Database = {
     Enums: {
       device_kind: "statutory" | "warranty" | "maintenance" | "vignette"
       document_kind: "receipt" | "warranty_card" | "invoice" | "other" | "product_photo"
-      reminder_kind: "warranty" | "statutory" | "maintenance" | "vignette"
+      reminder_kind: "warranty" | "statutory" | "maintenance" | "vignette" | "burden_of_proof"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -263,7 +313,7 @@ export const Constants = {
     Enums: {
       device_kind: ["statutory", "warranty", "maintenance", "vignette"],
       document_kind: ["receipt", "warranty_card", "invoice", "other", "product_photo"],
-      reminder_kind: ["warranty", "statutory", "maintenance", "vignette"],
+      reminder_kind: ["warranty", "statutory", "maintenance", "vignette", "burden_of_proof"],
     },
   },
 } as const

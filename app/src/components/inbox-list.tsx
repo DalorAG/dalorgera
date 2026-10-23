@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Fragment } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -6,8 +7,9 @@ import { DocumentThumb } from '@/components/document-thumb';
 import { useOpenDocument } from '@/components/documents-list';
 import { Text } from '@/components/text';
 import type { Device, DocumentItem } from '@/lib/api-types';
-import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
+import { DOCUMENT_KIND_LABELS, lacksWarranty } from '@/lib/device-ui';
 import { formatDate, formatPrice } from '@/lib/format';
+import { useGetWarrantyRequestsQuery } from '@/store/api';
 import { radius, shadow, spacing, useTheme } from '@/theme';
 
 type Props = { documents: DocumentItem[]; devices: Device[] };
@@ -53,7 +55,9 @@ function groupByDay(documents: DocumentItem[]) {
 export function InboxList({ documents, devices }: Props) {
   const theme = useTheme();
   const open = useOpenDocument();
-  const deviceNames = new Map(devices.map((d) => [d.id, d.name]));
+  const devicesById = new Map(devices.map((d) => [d.id, d]));
+  const { data: requests } = useGetWarrantyRequestsQuery();
+  const requested = new Set(requests?.map((r) => r.documentId));
   const { groups, today } = groupByDay(documents);
 
   return (
@@ -68,6 +72,8 @@ export function InboxList({ documents, devices }: Props) {
               const unassigned = !doc.deviceId;
               const sender = doc.extracted?.merchant || DOCUMENT_KIND_LABELS[doc.kind];
               const price = formatPrice(doc.extracted?.totalCents, doc.extracted?.currency ?? 'EUR');
+              const device = doc.deviceId ? devicesById.get(doc.deviceId) : undefined;
+              const offerWarranty = lacksWarranty(doc, device);
               return (
                 <Fragment key={doc.id}>
                   {i > 0 ? <View style={[styles.divider, { backgroundColor: theme.border }]} /> : null}
@@ -104,10 +110,35 @@ export function InboxList({ documents, devices }: Props) {
                         <View style={styles.line}>
                           <Ionicons name="checkmark-circle" size={14} color={theme.success} />
                           <Text variant="caption" color="textSecondary" numberOfLines={1} style={styles.sender}>
-                            {deviceNames.get(doc.deviceId!) ?? 'Gerät'}
+                            {device?.name ?? 'Gerät'}
                           </Text>
                         </View>
                       )}
+                      {requested.has(doc.id) ? (
+                        <View style={styles.line}>
+                          <Ionicons name="shield-checkmark-outline" size={14} color={theme.brand} />
+                          <Text variant="caption" color="brand">
+                            Garantieverlängerung angefragt
+                          </Text>
+                        </View>
+                      ) : offerWarranty ? (
+                        <Pressable
+                          onPress={() =>
+                            router.push({
+                              pathname: '/warranty-request',
+                              params: { documentId: doc.id, ...(device ? { productName: device.name } : {}) },
+                            })
+                          }
+                          hitSlop={6}
+                          accessibilityRole="button"
+                          accessibilityLabel="Garantieverlängerung anfragen"
+                          style={[styles.pill, { backgroundColor: theme.brandSoft, borderColor: theme.brand }]}>
+                          <Ionicons name="shield-half-outline" size={14} color={theme.brand} />
+                          <Text variant="micro" color="brand" style={styles.pillLabel}>
+                            Garantie verlängern
+                          </Text>
+                        </Pressable>
+                      ) : null}
                     </View>
                   </Pressable>
                 </Fragment>

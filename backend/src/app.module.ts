@@ -10,6 +10,7 @@ import { HealthController } from './health/health.controller.js';
 import { PushTokensModule } from './push-tokens/push-tokens.module.js';
 import { RemindersModule } from './reminders/reminders.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
+import { WarrantyRequestsModule } from './warranty-requests/warranty-requests.module.js';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { SupabaseModule } from './supabase/supabase.module.js';
     DocumentsModule,
     RemindersModule,
     PushTokensModule,
+    WarrantyRequestsModule,
   ],
   controllers: [HealthController],
 })

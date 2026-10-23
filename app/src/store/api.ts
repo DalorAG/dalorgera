@@ -11,6 +11,7 @@ import type {
   ReceiptExtraction,
   Reminder,
   UploadUrl,
+  WarrantyRequest,
 } from '@/lib/api-types';
 import { env } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
@@ -27,7 +28,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Me', 'Device', 'Document', 'Reminder'],
+  tagTypes: ['Me', 'Device', 'Document', 'Reminder', 'WarrantyRequest'],
   endpoints: (build) => ({
     getMe: build.query<Me, void>({
       query: () => 'me',
@@ -96,6 +97,15 @@ export const api = createApi({
       invalidatesTags: ['Document', { type: 'Device', id: 'LIST' }],
     }),
 
+    getWarrantyRequests: build.query<WarrantyRequest[], void>({
+      query: () => 'warranty-requests',
+      providesTags: ['WarrantyRequest'],
+    }),
+    createWarrantyRequest: build.mutation<WarrantyRequest, { documentId?: string; productName: string; message?: string }>({
+      query: (body) => ({ url: 'warranty-requests', method: 'POST', body }),
+      invalidatesTags: ['WarrantyRequest'],
+    }),
+
     getReminders: build.query<Reminder[], void>({
       query: () => 'reminders',
       providesTags: ['Reminder'],
@@ -125,6 +135,8 @@ export const {
   useRecognizeDocumentMutation,
   useGetDocumentUrlQuery,
   useDeleteDocumentMutation,
+  useGetWarrantyRequestsQuery,
+  useCreateWarrantyRequestMutation,
   useGetRemindersQuery,
   useRegisterPushTokenMutation,
   useUnregisterPushTokenMutation,

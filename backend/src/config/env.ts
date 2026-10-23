@@ -38,6 +38,21 @@ export class Env {
   @IsOptional()
   OPENAI_MODEL = 'gpt-4.1';
 
+  /** Sends Garantieverlängerung requests to our team. Without it requests are only stored. */
+  @IsString()
+  @IsOptional()
+  RESEND_API_KEY?: string;
+
+  /** Verified sender, e.g. "Garantie Wallet <noreply@example.com>". */
+  @IsString()
+  @IsOptional()
+  RESEND_FROM?: string;
+
+  /** Comma separated recipients of Garantieverlängerung requests (our insurance team). */
+  @IsString()
+  @IsOptional()
+  WARRANTY_REQUESTS_EMAIL_TO?: string;
+
   /** Comma separated list, `*` allows every origin. */
   @IsString()
   @IsOptional()

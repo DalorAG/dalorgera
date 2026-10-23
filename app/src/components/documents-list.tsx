@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState, type ComponentProps } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { DocumentThumb } from '@/components/document-thumb';
@@ -11,11 +11,22 @@ import type { Device, DocumentItem } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
 import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
 import { useAppDispatch } from '@/store';
-import { api } from '@/store/api';
+import { api, useDeleteDocumentMutation } from '@/store/api';
 import { scanCompleted } from '@/store/scan-slice';
 import { spacing, useTheme } from '@/theme';
 
 type Props = { documents: DocumentItem[]; devices: Device[] };
+
+function confirmDelete(title: string, message: string, onConfirm: () => void) {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
+    return;
+  }
+  Alert.alert(title, message, [
+    { text: 'Abbrechen', style: 'cancel' },
+    { text: 'Löschen', style: 'destructive', onPress: onConfirm },
+  ]);
+}
 
 /** Assigned documents open their detail page, unassigned photos start a new device. */
 export function useOpenDocument() {
@@ -33,6 +44,7 @@ export function DocumentsList({ documents, devices }: Props) {
   const deviceNames = new Map(devices.map((d) => [d.id, d.name]));
   const [busyId, setBusyId] = useState<string | null>(null);
   const open = useOpenDocument();
+  const [deleteDocument] = useDeleteDocumentMutation();
 
   const exportPdf = async (doc: DocumentItem) => {
     setBusyId(doc.id);
@@ -45,6 +57,24 @@ export function DocumentsList({ documents, devices }: Props) {
       setBusyId(null);
     }
   };
+
+  const remove = (doc: DocumentItem) =>
+    confirmDelete(
+      `${DOCUMENT_KIND_LABELS[doc.kind]} löschen?`,
+      doc.deviceId
+        ? `Der Beleg wird von „${deviceNames.get(doc.deviceId) ?? 'Gerät'}“ entfernt. Das Gerät bleibt erhalten.`
+        : 'Der Beleg wird endgültig gelöscht.',
+      async () => {
+        setBusyId(doc.id);
+        try {
+          await deleteDocument(doc.id).unwrap();
+        } catch (err) {
+          Alert.alert('Beleg konnte nicht gelöscht werden', apiErrorMessage(err));
+        } finally {
+          setBusyId(null);
+        }
+      },
+    );
 
   return (
     <View style={styles.list}>
@@ -65,7 +95,10 @@ export function DocumentsList({ documents, devices }: Props) {
           {busyId === doc.id ? (
             <ActivityIndicator color={theme.brand} />
           ) : (
-            <Action icon="download-outline" label="Als PDF herunterladen" onPress={() => exportPdf(doc)} />
+            <View style={styles.actions}>
+              <Action icon="download-outline" label="Als PDF herunterladen" onPress={() => exportPdf(doc)} />
+              <Action icon="trash-outline" label="Beleg löschen" onPress={() => remove(doc)} danger />
+            </View>
           )}
         </Card>
       ))}
@@ -96,5 +129,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1, gap: spacing.xxs },
   list: { gap: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  actions: { flexDirection: 'row', gap: spacing.xxs },
   action: { padding: spacing.xs },
 });

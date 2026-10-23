@@ -21,6 +21,12 @@ export function reminderMessage(r: DueReminder): { title: string; body: string }
       body: `${r.device_name}: gültig nur noch ${r.days_before} Tage (bis ${until}). Rechtzeitig eine neue kaufen.`,
     };
   }
+  if (r.kind === 'burden_of_proof') {
+    return {
+      title: 'Mängel jetzt melden',
+      body: `${r.device_name}: am ${until} endet das erste Jahr. Bis dahin muss der Händler beweisen, dass ein Mangel nicht schon beim Kauf bestand. Jetzt prüfen, ob alles funktioniert.`,
+    };
+  }
   if (r.kind === 'maintenance') {
     return {
       title: 'Wartung steht an',

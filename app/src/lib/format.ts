@@ -20,12 +20,24 @@ export function formatPrice(cents: number | null | undefined, currency = 'EUR'):
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(cents / 100);
 }
 
-/** "949,00" / "949.00" / "949" → 94900 */
+/** EUR → €, USD → $, CHF → CHF */
+export function currencySymbol(currency: string | null | undefined = 'EUR'): string {
+  try {
+    const parts = new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency ?? 'EUR' }).formatToParts(0);
+    return parts.find((p) => p.type === 'currency')?.value ?? currency ?? '€';
+  } catch {
+    return currency ?? '€';
+  }
+}
+
+/** "949,00" / "949.00" / "949" / "1.299,00" / "1,299.00" → cents; the last separator before 1–2 digits is the decimal one. */
 export function parsePrice(input: string): number | null {
-  const normalized = input.replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
-  if (!normalized) return null;
-  const value = Number(normalized);
-  return Number.isFinite(value) && value >= 0 ? Math.round(value * 100) : null;
+  const s = input.replace(/[^\d,.]/g, '');
+  if (!/\d/.test(s) || input.includes('-')) return null;
+  const decimals = /[.,](\d{1,2})$/.exec(s);
+  const whole = (decimals ? s.slice(0, decimals.index) : s).replace(/[.,]/g, '');
+  const value = Number(`${whole || '0'}.${decimals?.[1] ?? '0'}`);
+  return Number.isFinite(value) ? Math.round(value * 100) : null;
 }
 
 /** Sum of prices for purchases (and services) in the given month, e.g. for "Im Oktober ausgegeben". */

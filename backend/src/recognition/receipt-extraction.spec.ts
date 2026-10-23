@@ -58,6 +58,11 @@ describe('mergeWarrantyExtensions', () => {
     expect(mergeWarrantyExtensions([product('36M Garantie Kompakt')])).toEqual([product('36M Garantie Kompakt')]);
   });
 
+  it('reads US warranty plans', () => {
+    expect(mergeWarrantyExtensions([product('MacBook Air 13'), product('3-Year Protection Plan')])).toEqual([product('MacBook Air 13', 36)]);
+    expect(mergeWarrantyExtensions([product('Dyson V15'), product('Extended Warranty 24 Months')])).toEqual([product('Dyson V15', 24)]);
+  });
+
   it('drops the warranty line even when its duration is unreadable', () => {
     expect(mergeWarrantyExtensions([product('iPhone 15'), product('Geräteversicherung')])).toEqual([product('iPhone 15')]);
   });

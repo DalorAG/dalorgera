@@ -88,6 +88,8 @@ export default function MoreScreen() {
                       ? `Wartung fällig am ${formatDate(r.dueDate)}`
                       : r.kind === 'vignette'
                         ? `Vignette gültig bis ${formatDate(r.dueDate)}`
+                      : r.kind === 'burden_of_proof'
+                        ? `Beweislast beim Händler bis ${formatDate(r.dueDate)}`
                       : `${r.kind === 'warranty' ? 'Garantie' : 'Gewährleistung'} endet am ${formatDate(r.dueDate)}`}{' '}
                     · Erinnerung am{' '}
                     {formatDate(r.remindAt)}
@@ -104,6 +106,8 @@ export default function MoreScreen() {
 
         <Text variant="title">Rechtliches</Text>
         <Card style={styles.links}>
+          <LinkRow icon="help-circle-outline" label="Garantie oder Gewährleistung?" onPress={() => router.push('/rechte')} />
+          <View style={[styles.separator, { backgroundColor: theme.border }]} />
           <LinkRow icon="document-text-outline" label="Nutzungsbedingungen" onPress={() => router.push('/terms')} />
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
           <LinkRow icon="shield-outline" label="Datenschutzerklärung" onPress={() => router.push('/privacy')} />

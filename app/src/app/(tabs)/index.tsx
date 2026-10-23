@@ -53,7 +53,7 @@ export default function OverviewScreen() {
               <Ionicons name="shield-checkmark" size={34} color={theme.brand} />
             </View>
           }
-          title="Garantie-Radar"
+          title="Garantie Wallet"
           subtitle="Deine Geräte. Deine Sicherheit."
           actions={
             <Ionicons name="person-outline" size={24} color={theme.text} onPress={() => router.push('/mehr')} />

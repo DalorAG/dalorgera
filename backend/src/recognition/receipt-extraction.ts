@@ -36,7 +36,7 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
     products: {
       type: 'array',
       description:
-        'Durable goods only (devices, appliances, electronics). Skip accessories under 20 EUR, bags, deposits, services. Extended warranties and insurances are not products.',
+        'Durable goods only (devices, appliances, electronics). Skip accessories under about 20 EUR/USD, bags, deposits, services. Extended warranties and insurances are not products.',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -64,19 +64,21 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
   },
 } as const;
 
-export const EXTRACTION_PROMPT = `You read photos of German receipts (Kassenbon), invoices and warranty cards (Garantieschein).
-The photo may be skewed, curved, shadowed or partly cut off. Read carefully before answering.
+export const EXTRACTION_PROMPT = `You read photos of receipts (Kassenbon), invoices and warranty cards (Garantieschein).
+Most are German, but they can come from any European country or from the US. The photo may be skewed, curved, shadowed or partly cut off. Read carefully before answering.
 
 Rules:
 - Use null for anything that is not clearly readable. Never guess dates, prices or product names.
-- Dates are DD.MM.YYYY (or DD.MM.YY); return them as YYYY-MM-DD. Use the purchase date ("Datum"), not print, due or warranty dates.
-- Prices use a decimal comma ("1.299,00" is 129900 cents). Convert to integer cents.
-- totalCents is the final amount paid ("Summe", "Gesamt", "Total", "zu zahlen"), not a subtotal, VAT ("MwSt") or change ("Rückgeld").
-- A product spans its own line(s): name, then optionally "2 x 49,90" (quantity x unit price) or a model number on the next line. Use the unit price for priceCents and keep one entry per distinct product. Discount lines ("Rabatt") belong to the product above them.
+- First decide where the document is from: language, currency symbol, address, phone number, tax wording ("MwSt"/"VAT"/"TVA" is European, "Sales Tax" and a US state is American). Use that to read dates and numbers.
+- Dates: return them as YYYY-MM-DD. European documents write day first (DD.MM.YYYY, DD.MM.YY, DD/MM/YYYY, DD-MM-YYYY). US documents write month first (MM/DD/YYYY, MM/DD/YY). A part above 12 is always the day. Written months ("Oct 5, 2024", "5. Okt. 2024") and YYYY-MM-DD are unambiguous. If day and month could be swapped and the origin is unclear, use null. Use the purchase date ("Datum", "Date"), not print, due or warranty dates.
+- Prices: the separator followed by exactly two digits at the end is the decimal separator, the other one groups thousands. European: "1.299,00" or "1 299,00" is 129900 cents. US: "1,299.00" is 129900 cents. "49,90" and "49.90" are both 4990 cents. Convert to integer cents.
+- currency is the ISO 4217 code of the amounts: "€" is EUR, "$" on a US document is USD, "CHF", "£" is GBP. Do not assume EUR when the document shows another currency.
+- totalCents is the final amount paid ("Summe", "Gesamt", "Total", "zu zahlen", "Amount Due", "Balance Due"), not a subtotal, tax ("MwSt", "VAT", "Sales Tax") or change ("Rückgeld", "Change").
+- A product spans its own line(s): name, then optionally "2 x 49,90" or "2 @ 49.90" (quantity x unit price) or a model number on the next line. Use the unit price for priceCents and keep one entry per distinct product. Discount lines ("Rabatt", "Discount", "Savings") belong to the product above them.
 - merchant is the store name from the header (logo or top lines), not the street address or payment terminal.
-- Extended warranties and insurances ("Garantieverlängerung", "36M Garantie Kompakt", "Schutzbrief", "Geräteversicherung", "AppleCare") are not products. Leave them out of products and put their total duration into warrantyMonths of the product they cover (usually the line above; "36M" is 36, "3 Jahre" is 36).
+- Extended warranties and insurances ("Garantieverlängerung", "36M Garantie Kompakt", "Schutzbrief", "Geräteversicherung", "AppleCare", "Protection Plan", "Extended Warranty") are not products. Leave them out of products and put their total duration into warrantyMonths of the product they cover (usually the line above; "36M" is 36, "3 Jahre" or "3 Year" is 36).
 - Do not mix up lines of different products. If a line is ambiguous, leave its fields null.
-- In rawText, transcribe every readable line exactly as printed (keep umlauts, prices and line order).`;
+- In rawText, transcribe every readable line exactly as printed (keep umlauts, prices, separators and line order).`;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 export const MAX_RAW_TEXT = 20_000;
@@ -112,13 +114,13 @@ export function sanitizeExtraction(raw: ReceiptExtraction): ReceiptExtraction {
 
 type Product = ReceiptExtraction['products'][number];
 
-const WARRANTY_EXTENSION_RE = /garantie|gewährleistung|schutzbrief|versicherung|applecare/i;
+const WARRANTY_EXTENSION_RE = /garantie|gewährleistung|schutzbrief|versicherung|applecare|warranty|protection plan/i;
 
-/** "36M BW Garantie Kompakt" is 36, "Garantieverlängerung 3 Jahre" is 36. */
+/** "36M BW Garantie Kompakt" is 36, "Garantieverlängerung 3 Jahre" and "3 Year Protection Plan" are 36. */
 function extensionMonths(name: string): number | null {
-  const months = /(\d{1,3})\s*M(?:on(?:ate?)?)?\b/i.exec(name);
+  const months = /(\d{1,3})[\s-]*M(?:on(?:ate?|ths?)?|os?)?\b/i.exec(name);
   if (months) return Number(months[1]);
-  const years = /(\d{1,2})\s*J(?:ahre?)?\b/i.exec(name);
+  const years = /(\d{1,2})[\s-]*(?:J(?:ahre?)?|Y(?:ears?|rs?)?)\b/i.exec(name);
   return years ? Number(years[1]) * 12 : null;
 }
 

@@ -135,3 +135,74 @@ export function manufacturerSupportUrl(device: Pick<Device, 'brand' | 'name'>): 
   const query = `${brand && !device.name.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ` : ''}${device.name} Kundenservice`;
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
+
+/**
+ * Purchases we can offer an extended warranty / insurance for: an assigned device that has
+ * only the Gewährleistung or whose Garantie is running out, or a receipt that shows no
+ * manufacturer warranty at all (e.g. clothes).
+ */
+export function lacksWarranty(doc: DocumentItem, device?: Device): boolean {
+  if (device) return device.kind === 'statutory' || (device.kind === 'warranty' && device.status !== 'active');
+  return !doc.extracted?.products.some((p) => p.warrantyMonths);
+}
+
+/** 2024-03-15 + 12 → 2025-03-15 (month ends are clamped: 31.01. + 1 → 28./29.02.). */
+export function addMonths(iso: string, months: number): string {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  const lastDay = new Date(Date.UTC(y, m - 1 + months + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, m - 1 + months, Math.min(d, lastDay))).toISOString().slice(0, 10);
+}
+
+export type ClaimGuidance = {
+  title: string;
+  body: string;
+  /** Who to turn to with a defect right now. */
+  contact: 'store' | 'manufacturer' | null;
+};
+
+/**
+ * Who to turn to with a defect today (AT: VGG, § 933 ABGB; mostly the same in DE):
+ * the first year the seller carries the burden of proof, the Gewährleistung lasts 2 years and
+ * can be enforced 3 more months; a Garantie is extra and mostly matters after that.
+ */
+export function claimGuidance(device: Device, today = new Date().toISOString().slice(0, 10)): ClaimGuidance {
+  const store = device.store ?? 'dem Händler';
+  const proofUntil = addMonths(device.purchaseDate, 12);
+  const claimUntil = addMonths(device.statutoryUntil, 3);
+  const warrantyActive = device.kind === 'warranty' && !!device.warrantyUntil && today <= device.warrantyUntil;
+  const warranty = warrantyActive ? `Garantie von ${device.brand ?? 'dem Hersteller'} bis ${formatDate(device.warrantyUntil)}` : null;
+
+  if (today <= proofUntil) {
+    return {
+      title: 'Bei einem Mangel: zuerst zum Händler',
+      body: `Wende dich an ${store}. Bis ${formatDate(proofUntil)} muss der Händler beweisen, dass der Mangel nicht schon beim Kauf bestand.`,
+      contact: 'store',
+    };
+  }
+  if (today <= device.statutoryUntil) {
+    return {
+      title: 'Bei einem Mangel: zum Händler',
+      body: `Die Gewährleistung bei ${store} gilt bis ${formatDate(device.statutoryUntil)}. Seit ${formatDate(proofUntil)} musst du nachweisen, dass der Mangel schon beim Kauf bestand.${
+        warranty ? ` Alternativ hilft die ${warranty}, oft ohne diesen Nachweis.` : ''
+      }`,
+      contact: 'store',
+    };
+  }
+  const grace =
+    today <= claimUntil
+      ? `Ist der Mangel bis ${formatDate(device.statutoryUntil)} aufgetreten, kannst du ihn noch bis ${formatDate(claimUntil)} beim Händler geltend machen, notfalls gerichtlich.`
+      : null;
+  if (warranty) {
+    return {
+      title: 'Bei einem Mangel: zum Hersteller',
+      body: [`Die Gewährleistung ist abgelaufen. Nutze die ${warranty}.`, grace].filter(Boolean).join(' '),
+      contact: 'manufacturer',
+    };
+  }
+  if (grace) return { title: 'Letzte Frist beim Händler', body: grace, contact: 'store' };
+  return {
+    title: 'Fristen abgelaufen',
+    body: 'Gewährleistung und Garantie sind abgelaufen. Frag beim Händler oder Hersteller nach Kulanz oder einer Reparatur.',
+    contact: null,
+  };
+}

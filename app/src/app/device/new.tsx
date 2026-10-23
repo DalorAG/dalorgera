@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
@@ -8,7 +9,7 @@ import { InfoBanner } from '@/components/info-banner';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
 import type { DeviceKind, ReceiptExtraction } from '@/lib/api-types';
-import { apiErrorMessage, formatDate, parseDate, parsePrice } from '@/lib/format';
+import { apiErrorMessage, currencySymbol, formatDate, parseDate, parsePrice } from '@/lib/format';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   currentVignetteYear,
@@ -19,7 +20,7 @@ import {
 } from '@/lib/vignette';
 import { useCreateDeviceMutation, useUpdateDocumentMutation } from '@/store/api';
 import { scanCleared } from '@/store/scan-slice';
-import { spacing, useTheme } from '@/theme';
+import { radius, spacing, useTheme } from '@/theme';
 
 const DEVICE_KINDS: DeviceKind[] = ['statutory', 'warranty', 'maintenance', 'vignette'];
 const TITLES: Record<DeviceKind, string> = {
@@ -78,8 +79,11 @@ export default function NewDeviceScreen() {
   const products = scan.extraction?.products ?? [];
 
   const [productIndex, setProductIndex] = useState(0);
-  // A receipt can list several devices: each one is saved on its own, the photo goes to the first.
+  // A receipt can list several products: the user ticks the ones to add (e.g. not the groceries),
+  // each ticked one is saved on its own, the photo goes to the first.
+  const [included, setIncluded] = useState<number[]>(() => products.map((_, i) => i));
   const [savedProducts, setSavedProducts] = useState<number[]>([]);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [firstDeviceId, setFirstDeviceId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(() => formFromExtraction(scan.extraction));
   const [vignetteType, setVignetteType] = useState<VignetteType>('year');
@@ -100,6 +104,20 @@ export default function NewDeviceScreen() {
     setProductIndex(index);
     setForm(formFromExtraction(scan.extraction, index));
   };
+
+  /** Ticked products not saved yet, in receipt order. */
+  const pending = (selection: number[], saved = savedProducts) =>
+    products.map((_, i) => i).filter((i) => selection.includes(i) && !saved.includes(i));
+  const remaining = pending(included);
+
+  const setSelection = (selection: number[]) => {
+    setIncluded(selection);
+    if (selection.includes(productIndex)) return;
+    // The product being edited was unticked: move on to the next ticked one, else enter it by hand.
+    pickProduct(pending(selection)[0] ?? -1);
+  };
+  const toggleProduct = (index: number) =>
+    setSelection(included.includes(index) ? included.filter((i) => i !== index) : [...included, index]);
 
   const save = async () => {
     const purchaseDate = kind === 'vignette' ? (vignette?.validFrom ?? null) : parseDate(form.purchaseDate);
@@ -132,32 +150,18 @@ export default function NewDeviceScreen() {
       if (scan.documentId && !firstDeviceId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
 
       const saved = [...savedProducts, productIndex];
-      const nextProduct = products.findIndex((_, i) => !saved.includes(i));
-      const finish = () => {
+      const next = pending(included, saved)[0];
+      if (next === undefined) {
         dispatch(scanCleared());
         router.dismissAll();
         router.push(`/device/${firstDeviceId ?? device.id}`);
-      };
-      if (products.length < 2 || nextProduct < 0) return finish();
-
-      setSavedProducts(saved);
-      setFirstDeviceId(firstDeviceId ?? device.id);
-      const title = `„${device.name}“ gespeichert`;
-      const message = `Auf dem Beleg ist noch „${products[nextProduct].name}“. Ebenfalls hinzufügen?`;
-      if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n\n${message}`)) pickProduct(nextProduct);
-        else finish();
         return;
       }
-      Alert.alert(
-        title,
-        message,
-        [
-          { text: 'Fertig', style: 'cancel', onPress: finish },
-          { text: 'Hinzufügen', onPress: () => pickProduct(nextProduct) },
-        ],
-        { cancelable: false },
-      );
+      setSavedProducts(saved);
+      setFirstDeviceId(firstDeviceId ?? device.id);
+      setLastSaved(device.name);
+      setErrors({});
+      pickProduct(next);
     } catch (err) {
       setErrors({ submit: apiErrorMessage(err) });
     }
@@ -177,19 +181,52 @@ export default function NewDeviceScreen() {
 
         {products.length > 1 ? (
           <View style={styles.group}>
-            <Text variant="captionStrong">Welches Gerät?</Text>
-            <View style={styles.chips}>
-              {products.map((p, i) => (
-                <Chip
-                  key={`${p.name}-${i}`}
-                  label={savedProducts.includes(i) ? `✓ ${p.name}` : p.name}
-                  selected={i === productIndex}
-                  onPress={() => !savedProducts.includes(i) && pickProduct(i)}
-                />
-              ))}
+            <View style={styles.groupHeader}>
+              <Text variant="captionStrong">Welche Produkte übernehmen?</Text>
+              <Pressable
+                hitSlop={8}
+                onPress={() =>
+                  setSelection(remaining.length ? savedProducts : products.map((_, i) => i))
+                }>
+                <Text variant="captionStrong" color="brand">
+                  {remaining.length ? 'Keine' : 'Alle'}
+                </Text>
+              </Pressable>
             </View>
+            {products.map((p, i) => {
+              const saved = savedProducts.includes(i);
+              const checked = saved || included.includes(i);
+              return (
+                <Pressable
+                  key={`${p.name}-${i}`}
+                  onPress={() => !saved && toggleProduct(i)}
+                  disabled={saved}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked, disabled: saved }}
+                  style={[
+                    styles.product,
+                    { borderColor: i === productIndex ? theme.brand : theme.border, backgroundColor: theme.surface },
+                  ]}>
+                  <Ionicons
+                    name={saved ? 'checkmark-circle' : checked ? 'checkbox' : 'square-outline'}
+                    size={22}
+                    color={saved ? theme.success : checked ? theme.brand : theme.textSecondary}
+                  />
+                  <Text variant="body" numberOfLines={1} style={styles.flex} color={checked ? 'text' : 'textSecondary'}>
+                    {p.name}
+                  </Text>
+                  <Text variant="caption" color="textSecondary">
+                    {saved ? 'Gespeichert' : i === productIndex ? 'Wird bearbeitet' : ''}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            <Text variant="caption" color="textSecondary">
+              Nicht benötigte Positionen (z. B. Lebensmittel) einfach abwählen.
+            </Text>
           </View>
         ) : null}
+        {lastSaved ? <InfoBanner title={`„${lastSaved}“ gespeichert`} subtitle="Jetzt das nächste Produkt prüfen." /> : null}
 
         {kind === 'vignette' ? (
           <>
@@ -261,7 +298,7 @@ export default function NewDeviceScreen() {
           </>
         )}
         <TextField
-          label="Preis (€)"
+          label={`Preis (${currencySymbol(scan.extraction?.currency)})`}
           value={form.price}
           onChangeText={(v) => set('price', v)}
           placeholder="0,00"
@@ -278,8 +315,9 @@ export default function NewDeviceScreen() {
               ))}
             </View>
             <Text variant="caption" color="textSecondary">
-              Die gesetzliche Gewährleistung von 2 Jahren wird automatisch berücksichtigt.
+              Die gesetzliche Gewährleistung von 2 Jahren wird automatisch berücksichtigt (beim Kauf von einem Unternehmen).
             </Text>
+            <RightsLink />
           </View>
         ) : kind === 'maintenance' ? (
           <View style={styles.group}>
@@ -294,9 +332,13 @@ export default function NewDeviceScreen() {
             </Text>
           </View>
         ) : kind === 'statutory' ? (
-          <Text variant="caption" color="textSecondary">
-            Gesetzliche Gewährleistung: 2 Jahre ab Kaufdatum.
-          </Text>
+          <View style={styles.group}>
+            <Text variant="caption" color="textSecondary">
+              Gesetzliche Gewährleistung: 2 Jahre ab Kaufdatum, im ersten Jahr trägt der Händler die Beweislast. Gilt beim Kauf von einem
+              Unternehmen, nicht von Privat an Privat.
+            </Text>
+            <RightsLink />
+          </View>
         ) : null}
 
         {errors.submit ? (
@@ -304,9 +346,24 @@ export default function NewDeviceScreen() {
             {errors.submit}
           </Text>
         ) : null}
-        <Button label="Speichern" icon="checkmark" onPress={save} loading={creating || linking} />
+        <Button
+          label={remaining.length > 1 ? `Speichern & weiter (${remaining.length - 1} übrig)` : 'Speichern'}
+          icon="checkmark"
+          onPress={save}
+          loading={creating || linking}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+function RightsLink() {
+  return (
+    <Pressable onPress={() => router.push('/rechte')} accessibilityRole="link" hitSlop={8}>
+      <Text variant="captionStrong" color="brand">
+        Garantie oder Gewährleistung? Mehr erfahren
+      </Text>
+    </Pressable>
   );
 }
 
@@ -314,5 +371,15 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl * 2 },
   group: { gap: spacing.sm },
+  groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  product: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });

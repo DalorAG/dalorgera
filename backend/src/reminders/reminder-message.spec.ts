@@ -20,6 +20,13 @@ describe('reminderMessage', () => {
     );
   });
 
+  it('formats burden of proof reminders', () => {
+    expect(reminderMessage({ ...base, kind: 'burden_of_proof' })).toEqual({
+      title: 'Mängel jetzt melden',
+      body: 'Kaffeemaschine: am 14.10.2025 endet das erste Jahr. Bis dahin muss der Händler beweisen, dass ein Mangel nicht schon beim Kauf bestand. Jetzt prüfen, ob alles funktioniert.',
+    });
+  });
+
   it('formats maintenance reminders', () => {
     expect(reminderMessage({ ...base, kind: 'maintenance', device_name: 'Auto' })).toEqual({
       title: 'Wartung steht an',

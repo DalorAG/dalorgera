@@ -73,6 +73,10 @@ function RootNavigator() {
           <Stack.Screen name="pricing" options={{ headerShown: true, title: 'Tarife', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="receipt/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen
+            name="warranty-request"
+            options={{ presentation: 'modal', headerShown: true, title: 'Garantie verlängern' }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !termsAccepted}>
           <Stack.Screen name="accept-terms" />
@@ -87,6 +91,10 @@ function RootNavigator() {
         <Stack.Screen
           name="privacy"
           options={{ presentation: 'modal', headerShown: true, title: 'Datenschutzerklärung' }}
+        />
+        <Stack.Screen
+          name="rechte"
+          options={{ presentation: 'modal', headerShown: true, title: 'Deine Rechte' }}
         />
         <Stack.Screen name="auth-callback" />
       </Stack>
