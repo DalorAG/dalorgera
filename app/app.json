@@ -8,7 +8,6 @@
     "scheme": "garantieradar",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.dalor.gewaga",
       "buildNumber": "1",
       "appleTeamId": "JU7XHAGP62",
