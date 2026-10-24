@@ -6,90 +6,73 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { InfoBanner } from '@/components/info-banner';
-import { RequestPhotoField } from '@/components/request-photo-field';
+import { PhotoStrip } from '@/components/photo-strip';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
-import { useRequestPhoto } from '@/features/use-request-photo';
+import type { PhotoSource } from '@/features/use-product-photo';
+import { useRequestPhotos } from '@/features/use-request-photo';
 import type { LuxuryCategory } from '@/lib/api-types';
-import { apiErrorMessage, formatDate, formatPrice, parsePrice } from '@/lib/format';
+import { apiErrorMessage, parsePrice } from '@/lib/format';
 import { LUXURY_CATEGORIES } from '@/lib/luxury';
-import { useCreateWarrantyRequestMutation, useGetMeQuery } from '@/store/api';
+import { useCreateLuxuryItemMutation } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
+
+const MAX_PHOTOS = 10;
 
 const centsToInput = (cents: number) => (cents / 100).toFixed(2).replace('.', ',');
 
-/** Luxus-Versicherung: asks our insurance team to cover a watch, jewellery or a bag. */
-export default function LuxuryRequestScreen() {
+/** Adds a watch, jewellery or a bag to the Luxus tab; insurance is requested later from its detail screen. */
+export default function LuxuryItemFormScreen() {
   const theme = useTheme();
-  const { data: me } = useGetMeQuery();
-  const { photo, busy: photoBusy, add: attachPhoto, clear: clearPhoto } = useRequestPhoto();
-  const extracted = photo?.extracted ?? null;
+  const { photos, busy: photoBusy, add: attachPhotos, remove: removePhoto, full } = useRequestPhotos(MAX_PHOTOS);
 
   const [category, setCategory] = useState<LuxuryCategory | null>(null);
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
   const [value, setValue] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
-  const [message, setMessage] = useState('');
+  const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
-  const [create, { isLoading }] = useCreateWarrantyRequestMutation();
-  const canBeReached = !!me?.email;
-  const title = [brand.trim(), model.trim()].filter(Boolean).join(' ');
+  const [create, { isLoading }] = useCreateLuxuryItemMutation();
 
-  const addPhoto = async (source: 'camera' | 'library') => {
+  const addPhotos = async (source: PhotoSource) => {
     setError(null);
     try {
-      const added = await attachPhoto(source);
+      const added = await attachPhotos(source);
       // A receipt pre-fills what is still empty; a photo of the item itself has nothing to read.
-      const product = added?.extracted?.products[0];
+      const extracted = added.find((p) => p.extracted?.products.length)?.extracted;
+      const product = extracted?.products[0];
       if (!product) return;
       if (!brand.trim() && product.brand) setBrand(product.brand);
       if (!model.trim()) setModel(product.name);
-      const cents = product.priceCents ?? added?.extracted?.totalCents;
+      const cents = product.priceCents ?? extracted.totalCents;
       if (!value.trim() && cents != null) setValue(centsToInput(cents));
     } catch (err) {
       setError(apiErrorMessage(err));
     }
   };
 
-  const send = async () => {
-    if (!category) return setError('Bitte wähle aus, was du versichern möchtest.');
+  const save = async () => {
+    if (!category) return setError('Bitte wähle aus, was du hinzufügen möchtest.');
     if (!brand.trim() || !model.trim()) return setError('Bitte gib Marke und Modell an.');
     const valueCents = value.trim() ? parsePrice(value) : undefined;
     if (valueCents === null) return setError('Bitte gib den Wert als Betrag an, z. B. 12.500');
     setError(null);
     try {
-      await create({
-        kind: 'luxury',
-        documentId: photo?.id,
+      const item = await create({
         category,
         brand: brand.trim(),
-        productName: model.trim(),
+        model: model.trim(),
         valueCents,
         serialNumber: serialNumber.trim() || undefined,
-        message: message.trim() || undefined,
+        notes: notes.trim() || undefined,
+        documentIds: photos.map((p) => p.id),
       }).unwrap();
-      setSent(true);
+      router.replace({ pathname: '/luxury/[id]', params: { id: item.id } });
     } catch (err) {
       setError(apiErrorMessage(err));
     }
   };
-
-  if (sent) {
-    return (
-      <View style={[styles.flex, styles.done, { backgroundColor: theme.background }]}>
-        <Ionicons name="shield-checkmark" size={56} color={theme.success} />
-        <Text variant="title" style={styles.center}>
-          Anfrage gesendet
-        </Text>
-        <Text variant="body" color="textSecondary" style={styles.center}>
-          Unser Versicherungspartner prüft dein Angebot für „{title}“. Wir melden uns per E-Mail an {me?.email}.
-        </Text>
-        <Button label="Fertig" onPress={() => router.back()} style={styles.fullWidth} />
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView
@@ -97,8 +80,8 @@ export default function LuxuryRequestScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <InfoBanner
-          title="Dein Luxusartikel, gut versichert."
-          subtitle="Über unseren Versicherungspartner gegen Diebstahl, Verlust und Beschädigung, auch für ältere oder gebraucht gekaufte Stücke."
+          title="Dein Luxusartikel, an einem Ort."
+          subtitle="Fotos, Seriennummer und Wert gespeichert. Eine Versicherung gegen Diebstahl, Verlust und Beschädigung kannst du danach mit einem Tipp anfragen."
           icon={
             <View style={[styles.icon, { backgroundColor: theme.brand }]}>
               <Ionicons name="diamond" size={18} color={theme.textOnBrand} />
@@ -106,32 +89,18 @@ export default function LuxuryRequestScreen() {
           }
         />
 
-        <RequestPhotoField
-          label="Beleg oder Artikel fotografieren"
-          hint="Am besten den Kaufbeleg oder das Zertifikat, sonst ein Foto vom Artikel. Optional, hilft aber bei einem schnellen Angebot."
-          photo={photo}
+        <PhotoStrip
+          label="Fotos"
+          hint={`Artikel, Kaufbeleg, Zertifikat, Seriennummer: bis zu ${MAX_PHOTOS} Fotos. Ein Kaufbeleg füllt die Angaben automatisch aus.`}
+          photos={photos}
           busy={photoBusy}
-          onAdd={addPhoto}
-          onRemove={clearPhoto}
+          full={full}
+          onAdd={addPhotos}
+          onRemove={removePhoto}
         />
 
-        {extracted ? (
-          <View style={[styles.receipt, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text variant="captionStrong">Vom Beleg</Text>
-            <Text variant="caption" color="textSecondary">
-              {[
-                extracted.merchant,
-                extracted.purchaseDate ? formatDate(extracted.purchaseDate) : null,
-                formatPrice(extracted.totalCents, extracted.currency ?? 'EUR'),
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </Text>
-          </View>
-        ) : null}
-
         <View style={styles.group}>
-          <Text variant="captionStrong">Was möchtest du versichern? *</Text>
+          <Text variant="captionStrong">Was ist es? *</Text>
           <View style={styles.chips}>
             {LUXURY_CATEGORIES.map((c) => (
               <Chip key={c.value} label={c.label} selected={category === c.value} onPress={() => setCategory(c.value)} />
@@ -140,13 +109,7 @@ export default function LuxuryRequestScreen() {
         </View>
         <TextField label="Marke *" value={brand} onChangeText={setBrand} placeholder="z. B. Rolex, Cartier, Hermès" maxLength={60} />
         <TextField label="Modell *" value={model} onChangeText={setModel} placeholder="z. B. Submariner, Love Ring, Birkin 30" maxLength={120} />
-        <TextField
-          label="Wert (€)"
-          value={value}
-          onChangeText={setValue}
-          placeholder="z. B. 12.500"
-          keyboardType="decimal-pad"
-        />
+        <TextField label="Wert (€)" value={value} onChangeText={setValue} placeholder="z. B. 12.500" keyboardType="decimal-pad" />
         <TextField
           label="Seriennummer"
           value={serialNumber}
@@ -157,30 +120,21 @@ export default function LuxuryRequestScreen() {
           maxLength={64}
         />
         <TextField
-          label="Nachricht"
-          value={message}
-          onChangeText={setMessage}
+          label="Notiz"
+          value={notes}
+          onChangeText={setNotes}
           placeholder="Optional, z. B. Kaufjahr oder ob Box und Papiere vorhanden sind"
           multiline
           maxLength={1000}
-          style={styles.message}
+          style={styles.notes}
         />
 
-        {!canBeReached ? (
-          <Text variant="caption" color="warningText">
-            Damit wir dir ein Angebot schicken können, melde dich bitte mit deiner E-Mail-Adresse an (Profil).
-          </Text>
-        ) : (
-          <Text variant="caption" color="textSecondary">
-            Wir senden deine Angaben und das Foto an unser Team und melden uns an {me?.email}. Unverbindlich und kostenlos.
-          </Text>
-        )}
         {error ? (
           <Text variant="body" color="danger">
             {error}
           </Text>
         ) : null}
-        <Button label="Anfrage senden" icon="paper-plane" onPress={send} loading={isLoading} disabled={!canBeReached || photoBusy} />
+        <Button label="Speichern" icon="checkmark" onPress={save} loading={isLoading} disabled={photoBusy} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -188,13 +142,9 @@ export default function LuxuryRequestScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  center: { textAlign: 'center' },
-  fullWidth: { alignSelf: 'stretch' },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl * 2 },
-  done: { alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xl },
   icon: { width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  receipt: { gap: spacing.xxs, padding: spacing.md, borderRadius: radius.md, borderWidth: 1 },
   group: { gap: spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  message: { minHeight: 96, textAlignVertical: 'top', paddingTop: spacing.md },
+  notes: { minHeight: 96, textAlignVertical: 'top', paddingTop: spacing.md },
 });

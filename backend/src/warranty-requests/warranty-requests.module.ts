@@ -7,5 +7,6 @@ import { WarrantyRequestsService } from './warranty-requests.service.js';
 @Module({
   controllers: [WarrantyRequestsController],
   providers: [WarrantyRequestsService, WarrantyRequestMailer],
+  exports: [WarrantyRequestMailer],
 })
 export class WarrantyRequestsModule {}

@@ -181,7 +181,10 @@ export default function NewDeviceScreen() {
         {scan.extraction ? (
           <InfoBanner title="Automatisch erkannt" subtitle="Bitte prüfe die Angaben, bevor du speicherst." />
         ) : scan.documentId ? (
-          <InfoBanner title="Beleg gespeichert" subtitle="Ergänze die Angaben zum Gerät." />
+          <InfoBanner
+            title={scan.kind === 'product_photo' ? 'Foto gespeichert' : 'Beleg gespeichert'}
+            subtitle="Ergänze die Angaben zum Gerät."
+          />
         ) : null}
 
         {products.length > 1 ? (

@@ -8,7 +8,7 @@ import { DOCUMENTS_BUCKET, SupabaseService } from '../supabase/supabase.service.
 import type { CreateWarrantyRequestDto } from './warranty-requests.dto.js';
 import { WarrantyRequestMailer } from './warranty-request.mailer.js';
 
-const RECEIPT_URL_TTL_SECONDS = 7 * 24 * 60 * 60;
+export const RECEIPT_URL_TTL_SECONDS = 7 * 24 * 60 * 60;
 const COLUMNS = 'id, kind, document_id, product_name, category, brand, status, created_at';
 
 type ResponseRow = Pick<
@@ -29,7 +29,7 @@ function toResponse(row: ResponseRow) {
   };
 }
 
-const formatPrice = (cents: number | null, currency: string | null) =>
+export const formatPrice = (cents: number | null, currency: string | null) =>
   cents == null ? null : new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency ?? 'EUR' }).format(cents / 100);
 
 @Injectable()
@@ -104,7 +104,7 @@ export class WarrantyRequestsService {
       purchaseDate: row.purchase_date,
       price: formatPrice(row.price_cents, row.currency),
       message: row.message,
-      receiptUrl: receipt?.signedUrl ?? null,
+      photoUrls: receipt ? [receipt.signedUrl] : [],
     });
     return toResponse(row);
   }

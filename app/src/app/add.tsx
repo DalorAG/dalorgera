@@ -10,13 +10,13 @@ import { useAppDispatch } from '@/store';
 import { scanCleared } from '@/store/scan-slice';
 import { radius, spacing, useTheme } from '@/theme';
 
-/** "+" first asks what to track, then scans the receipt (Wartung and Vignette go straight to the form). */
+/** "+" first asks what to track, then scans the receipt (Wartung: a product photo; Vignette goes straight to the form). */
 export default function AddScreen() {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
   const pick = (kind: DeviceKind) => {
-    if (kind === 'maintenance' || kind === 'vignette') {
+    if (kind === 'vignette') {
       dispatch(scanCleared());
       router.replace({ pathname: '/device/new', params: { kind } });
     } else {

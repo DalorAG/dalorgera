@@ -7,6 +7,7 @@ import { validateEnv } from './config/env.js';
 import { DevicesModule } from './devices/devices.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
 import { HealthController } from './health/health.controller.js';
+import { LuxuryItemsModule } from './luxury-items/luxury-items.module.js';
 import { PushTokensModule } from './push-tokens/push-tokens.module.js';
 import { RemindersModule } from './reminders/reminders.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
@@ -23,6 +24,7 @@ import { WarrantyRequestsModule } from './warranty-requests/warranty-requests.mo
     RemindersModule,
     PushTokensModule,
     WarrantyRequestsModule,
+    LuxuryItemsModule,
   ],
   controllers: [HealthController],
 })

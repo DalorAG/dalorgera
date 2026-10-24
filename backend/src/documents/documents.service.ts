@@ -18,7 +18,7 @@ import {
 const DOWNLOAD_URL_TTL_SECONDS = 10 * 60;
 /** Everything except the generated full-text column. */
 const DOCUMENT_COLUMNS =
-  'id, user_id, device_id, kind, storage_path, mime_type, size_bytes, extracted, raw_text, extracted_at, created_at';
+  'id, user_id, device_id, luxury_item_id, kind, storage_path, mime_type, size_bytes, extracted, raw_text, extracted_at, created_at';
 const RECOGNITION_URL_TTL_SECONDS = 5 * 60;
 /** Image types the vision model accepts. The app converts camera photos to JPEG. */
 const RECOGNIZABLE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -27,6 +27,7 @@ function toDocumentResponse(row: Omit<Tables<'documents'>, 'search'>) {
   return {
     id: row.id,
     deviceId: row.device_id,
+    luxuryItemId: row.luxury_item_id,
     kind: row.kind,
     mimeType: row.mime_type,
     sizeBytes: row.size_bytes,

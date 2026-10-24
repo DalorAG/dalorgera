@@ -8,6 +8,8 @@ import type {
   DocumentItem,
   DocumentKind,
   DocumentMimeType,
+  LuxuryItem,
+  LuxuryItemInput,
   Me,
   ReceiptExtraction,
   Reminder,
@@ -29,7 +31,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Me', 'Device', 'Document', 'Reminder', 'WarrantyRequest'],
+  tagTypes: ['Me', 'Device', 'Document', 'Reminder', 'WarrantyRequest', 'LuxuryItem'],
   endpoints: (build) => ({
     getMe: build.query<Me, void>({
       query: () => 'me',
@@ -107,6 +109,34 @@ export const api = createApi({
       invalidatesTags: ['WarrantyRequest'],
     }),
 
+    getLuxuryItems: build.query<LuxuryItem[], void>({
+      query: () => 'luxury-items',
+      providesTags: (result) => [
+        { type: 'LuxuryItem', id: 'LIST' },
+        ...(result ?? []).map((i) => ({ type: 'LuxuryItem' as const, id: i.id })),
+      ],
+    }),
+    getLuxuryItem: build.query<LuxuryItem, string>({
+      query: (id) => `luxury-items/${id}`,
+      providesTags: (_r, _e, id) => [{ type: 'LuxuryItem', id }],
+    }),
+    createLuxuryItem: build.mutation<LuxuryItem, LuxuryItemInput>({
+      query: (body) => ({ url: 'luxury-items', method: 'POST', body }),
+      invalidatesTags: [{ type: 'LuxuryItem', id: 'LIST' }, 'Document'],
+    }),
+    updateLuxuryItem: build.mutation<LuxuryItem, { id: string } & Partial<LuxuryItemInput>>({
+      query: ({ id, ...body }) => ({ url: `luxury-items/${id}`, method: 'PATCH', body }),
+      invalidatesTags: (_r, _e, { id }) => [{ type: 'LuxuryItem', id }, { type: 'LuxuryItem', id: 'LIST' }, 'Document'],
+    }),
+    deleteLuxuryItem: build.mutation<void, string>({
+      query: (id) => ({ url: `luxury-items/${id}`, method: 'DELETE' }),
+      invalidatesTags: [{ type: 'LuxuryItem', id: 'LIST' }, 'Document'],
+    }),
+    requestLuxuryInsurance: build.mutation<LuxuryItem, { id: string; message?: string }>({
+      query: ({ id, ...body }) => ({ url: `luxury-items/${id}/insurance-request`, method: 'POST', body }),
+      invalidatesTags: (_r, _e, { id }) => [{ type: 'LuxuryItem', id }, { type: 'LuxuryItem', id: 'LIST' }, 'WarrantyRequest'],
+    }),
+
     getReminders: build.query<Reminder[], void>({
       query: () => 'reminders',
       providesTags: ['Reminder'],
@@ -138,6 +168,12 @@ export const {
   useDeleteDocumentMutation,
   useGetWarrantyRequestsQuery,
   useCreateWarrantyRequestMutation,
+  useGetLuxuryItemsQuery,
+  useGetLuxuryItemQuery,
+  useCreateLuxuryItemMutation,
+  useUpdateLuxuryItemMutation,
+  useDeleteLuxuryItemMutation,
+  useRequestLuxuryInsuranceMutation,
   useGetRemindersQuery,
   useRegisterPushTokenMutation,
   useUnregisterPushTokenMutation,

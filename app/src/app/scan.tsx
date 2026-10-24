@@ -17,7 +17,7 @@ import type { DeviceKind, DocumentKind, DocumentMimeType, ReceiptExtraction } fr
 import { apiErrorMessage } from '@/lib/format';
 import { useAppDispatch } from '@/store';
 import { useRecognizeDocumentMutation } from '@/store/api';
-import { scanCompleted } from '@/store/scan-slice';
+import { scanCleared, scanCompleted } from '@/store/scan-slice';
 import { radius, scannerColors, spacing, useTheme } from '@/theme';
 
 const STEPS = ['Scannen', 'Erkennen', 'Speichern'] as const;
@@ -40,9 +40,11 @@ export default function ScanScreen() {
   const dispatch = useAppDispatch();
   // kind: what was picked on "+", handed on to the device form.
   const { kind: deviceKind } = useLocalSearchParams<{ kind?: DeviceKind }>();
+  // Wartung has no receipt: a photo of the product (e.g. the boiler) becomes the device's Produktfoto.
+  const productOnly = deviceKind === 'maintenance';
   const [permission, requestPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
-  const [kind, setKind] = useState<DocumentKind>('receipt');
+  const [kind, setKind] = useState<DocumentKind>(productOnly ? 'product_photo' : 'receipt');
   const [torch, setTorch] = useState(false);
   const [phase, setPhase] = useState<Phase>({ name: 'capture' });
   const upload = useUploadDocument();
@@ -59,12 +61,14 @@ export default function ScanScreen() {
       const photo = await preparePhoto(uri).catch(() => ({ uri, mimeType }));
       const doc = await upload({ ...photo, kind });
 
-      setPhase({ name: 'recognizing', uri });
       let extraction: ReceiptExtraction | null = null;
-      try {
-        extraction = await recognize(doc.id).unwrap();
-      } catch {
-        // Recognition is optional (e.g. no OpenAI key yet): continue with an empty form.
+      if (!productOnly) {
+        setPhase({ name: 'recognizing', uri });
+        try {
+          extraction = await recognize(doc.id).unwrap();
+        } catch {
+          // Recognition is optional (e.g. no OpenAI key yet): continue with an empty form.
+        }
       }
       setPhase({ name: 'done', uri });
       dispatch(scanCompleted({ documentId: doc.id, kind, extraction }));
@@ -93,6 +97,11 @@ export default function ScanScreen() {
     await process(asset.uri, UPLOADABLE.has(mime) ? mime : 'image/jpeg');
   };
 
+  const skipPhoto = () => {
+    dispatch(scanCleared());
+    router.replace({ pathname: '/device/new', params: deviceKind ? { kind: deviceKind } : {} });
+  };
+
   const previewUri = phase.name === 'capture' ? null : phase.uri;
 
   return (
@@ -109,7 +118,7 @@ export default function ScanScreen() {
             <Ionicons name="chevron-back" size={26} color={scannerColors.text} />
           </Pressable>
           <Text variant="headline" style={{ color: scannerColors.text }}>
-            Beleg scannen
+            {productOnly ? 'Produkt fotografieren' : 'Beleg scannen'}
           </Text>
           <Pressable onPress={() => router.back()} hitSlop={12} disabled={busy}>
             <Text variant="body" style={{ color: scannerColors.text }}>
@@ -118,7 +127,7 @@ export default function ScanScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.kinds}>
+        <View style={[styles.kinds, productOnly && styles.hidden]}>
           {KINDS.map((k) => (
             <Pressable
               key={k.kind}
@@ -142,7 +151,7 @@ export default function ScanScreen() {
             <View style={styles.permission}>
               <Ionicons name="camera-outline" size={40} color={scannerColors.text} />
               <Text variant="body" style={[styles.center, { color: scannerColors.text }]}>
-                Erlaube den Kamerazugriff, um Belege zu fotografieren.
+                Erlaube den Kamerazugriff, um {productOnly ? 'das Produkt' : 'Belege'} zu fotografieren.
               </Text>
               <Button label="Kamera erlauben" onPress={requestPermission} />
             </View>
@@ -166,7 +175,7 @@ export default function ScanScreen() {
         {phase.name === 'capture' ? (
           <>
             <Text variant="caption" style={[styles.hint, { color: scannerColors.textMuted }]}>
-              Positioniere den Beleg im Rahmen
+              {productOnly ? 'Fotografiere das Produkt, z. B. die Heizung oder das Typenschild' : 'Positioniere den Beleg im Rahmen'}
             </Text>
             <View style={styles.controls}>
               <RoundControl onPress={pickFromLibrary} label="Aus Galerie wählen" size={52}>
@@ -180,7 +189,15 @@ export default function ScanScreen() {
                 style={({ pressed }) => [styles.shutter, (pressed || !permission?.granted) && styles.dimmed]}>
                 <View style={styles.shutterInner} />
               </Pressable>
-              <View style={styles.controlSpacer} />
+              {productOnly ? (
+                <Pressable onPress={skipPhoto} accessibilityRole="button" style={styles.controlSpacer}>
+                  <Text variant="captionStrong" style={[styles.center, { color: scannerColors.text }]}>
+                    Ohne Foto
+                  </Text>
+                </Pressable>
+              ) : (
+                <View style={styles.controlSpacer} />
+              )}
             </View>
           </>
         ) : null}
@@ -203,7 +220,7 @@ export default function ScanScreen() {
             <View style={styles.flex}>
               <Text variant="headline">
                 {phase.name === 'uploading'
-                  ? 'Beleg wird hochgeladen …'
+                  ? `${productOnly ? 'Foto' : 'Beleg'} wird hochgeladen …`
                   : phase.name === 'recognizing'
                     ? 'Beleg wird erkannt …'
                     : phase.name === 'done'
@@ -309,7 +326,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxxl,
     marginBottom: spacing.xl,
   },
-  controlSpacer: { width: 52 },
+  controlSpacer: { width: 52, alignItems: 'center', justifyContent: 'center' },
+  hidden: { display: 'none' },
   shutter: {
     width: 72,
     height: 72,

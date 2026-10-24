@@ -21,7 +21,8 @@ export type WarrantyRequestMail = {
   purchaseDate: string | null;
   price: string | null;
   message: string | null;
-  receiptUrl: string | null;
+  /** Signed links to the receipt and photos, valid for 7 days */
+  photoUrls: string[];
 };
 
 const TITLES: Record<RequestKind, string> = {
@@ -83,14 +84,16 @@ export class WarrantyRequestMailer {
       `Neue Anfrage: ${title}`,
       '',
       ...rows.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`),
-      mail.receiptUrl ? `\nBeleg (7 Tage gültig): ${mail.receiptUrl}` : '',
+      ...(mail.photoUrls.length ? ['', 'Fotos (7 Tage gültig):', ...mail.photoUrls] : []),
       `\nAnfrage-ID: ${mail.id}`,
     ].join('\n');
     const html = `<h2>Neue Anfrage: ${escape(title)}</h2><table cellpadding="4">${rows
       .filter(([, v]) => v)
       .map(([k, v]) => `<tr><td><b>${escape(k)}</b></td><td>${escape(v!).replace(/\n/g, '<br>')}</td></tr>`)
       .join('')}</table>${
-      mail.receiptUrl ? `<p><a href="${escape(mail.receiptUrl)}">Beleg ansehen</a> (7 Tage gültig)</p>` : ''
+      mail.photoUrls.length
+        ? `<p>${mail.photoUrls.map((url, i) => `<a href="${escape(url)}">Foto ${i + 1}</a>`).join(' · ')} (7 Tage gültig)</p>`
+        : ''
     }<p style="color:#888">Anfrage-ID: ${escape(mail.id)}</p>`;
 
     try {

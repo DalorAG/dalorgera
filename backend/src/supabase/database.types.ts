@@ -97,6 +97,7 @@ export type Database = {
           extracted_at: string | null
           id: string
           kind: Database["public"]["Enums"]["document_kind"]
+          luxury_item_id: string | null
           mime_type: string
           raw_text: string | null
           search: unknown
@@ -111,6 +112,7 @@ export type Database = {
           extracted_at?: string | null
           id?: string
           kind: Database["public"]["Enums"]["document_kind"]
+          luxury_item_id?: string | null
           mime_type: string
           raw_text?: string | null
           search?: unknown
@@ -125,6 +127,7 @@ export type Database = {
           extracted_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["document_kind"]
+          luxury_item_id?: string | null
           mime_type?: string
           raw_text?: string | null
           search?: unknown
@@ -134,6 +137,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "documents_luxury_item_fkey"
+            columns: ["luxury_item_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "luxury_items"
+            referencedColumns: ["id", "user_id"]
+          },
+          {
             foreignKeyName: "documents_device_id_user_id_fkey"
             columns: ["device_id", "user_id"]
             isOneToOne: false
@@ -141,6 +151,48 @@ export type Database = {
             referencedColumns: ["id", "user_id"]
           },
         ]
+      }
+      luxury_items: {
+        Row: {
+          brand: string
+          category: string
+          created_at: string
+          currency: string
+          id: string
+          model: string
+          notes: string | null
+          serial_number: string | null
+          updated_at: string
+          user_id: string
+          value_cents: number | null
+        }
+        Insert: {
+          brand: string
+          category: string
+          created_at?: string
+          currency?: string
+          id?: string
+          model: string
+          notes?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id?: string
+          value_cents?: number | null
+        }
+        Update: {
+          brand?: string
+          category?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          model?: string
+          notes?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id?: string
+          value_cents?: number | null
+        }
+        Relationships: []
       }
       push_tokens: {
         Row: {
@@ -237,6 +289,7 @@ export type Database = {
           document_id: string | null
           id: string
           kind: string
+          luxury_item_id: string | null
           message: string | null
           price_cents: number | null
           product_name: string
@@ -255,6 +308,7 @@ export type Database = {
           document_id?: string | null
           id?: string
           kind?: string
+          luxury_item_id?: string | null
           message?: string | null
           price_cents?: number | null
           product_name: string
@@ -273,6 +327,7 @@ export type Database = {
           document_id?: string | null
           id?: string
           kind?: string
+          luxury_item_id?: string | null
           message?: string | null
           price_cents?: number | null
           product_name?: string
@@ -284,6 +339,13 @@ export type Database = {
           value_cents?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "warranty_requests_luxury_item_fkey"
+            columns: ["luxury_item_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "luxury_items"
+            referencedColumns: ["id", "user_id"]
+          },
           {
             foreignKeyName: "warranty_requests_document_id_user_id_fkey"
             columns: ["document_id", "user_id"]

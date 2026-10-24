@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Provider } from 'react-redux';
 
+import { CloseButton } from '@/components/close-button';
 import { StateView } from '@/components/state-view';
 import { useAuthSync } from '@/features/use-auth-sync';
 import { usePushRegistration } from '@/features/use-push-registration';
@@ -13,6 +14,8 @@ import { useGetMeQuery } from '@/store/api';
 import { colors, useScheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
+
+const MODAL = { presentation: 'modal', headerShown: true, headerLeft: () => <CloseButton /> } as const;
 
 export default function RootLayout() {
   return (
@@ -63,29 +66,30 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={termsAccepted}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="add" options={{ presentation: 'modal', headerShown: true, title: 'Hinzufügen' }} />
+          <Stack.Screen name="add" options={{ ...MODAL, title: 'Hinzufügen' }} />
           <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
           <Stack.Screen
             name="device/new"
-            options={{ presentation: 'modal', headerShown: true, title: 'Gerät hinzufügen' }}
+            options={{ ...MODAL, title: 'Gerät hinzufügen' }}
           />
           <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="pricing" options={{ headerShown: true, title: 'Tarife', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="posteingang" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen
             name="device/edit"
-            options={{ presentation: 'modal', headerShown: true, title: 'Bearbeiten' }}
+            options={{ ...MODAL, title: 'Bearbeiten' }}
           />
           <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen name="luxury/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="receipt/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="document/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen
             name="warranty-request"
-            options={{ presentation: 'modal', headerShown: true, title: 'Garantie verlängern' }}
+            options={{ ...MODAL, title: 'Garantie verlängern' }}
           />
           <Stack.Screen
             name="luxury-request"
-            options={{ presentation: 'modal', headerShown: true, title: 'Luxusartikel versichern' }}
+            options={{ ...MODAL, title: 'Luxusartikel hinzufügen' }}
           />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !termsAccepted}>
@@ -96,15 +100,15 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Screen
           name="terms"
-          options={{ presentation: 'modal', headerShown: true, title: 'Nutzungsbedingungen' }}
+          options={{ ...MODAL, title: 'Nutzungsbedingungen' }}
         />
         <Stack.Screen
           name="privacy"
-          options={{ presentation: 'modal', headerShown: true, title: 'Datenschutzerklärung' }}
+          options={{ ...MODAL, title: 'Datenschutzerklärung' }}
         />
         <Stack.Screen
           name="rechte"
-          options={{ presentation: 'modal', headerShown: true, title: 'Deine Rechte' }}
+          options={{ ...MODAL, title: 'Deine Rechte' }}
         />
         <Stack.Screen name="auth-callback" />
       </Stack>

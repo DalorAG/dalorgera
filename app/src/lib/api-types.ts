@@ -80,6 +80,7 @@ export type ReceiptExtraction = {
 export type DocumentItem = {
   id: string;
   deviceId: string | null;
+  luxuryItemId: string | null;
   kind: DocumentKind;
   mimeType: DocumentMimeType;
   sizeBytes: number | null;
@@ -128,4 +129,31 @@ export type CreateWarrantyRequest = {
   brand?: string;
   serialNumber?: string;
   valueCents?: number;
+};
+
+/** A watch, piece of jewellery or bag kept in the Luxus tab; insurance is requested per item. */
+export type LuxuryItem = {
+  id: string;
+  category: LuxuryCategory;
+  brand: string;
+  model: string;
+  valueCents: number | null;
+  currency: string;
+  serialNumber: string | null;
+  notes: string | null;
+  photos: { id: string; mimeType: DocumentMimeType }[];
+  /** The latest insurance request, null until the user asked for one */
+  request: { id: string; status: WarrantyRequestStatus; createdAt: string } | null;
+  createdAt: string;
+};
+
+export type LuxuryItemInput = {
+  category: LuxuryCategory;
+  brand: string;
+  model: string;
+  valueCents?: number | null;
+  serialNumber?: string | null;
+  notes?: string | null;
+  /** Uploaded documents to attach as photos */
+  documentIds?: string[];
 };
