@@ -75,6 +75,7 @@ function RootNavigator() {
           <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="pricing" options={{ headerShown: true, title: 'Tarife', headerBackTitle: 'Zurück' }} />
           <Stack.Screen name="posteingang" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen name="archiv" options={{ headerShown: true, title: 'Archiv', headerBackTitle: 'Zurück' }} />
           <Stack.Screen
             name="device/edit"
             options={{ ...MODAL, title: 'Bearbeiten' }}
@@ -89,7 +90,7 @@ function RootNavigator() {
           />
           <Stack.Screen
             name="luxury-request"
-            options={{ ...MODAL, title: 'Luxusartikel hinzufügen' }}
+            options={{ ...MODAL, title: 'Wertsache hinzufügen' }}
           />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !termsAccepted}>

@@ -1,9 +1,23 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { ArrayMaxSize, IsArray, IsIn, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min, MinLength } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 import { LUXURY_CATEGORIES, type LuxuryCategory } from '../warranty-requests/warranty-requests.dto.js';
 
-export const MAX_LUXURY_PHOTOS = 10;
+/** Photos plus the Rechnung. */
+export const MAX_LUXURY_PHOTOS = 12;
 
 export class CreateLuxuryItemDto {
   @ApiProperty({ enum: LUXURY_CATEGORIES })
@@ -22,11 +36,39 @@ export class CreateLuxuryItemDto {
   @MaxLength(120)
   model: string;
 
-  @ApiPropertyOptional({ example: 1250000, description: 'Value stated by the user, in cents' })
+  @ApiPropertyOptional({ example: 1250000, description: 'Current value (Aktueller Wert) stated by the user, in cents' })
   @IsOptional()
   @IsInt()
   @Min(0)
   valueCents?: number | null;
+
+  @ApiPropertyOptional({ example: 980000, description: 'Kaufpreis in cents' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  purchasePriceCents?: number | null;
+
+  @ApiPropertyOptional({ example: '2024-05-17' })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  purchaseDate?: string | null;
+
+  @ApiPropertyOptional({ example: 'Wempe, Hamburg' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  store?: string | null;
+
+  @ApiPropertyOptional({ example: '126610LN', description: 'Referenz- or Artikelnummer' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  referenceNumber?: string | null;
+
+  @ApiPropertyOptional({ description: 'Box und Papiere vorhanden' })
+  @IsOptional()
+  @IsBoolean()
+  hasBoxPapers?: boolean;
 
   @ApiPropertyOptional({ example: '7K3L9P21' })
   @IsOptional()
@@ -40,7 +82,7 @@ export class CreateLuxuryItemDto {
   @MaxLength(1000)
   notes?: string | null;
 
-  @ApiPropertyOptional({ type: [String], description: 'Uploaded documents to attach as photos' })
+  @ApiPropertyOptional({ type: [String], description: 'Uploaded documents to attach: photos and the Rechnung (kind invoice)' })
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(MAX_LUXURY_PHOTOS)

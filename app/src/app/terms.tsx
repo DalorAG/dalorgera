@@ -6,7 +6,7 @@ import { TERMS_VERSION } from '@/lib/terms';
 const SECTIONS: LegalSection[] = [
   {
     title: '1. Gegenstand',
-    body: 'Garantie-Radar hilft dir, Kaufbelege und Garantiescheine digital aufzubewahren und an Garantie- und Gewährleistungsfristen erinnert zu werden.',
+    body: 'Dalor Gawa hilft dir, Kaufbelege und Garantiescheine digital aufzubewahren und an Garantie- und Gewährleistungsfristen erinnert zu werden.',
   },
   {
     title: '2. Konto',

@@ -70,10 +70,14 @@ export default function MoreScreen() {
         />
 
         <Card style={styles.links}>
-          <LinkRow icon="file-tray-outline" label="Posteingang" onPress={() => router.push('/posteingang')} />
-          <View style={[styles.separator, { backgroundColor: theme.border }]} />
           <LinkRow icon="person-outline" label="Profil bearbeiten" onPress={() => router.push('/profile')} />
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
+          <LinkRow icon="file-tray-outline" label="Posteingang" onPress={() => router.push('/posteingang')} />
+          <View style={[styles.separator, { backgroundColor: theme.border }]} />
+          <LinkRow icon="archive-outline" label="Archiv" onPress={() => router.push('/archiv')} />
+        </Card>
+
+        <Card style={styles.links}>
           <LinkRow icon="pricetags-outline" label="Tarife" onPress={() => router.push('/pricing')} />
         </Card>
 

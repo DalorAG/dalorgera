@@ -158,10 +158,15 @@ export type Database = {
           category: string
           created_at: string
           currency: string
+          has_box_papers: boolean
           id: string
           model: string
           notes: string | null
+          purchase_date: string | null
+          purchase_price_cents: number | null
+          reference_number: string | null
           serial_number: string | null
+          store: string | null
           updated_at: string
           user_id: string
           value_cents: number | null
@@ -171,10 +176,15 @@ export type Database = {
           category: string
           created_at?: string
           currency?: string
+          has_box_papers?: boolean
           id?: string
           model: string
           notes?: string | null
+          purchase_date?: string | null
+          purchase_price_cents?: number | null
+          reference_number?: string | null
           serial_number?: string | null
+          store?: string | null
           updated_at?: string
           user_id?: string
           value_cents?: number | null
@@ -184,10 +194,15 @@ export type Database = {
           category?: string
           created_at?: string
           currency?: string
+          has_box_papers?: boolean
           id?: string
           model?: string
           notes?: string | null
+          purchase_date?: string | null
+          purchase_price_cents?: number | null
+          reference_number?: string | null
           serial_number?: string | null
+          store?: string | null
           updated_at?: string
           user_id?: string
           value_cents?: number | null

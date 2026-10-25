@@ -8,7 +8,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: '1. Verantwortlicher',
     body: [
-      'Verantwortlich für die Verarbeitung deiner Daten in Garantie-Radar ist:',
+      'Verantwortlich für die Verarbeitung deiner Daten in Dalor Gawa ist:',
       '[Name bzw. Firma]\n[Straße, Hausnummer]\n[PLZ, Ort]\nE-Mail: [Kontakt-E-Mail]',
       'Bei Fragen zum Datenschutz erreichst du uns unter [Datenschutz-E-Mail].',
     ],

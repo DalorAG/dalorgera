@@ -1,80 +1,122 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { VaultRow } from '@/components/devices/vault-row';
+import { Card } from '@/components/card';
 import { DocumentsList } from '@/components/documents-list';
-import { InfoBanner } from '@/components/info-banner';
 import { ScreenHeader } from '@/components/screen-header';
 import { SearchField } from '@/components/search-field';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
-import type { Device } from '@/lib/api-types';
-import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
+import type { Device, DocumentItem, LuxuryItem } from '@/lib/api-types';
+import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
+import { formatPrice } from '@/lib/format';
+import { LUXURY_CATEGORIES, REQUEST_STATUS_LABELS, currentValue, itemTitle, totals, valueChange } from '@/lib/luxury';
+import { useGetDevicesQuery, useGetDocumentUrlQuery, useGetDocumentsQuery, useGetLuxuryItemsQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
-type Segment = 'devices' | 'documents';
+type Segment = 'items' | 'documents';
 
-const OTHER_CATEGORY = 'Sonstiges';
+const words = (query: string) => query.split(/\s+/).filter(Boolean);
 
-/** Devices grouped by category (alphabetical, "Sonstiges" last), keeping the deadline order inside a group. */
-function groupByCategory(devices: Device[]): [string, Device[]][] {
-  const groups = new Map<string, Device[]>();
-  for (const d of devices) {
-    const category = d.category?.trim() || OTHER_CATEGORY;
-    groups.set(category, [...(groups.get(category) ?? []), d]);
-  }
-  return [...groups].sort(([a], [b]) =>
-    a === OTHER_CATEGORY ? 1 : b === OTHER_CATEGORY ? -1 : a.localeCompare(b, 'de'),
-  );
+function itemMatches(item: LuxuryItem, query: string): boolean {
+  const category = LUXURY_CATEGORIES.find((c) => c.value === item.category)?.label;
+  const text = [item.brand, item.model, category, item.store, item.referenceNumber, item.serialNumber, item.notes]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return words(query).every((w) => text.includes(w));
 }
 
-function matches(device: Device, query: string): boolean {
-  const text = [device.name, device.brand, device.category, device.store].filter(Boolean).join(' ').toLowerCase();
-  return query.split(/\s+/).every((word) => text.includes(word));
+function documentMatches(doc: DocumentItem, owner: string | undefined, query: string): boolean {
+  const text = [DOCUMENT_KIND_LABELS[doc.kind], doc.extracted?.merchant, owner, doc.rawText]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return words(query).every((w) => text.includes(w));
 }
 
-export default function VaultScreen() {
+/** Tresor: Wertsachen with what they are worth today, and every Beleg in the app. */
+export default function TresorScreen() {
   const theme = useTheme();
-  const [segment, setSegment] = useState<Segment>('devices');
+  const params = useLocalSearchParams<{ segment?: Segment }>();
+  const [segment, setSegment] = useState<Segment>(params.segment === 'documents' ? 'documents' : 'items');
   const [search, setSearch] = useState('');
-  const devices = useGetDevicesQuery();
+  const items = useGetLuxuryItemsQuery();
   const documents = useGetDocumentsQuery();
-  const active = segment === 'devices' ? devices : documents;
+  const { data: devices } = useGetDevicesQuery();
+  const active = segment === 'items' ? items : documents;
   const query = search.trim().toLowerCase();
-  const shownDevices = query ? (devices.data ?? []).filter((d) => matches(d, query)) : (devices.data ?? []);
+
+  const owners = ownerNames(devices ?? [], items.data ?? []);
+  const shownItems = (items.data ?? []).filter((i) => !query || itemMatches(i, query));
+  const shownDocuments = (documents.data ?? []).filter(
+    (d) => !query || documentMatches(d, owners.get(d.deviceId ?? d.luxuryItemId ?? ''), query),
+  );
+  const sum = totals(items.data ?? []);
+  const currency = items.data?.[0]?.currency ?? 'EUR';
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={active.isFetching && !active.isLoading} onRefresh={active.refetch} />
-        }>
+        keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={active.isFetching && !active.isLoading} onRefresh={active.refetch} />}>
         <ScreenHeader
           icon={<Ionicons name="lock-closed" size={40} color={theme.brand} />}
-          title="Digitaler Tresor"
-          subtitle="Alle deine Belege. Sicher an einem Ort."
+          title="Tresor"
+          subtitle="Deine Wertsachen und alle Belege. Sicher an einem Ort."
         />
 
-        <InfoBanner
-          icon={
-            <View style={[styles.docIcon, { backgroundColor: theme.surface }]}>
-              <Ionicons name="document-text-outline" size={28} color={theme.brandIcon} />
-              <View style={[styles.docCheck, { backgroundColor: theme.success }]}>
-                <Ionicons name="checkmark" size={12} color={theme.textOnBrand} />
-              </View>
-            </View>
-          }
-          title="Garantie- und Gewährleistungsfristen werden automatisch berechnet."
-          subtitle="Du musst dich um nichts mehr kümmern."
+        <Card style={[styles.wealth, { backgroundColor: theme.brand }]}>
+          <Text variant="caption" color="textOnBrand">
+            Dein Vermögen
+          </Text>
+          <Text variant="display" color="textOnBrand">
+            {formatPrice(sum.value, currency)}
+          </Text>
+          <View style={styles.wealthRow}>
+            <Text variant="caption" color="textOnBrand">
+              {items.data?.length ?? 0} {items.data?.length === 1 ? 'Wertsache' : 'Wertsachen'}
+            </Text>
+            <Text variant="caption" color="textOnBrand">
+              Gesamtkosten {formatPrice(sum.cost, currency)}
+            </Text>
+          </View>
+        </Card>
+
+        <Pressable
+          onPress={() => router.push('/luxury-request')}
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            styles.cta,
+            { backgroundColor: pressed ? theme.brandSoft : theme.surface, borderColor: theme.brand },
+          ]}>
+          <View style={[styles.ctaIcon, { backgroundColor: theme.brand }]}>
+            <Ionicons name="add" size={22} color={theme.textOnBrand} />
+          </View>
+          <View style={styles.flex}>
+            <Text variant="bodyStrong">Wertsache hinzufügen</Text>
+            <Text variant="caption" color="textSecondary">
+              Uhr, Schmuck, Tasche: mit Rechnung, Fotos und Wert.
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.brand} />
+        </Pressable>
+
+        <SearchField
+          value={search}
+          onChangeText={setSearch}
+          placeholder={segment === 'items' ? 'Wertsachen durchsuchen' : 'Belege durchsuchen'}
         />
 
         <View style={[styles.segments, { borderBottomColor: theme.border }]}>
           {(
             [
-              ['devices', `Geräte (${devices.data?.length ?? 0})`],
+              ['items', `Wertsachen (${items.data?.length ?? 0})`],
               ['documents', `Alle Belege (${documents.data?.length ?? 0})`],
             ] as const
           ).map(([key, label]) => {
@@ -94,33 +136,31 @@ export default function VaultScreen() {
           })}
         </View>
 
-        {segment === 'devices' && devices.data?.length ? (
-          <SearchField value={search} onChangeText={setSearch} placeholder="Geräte durchsuchen" />
-        ) : null}
-
         {active.isLoading ? (
           <StateView kind="loading" />
         ) : active.error ? (
           <StateView kind="error" error={active.error} onRetry={active.refetch} />
-        ) : segment === 'devices' ? (
-          shownDevices.length ? (
-            groupByCategory(shownDevices).map(([category, items]) => (
-              <View key={category} style={styles.group}>
-                <Text variant="captionStrong" color="textSecondary">
-                  {category} ({items.length})
-                </Text>
-                {items.map((d) => (
-                  <VaultRow key={d.id} device={d} />
-                ))}
-              </View>
-            ))
+        ) : segment === 'items' ? (
+          shownItems.length ? (
+            <View style={styles.list}>
+              {shownItems.map((item) => (
+                <ItemRow key={item.id} item={item} />
+              ))}
+            </View>
           ) : query ? (
-            <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Kein Gerät passt zu „${search.trim()}“.`} />
+            <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Keine Wertsache passt zu „${search.trim()}“.`} />
           ) : (
-            <StateView kind="empty" icon="cube-outline" title="Keine Geräte" message="Füge dein erstes Gerät mit dem + hinzu." />
+            <StateView
+              kind="empty"
+              icon="diamond-outline"
+              title="Noch keine Wertsachen"
+              message="Füge deine Uhr, deinen Schmuck oder deine Tasche hinzu."
+            />
           )
-        ) : documents.data?.length ? (
-          <DocumentsList documents={documents.data} devices={devices.data ?? []} />
+        ) : shownDocuments.length ? (
+          <DocumentsList documents={shownDocuments} devices={devices ?? []} luxuryItems={items.data ?? []} />
+        ) : query ? (
+          <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Kein Beleg passt zu „${search.trim()}“.`} />
         ) : (
           <StateView kind="empty" icon="receipt-outline" title="Keine Belege" message="Gescannte Belege erscheinen hier." />
         )}
@@ -129,27 +169,59 @@ export default function VaultScreen() {
   );
 }
 
+/** Device and Wertsache names by id, so Belege can be found by what they belong to. */
+function ownerNames(devices: Device[], items: LuxuryItem[]) {
+  return new Map<string, string>([...devices.map((d) => [d.id, d.name] as const), ...items.map((i) => [i.id, itemTitle(i)] as const)]);
+}
+
+function ItemRow({ item }: { item: LuxuryItem }) {
+  const theme = useTheme();
+  const category = LUXURY_CATEGORIES.find((c) => c.value === item.category);
+  const cover = item.photos[0];
+  const { data: coverUrl } = useGetDocumentUrlQuery(cover?.id ?? '', { skip: !cover });
+  const value = currentValue(item);
+  const change = valueChange(item);
+  const status = item.request ? `Versicherung: ${REQUEST_STATUS_LABELS[item.request.status]}` : 'Nicht versichert';
+
+  return (
+    <Card onPress={() => router.push({ pathname: '/luxury/[id]', params: { id: item.id } })} style={styles.row}>
+      <View style={[styles.thumb, { backgroundColor: theme.surfaceMuted }]}>
+        {coverUrl ? (
+          <Image source={{ uri: coverUrl.url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} />
+        ) : (
+          <Ionicons name={category?.icon ?? 'diamond-outline'} size={24} color={theme.brandIcon} />
+        )}
+      </View>
+      <View style={styles.flex}>
+        <Text variant="bodyStrong" numberOfLines={1}>
+          {itemTitle(item)}
+        </Text>
+        <Text variant="caption" color="textSecondary" numberOfLines={1}>
+          {category?.label} · {status}
+        </Text>
+      </View>
+      <View style={styles.value}>
+        <Text variant="micro" color="textSecondary">
+          Aktueller Wert
+        </Text>
+        <Text variant="bodyStrong">{value != null ? formatPrice(value, item.currency) : '–'}</Text>
+        {change ? (
+          <Text variant="micro" color={change.startsWith('−') ? 'danger' : 'success'}>
+            {change}
+          </Text>
+        ) : null}
+      </View>
+    </Card>
+  );
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
-  docIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  docCheck: {
-    position: 'absolute',
-    right: 4,
-    bottom: 4,
-    width: 18,
-    height: 18,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  group: { gap: spacing.md },
+  wealth: { gap: spacing.xs },
+  wealthRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  cta: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1 },
+  ctaIcon: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   segments: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
   segment: {
     flex: 1,
@@ -158,4 +230,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     marginBottom: -StyleSheet.hairlineWidth,
   },
+  list: { gap: spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  thumb: { width: 56, height: 56, borderRadius: radius.sm, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  value: { alignItems: 'flex-end' },
 });

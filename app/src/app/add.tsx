@@ -10,7 +10,10 @@ import { useAppDispatch } from '@/store';
 import { scanCleared } from '@/store/scan-slice';
 import { radius, spacing, useTheme } from '@/theme';
 
-/** "+" first asks what to track, then scans the receipt (Wartung: a product photo; Vignette goes straight to the form). */
+/**
+ * "+" first asks what to track, then scans the receipt (Wartung: a product photo; Vignette goes straight
+ * to the form). A Rechnung of a Wertsache goes into the Tresor.
+ */
 export default function AddScreen() {
   const theme = useTheme();
   const dispatch = useAppDispatch();
@@ -43,6 +46,18 @@ export default function AddScreen() {
           <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
         </Card>
       ))}
+      <Card onPress={() => router.replace('/luxury-request')} style={styles.row}>
+        <View style={[styles.icon, { backgroundColor: theme.brandSoft }]}>
+          <Ionicons name="lock-closed-outline" size={26} color={theme.brand} />
+        </View>
+        <View style={styles.flex}>
+          <Text variant="headline">Rechnung hinzufügen</Text>
+          <Text variant="caption" color="textSecondary">
+            Uhr, Schmuck oder Tasche mit Rechnung und Wert in den Tresor legen.
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
+      </Card>
     </ScrollView>
   );
 }

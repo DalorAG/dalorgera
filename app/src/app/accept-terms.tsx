@@ -55,7 +55,7 @@ export default function AcceptTermsScreen() {
         </View>
         <Text variant="display">Fast geschafft</Text>
         <Text variant="body" color="textSecondary">
-          Bevor du Garantie-Radar nutzen kannst, bestätige bitte unsere Nutzungsbedingungen.
+          Bevor du Dalor Gawa nutzen kannst, bestätige bitte unsere Nutzungsbedingungen.
         </Text>
 
         <Checkbox checked={checked} onChange={(v) => { setChecked(v); setShowError(false); }} error={showError}>

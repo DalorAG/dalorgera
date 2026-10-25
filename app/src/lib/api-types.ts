@@ -131,17 +131,27 @@ export type CreateWarrantyRequest = {
   valueCents?: number;
 };
 
-/** A watch, piece of jewellery or bag kept in the Luxus tab; insurance is requested per item. */
+export type LuxuryDocument = { id: string; kind: DocumentKind; mimeType: DocumentMimeType; createdAt: string };
+
+/** A watch, piece of jewellery or bag kept in the Tresor; insurance is requested per item. */
 export type LuxuryItem = {
   id: string;
   category: LuxuryCategory;
   brand: string;
   model: string;
+  /** Aktueller Wert, also what gets insured */
   valueCents: number | null;
+  purchasePriceCents: number | null;
+  purchaseDate: string | null;
+  store: string | null;
+  referenceNumber: string | null;
+  hasBoxPapers: boolean;
   currency: string;
   serialNumber: string | null;
   notes: string | null;
-  photos: { id: string; mimeType: DocumentMimeType }[];
+  photos: LuxuryDocument[];
+  /** Rechnungen (documents of kind invoice) */
+  invoices: LuxuryDocument[];
   /** The latest insurance request, null until the user asked for one */
   request: { id: string; status: WarrantyRequestStatus; createdAt: string } | null;
   createdAt: string;
@@ -152,8 +162,13 @@ export type LuxuryItemInput = {
   brand: string;
   model: string;
   valueCents?: number | null;
+  purchasePriceCents?: number | null;
+  purchaseDate?: string | null;
+  store?: string | null;
+  referenceNumber?: string | null;
+  hasBoxPapers?: boolean;
   serialNumber?: string | null;
   notes?: string | null;
-  /** Uploaded documents to attach as photos */
+  /** Uploaded documents to attach: photos and the Rechnung */
   documentIds?: string[];
 };

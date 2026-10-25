@@ -10,28 +10,37 @@ import { RECEIPT_URL_TTL_SECONDS, formatPrice } from '../warranty-requests/warra
 import type { CreateLuxuryItemDto, RequestInsuranceDto, UpdateLuxuryItemDto } from './luxury-items.dto.js';
 
 const SELECT =
-  '*, documents(id, mime_type, storage_path, created_at), warranty_requests(id, status, created_at)';
+  '*, documents(id, kind, mime_type, storage_path, created_at), warranty_requests(id, status, created_at)';
 
 type ItemRow = Tables<'luxury_items'> & {
-  documents: Pick<Tables<'documents'>, 'id' | 'mime_type' | 'storage_path' | 'created_at'>[];
+  documents: Pick<Tables<'documents'>, 'id' | 'kind' | 'mime_type' | 'storage_path' | 'created_at'>[];
   warranty_requests: Pick<Tables<'warranty_requests'>, 'id' | 'status' | 'created_at'>[];
 };
 
 const byCreatedAt = (a: { created_at: string }, b: { created_at: string }) => a.created_at.localeCompare(b.created_at);
 
+const toDocument = (d: ItemRow['documents'][number]) => ({ id: d.id, kind: d.kind, mimeType: d.mime_type, createdAt: d.created_at });
+
 function toResponse(row: ItemRow) {
   // The latest request decides what the detail screen offers.
   const request = [...row.warranty_requests].sort(byCreatedAt).at(-1);
+  const documents = [...row.documents].sort(byCreatedAt);
   return {
     id: row.id,
     category: row.category,
     brand: row.brand,
     model: row.model,
     valueCents: row.value_cents,
+    purchasePriceCents: row.purchase_price_cents,
+    purchaseDate: row.purchase_date,
+    store: row.store,
+    referenceNumber: row.reference_number,
+    hasBoxPapers: row.has_box_papers,
     currency: row.currency,
     serialNumber: row.serial_number,
     notes: row.notes,
-    photos: [...row.documents].sort(byCreatedAt).map((d) => ({ id: d.id, mimeType: d.mime_type })),
+    photos: documents.filter((d) => d.kind !== 'invoice').map(toDocument),
+    invoices: documents.filter((d) => d.kind === 'invoice').map(toDocument),
     request: request ? { id: request.id, status: request.status, createdAt: request.created_at } : null,
     createdAt: row.created_at,
   };
@@ -74,6 +83,11 @@ export class LuxuryItemsService {
           brand: dto.brand.trim(),
           model: dto.model.trim(),
           value_cents: dto.valueCents ?? null,
+          purchase_price_cents: dto.purchasePriceCents ?? null,
+          purchase_date: dto.purchaseDate ?? null,
+          store: trimmed(dto.store) ?? null,
+          reference_number: trimmed(dto.referenceNumber) ?? null,
+          has_box_papers: dto.hasBoxPapers ?? false,
           serial_number: trimmed(dto.serialNumber) ?? null,
           notes: trimmed(dto.notes) ?? null,
         })
@@ -91,6 +105,11 @@ export class LuxuryItemsService {
       ...(dto.brand !== undefined && { brand: dto.brand.trim() }),
       ...(dto.model !== undefined && { model: dto.model.trim() }),
       ...(dto.valueCents !== undefined && { value_cents: dto.valueCents }),
+      ...(dto.purchasePriceCents !== undefined && { purchase_price_cents: dto.purchasePriceCents }),
+      ...(dto.purchaseDate !== undefined && { purchase_date: dto.purchaseDate }),
+      ...(dto.store !== undefined && { store: trimmed(dto.store) }),
+      ...(dto.referenceNumber !== undefined && { reference_number: trimmed(dto.referenceNumber) }),
+      ...(dto.hasBoxPapers !== undefined && { has_box_papers: dto.hasBoxPapers }),
       ...(dto.serialNumber !== undefined && { serial_number: trimmed(dto.serialNumber) }),
       ...(dto.notes !== undefined && { notes: trimmed(dto.notes) }),
     };
@@ -151,10 +170,12 @@ export class LuxuryItemsService {
       category: item.category as LuxuryCategory,
       brand: item.brand,
       serialNumber: item.serial_number,
+      referenceNumber: item.reference_number,
+      hasBoxPapers: item.has_box_papers,
       value: formatPrice(item.value_cents, item.currency),
-      store: null,
-      purchaseDate: null,
-      price: null,
+      store: item.store,
+      purchaseDate: item.purchase_date,
+      price: formatPrice(item.purchase_price_cents, item.currency),
       message: dto.message?.trim() || null,
       photoUrls: (signed ?? []).flatMap((s) => (s.signedUrl ? [s.signedUrl] : [])),
     });

@@ -9,14 +9,17 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-SCHEME=GarantieRadar
 OUT=build/testflight
-ARCHIVE="$OUT/$SCHEME.xcarchive"
 # Every upload needs a unique, increasing build number; a timestamp guarantees that.
 BUILD_NUMBER="${BUILD_NUMBER:-$(date +%Y%m%d%H%M)}"
 
 echo "▸ prebuild (ios/ is generated from app.json)"
-npx expo prebuild --platform ios
+# --clean: the Xcode project is named after the app, a renamed app would keep the old one.
+npx expo prebuild --platform ios --clean
+
+WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
+SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+ARCHIVE="$OUT/$SCHEME.xcarchive"
 
 PLIST="ios/$SCHEME/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST"

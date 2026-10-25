@@ -86,7 +86,7 @@ export default function OverviewScreen() {
 
         {devices?.length ? (
           <View style={styles.tiles}>
-            <Card onPress={() => router.push('/tresor')} style={[styles.flex, styles.tile]}>
+            <Card onPress={() => router.push('/gawa')} style={[styles.flex, styles.tile]}>
               <Ionicons name="cube-outline" size={22} color={theme.brandIcon} />
               <View style={styles.flex}>
                 <Text variant="caption" color="textSecondary">
@@ -96,7 +96,7 @@ export default function OverviewScreen() {
               </View>
               <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
             </Card>
-            <Card onPress={() => router.push('/posteingang')} style={[styles.flex, styles.tile]}>
+            <Card onPress={() => router.push({ pathname: '/tresor', params: { segment: 'documents' } })} style={[styles.flex, styles.tile]}>
               <Ionicons name="document-text-outline" size={22} color={theme.brandIcon} />
               <View style={styles.flex}>
                 <Text variant="caption" color="textSecondary">

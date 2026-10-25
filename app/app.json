@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Garantie-Radar",
+    "name": "Dalor Gawa",
     "slug": "garantie-radar",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -44,7 +44,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Garantie-Radar nutzt die Kamera, um Kassenbons und Garantiescheine zu fotografieren.",
+          "cameraPermission": "Dalor Gawa nutzt die Kamera, um Kassenbons und Garantiescheine zu fotografieren.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
@@ -52,8 +52,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Garantie-Radar greift auf deine Fotos zu, damit du Belege aus der Galerie hinzufügen kannst.",
-          "cameraPermission": "Garantie-Radar nutzt die Kamera, um Kassenbons und Garantiescheine zu fotografieren.",
+          "photosPermission": "Dalor Gawa greift auf deine Fotos zu, damit du Belege aus der Galerie hinzufügen kannst.",
+          "cameraPermission": "Dalor Gawa nutzt die Kamera, um Kassenbons und Garantiescheine zu fotografieren.",
           "microphonePermission": false
         }
       ],

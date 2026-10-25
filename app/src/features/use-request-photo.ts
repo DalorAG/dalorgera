@@ -17,7 +17,7 @@ const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
 };
 
 /** Opens the camera or the gallery; resolves to the picked images, empty when cancelled or denied. */
-async function pickImages(source: PhotoSource, limit: number): Promise<ImagePicker.ImagePickerAsset[]> {
+export async function pickImages(source: PhotoSource, limit: number): Promise<ImagePicker.ImagePickerAsset[]> {
   if (source === 'camera') {
     if (!(await ImagePicker.requestCameraPermissionsAsync()).granted) return [];
     const result = await ImagePicker.launchCameraAsync(PICKER_OPTIONS);
@@ -32,7 +32,7 @@ async function pickImages(source: PhotoSource, limit: number): Promise<ImagePick
 }
 
 /** Uploads one picked image and runs recognition, so a receipt can pre-fill the form. */
-function useUploadPhoto(kind: DocumentKind) {
+export function useUploadPhoto(kind: DocumentKind) {
   const upload = useUploadDocument();
   const [recognize] = useRecognizeDocumentMutation();
   return async (asset: ImagePicker.ImagePickerAsset): Promise<RequestPhoto> => {
@@ -48,8 +48,8 @@ function useUploadPhoto(kind: DocumentKind) {
  * Photo of a receipt or the product itself, attached to a request for our insurance team.
  * Uploaded right away and recognized, so a receipt can pre-fill the form.
  */
-export function useRequestPhoto() {
-  const uploadPhoto = useUploadPhoto('receipt');
+export function useRequestPhoto(kind: DocumentKind = 'receipt') {
+  const uploadPhoto = useUploadPhoto(kind);
   const [photo, setPhoto] = useState<RequestPhoto | null>(null);
   const [busy, setBusy] = useState(false);
 

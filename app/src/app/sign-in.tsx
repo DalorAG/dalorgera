@@ -85,7 +85,7 @@ export default function SignInScreen() {
             <View style={[styles.logo, { backgroundColor: theme.brandSoft, borderColor: theme.brand }]}>
               <Ionicons name="shield-checkmark" size={40} color={theme.brand} />
             </View>
-            <Text variant="display">Garantie-Radar</Text>
+            <Text variant="display">Dalor Gawa</Text>
             <Text variant="body" color="textSecondary">
               Deine Geräte. Deine Sicherheit.
             </Text>

@@ -7,15 +7,16 @@ import { Card } from '@/components/card';
 import { DocumentThumb } from '@/components/document-thumb';
 import { Text } from '@/components/text';
 import { shareDocumentAsPdf } from '@/features/export-pdf';
-import type { Device, DocumentItem } from '@/lib/api-types';
+import type { Device, DocumentItem, LuxuryItem } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
 import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
+import { itemTitle } from '@/lib/luxury';
 import { useAppDispatch } from '@/store';
 import { api, useDeleteDocumentMutation } from '@/store/api';
 import { scanCompleted } from '@/store/scan-slice';
 import { spacing, useTheme } from '@/theme';
 
-type Props = { documents: DocumentItem[]; devices: Device[] };
+type Props = { documents: DocumentItem[]; devices: Device[]; luxuryItems?: LuxuryItem[] };
 
 function confirmDelete(title: string, message: string, onConfirm: () => void) {
   if (Platform.OS === 'web') {
@@ -32,16 +33,24 @@ function confirmDelete(title: string, message: string, onConfirm: () => void) {
 export function useOpenDocument() {
   const dispatch = useAppDispatch();
   return (doc: DocumentItem) => {
+    if (doc.luxuryItemId) return router.push({ pathname: '/luxury/[id]', params: { id: doc.luxuryItemId } });
     if (doc.deviceId) return router.push(`/receipt/${doc.id}`);
     dispatch(scanCompleted({ documentId: doc.id, kind: doc.kind, extraction: doc.extracted }));
     router.push('/device/new');
   };
 }
 
-export function DocumentsList({ documents, devices }: Props) {
+export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const deviceNames = new Map(devices.map((d) => [d.id, d.name]));
+  const itemNames = new Map(luxuryItems.map((i) => [i.id, itemTitle(i)]));
+  const owner = (doc: DocumentItem) =>
+    doc.luxuryItemId
+      ? (itemNames.get(doc.luxuryItemId) ?? 'Wertsache')
+      : doc.deviceId
+        ? (deviceNames.get(doc.deviceId) ?? 'Gerät')
+        : null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const open = useOpenDocument();
   const [deleteDocument] = useDeleteDocumentMutation();
@@ -61,8 +70,8 @@ export function DocumentsList({ documents, devices }: Props) {
   const remove = (doc: DocumentItem) =>
     confirmDelete(
       `${DOCUMENT_KIND_LABELS[doc.kind]} löschen?`,
-      doc.deviceId
-        ? `Der Beleg wird von „${deviceNames.get(doc.deviceId) ?? 'Gerät'}“ entfernt. Das Gerät bleibt erhalten.`
+      owner(doc)
+        ? `Der Beleg wird von „${owner(doc)}“ entfernt. ${doc.luxuryItemId ? 'Die Wertsache' : 'Das Gerät'} bleibt erhalten.`
         : 'Der Beleg wird endgültig gelöscht.',
       async () => {
         setBusyId(doc.id);
@@ -88,8 +97,8 @@ export function DocumentsList({ documents, devices }: Props) {
                 .filter(Boolean)
                 .join(' · ') || `Hochgeladen am ${formatDate(doc.createdAt)}`}
             </Text>
-            <Text variant="caption" color={doc.deviceId ? 'textSecondary' : 'warningText'}>
-              {doc.deviceId ? (deviceNames.get(doc.deviceId) ?? 'Gerät') : 'Keinem Gerät zugeordnet'}
+            <Text variant="caption" color={owner(doc) ? 'textSecondary' : 'warningText'}>
+              {owner(doc) ?? 'Keinem Gerät zugeordnet'}
             </Text>
           </View>
           {busyId === doc.id ? (

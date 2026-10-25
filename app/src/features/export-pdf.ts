@@ -3,8 +3,11 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 
-import type { DocumentItem } from '@/lib/api-types';
+import type { DocumentItem as FullDocument } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
+
+/** All the export needs; Wertsachen only carry these fields for their documents. */
+type DocumentItem = Pick<FullDocument, 'id' | 'kind' | 'mimeType' | 'createdAt'>;
 
 /** "Kassenbon-2026-10-19.pdf" */
 function fileName(document: DocumentItem): string {

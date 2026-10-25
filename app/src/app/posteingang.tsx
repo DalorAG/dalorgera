@@ -22,8 +22,8 @@ export default function InboxScreen() {
   // Full-text search in the recognized receipt text (store, products, ...).
   const q = useDebouncedValue(search.trim());
   const { data: documents, isLoading, isFetching, error, refetch } = useGetDocumentsQuery(q ? { q } : undefined);
-  // Produktfotos belong to the device, not to the Belege.
-  const receipts = documents?.filter(isReceipt);
+  // Produktfotos belong to the device, not to the Belege; Rechnungen of Wertsachen live in the Tresor.
+  const receipts = documents?.filter((d) => isReceipt(d) && !d.luxuryItemId);
   const openCount = receipts?.filter((d) => !d.deviceId).length ?? 0;
   const data = onlyOpen ? receipts?.filter((d) => !d.deviceId) : receipts;
   const { data: devices } = useGetDevicesQuery();

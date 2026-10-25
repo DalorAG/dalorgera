@@ -15,6 +15,9 @@ export type WarrantyRequestMail = {
   category: LuxuryCategory | null;
   brand: string | null;
   serialNumber: string | null;
+  /** Luxury items only */
+  referenceNumber?: string | null;
+  hasBoxPapers?: boolean;
   /** Value stated by the user, formatted */
   value: string | null;
   store: string | null;
@@ -72,7 +75,9 @@ export class WarrantyRequestMailer {
       ['Kategorie', mail.category && CATEGORY_LABELS[mail.category]],
       ['Marke', mail.brand],
       [mail.kind === 'luxury' ? 'Modell' : 'Produkt', mail.productName],
+      ['Referenznummer', mail.referenceNumber ?? null],
       ['Seriennummer', mail.serialNumber],
+      ['Box und Papiere', mail.hasBoxPapers === undefined ? null : mail.hasBoxPapers ? 'Ja' : 'Nein'],
       ['Wert (Angabe Kunde)', mail.value],
       ['Gekauft bei', mail.store],
       ['Kaufdatum', mail.purchaseDate],
