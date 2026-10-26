@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1022158308169",
+    "project_id": "dalor-gawa",
+    "storage_bucket": "dalor-gawa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1022158308169:android:a10ff6816f1549e15a5098",
+        "android_client_info": {
+          "package_name": "com.dalor.garantieradar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkCYFq16O9GFde3_rHxQI2I-ouq1AuTXw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

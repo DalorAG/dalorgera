@@ -5,7 +5,8 @@ export type Me = {
   email: string | null;
   isAnonymous: boolean;
   terms: { currentVersion: string; accepted: boolean; acceptedAt: string | null };
-  plan: { id: PlanId; deviceLimit: number; devicesUsed: number };
+  /** Missing from a backend older than the Tarife. */
+  plan?: { id: PlanId; deviceLimit: number; devicesUsed: number };
 };
 
 /** trial: free up to 50 devices, plus: 125, pro: 1000. */

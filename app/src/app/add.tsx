@@ -22,7 +22,7 @@ export default function AddScreen() {
   const dispatch = useAppDispatch();
   const { data: me } = useGetMeQuery();
   // Wertsachen do not count, so only devices are held back.
-  const full = !!me && me.plan.devicesUsed >= me.plan.deviceLimit;
+  const full = !!me?.plan && me.plan.devicesUsed >= me.plan.deviceLimit;
 
   const pick = (kind: DeviceKind) => {
     if (full) return router.push('/pricing');

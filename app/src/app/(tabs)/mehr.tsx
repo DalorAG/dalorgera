@@ -91,7 +91,7 @@ export default function MoreScreen() {
             icon="pricetags-outline"
             label={t('nav:pricing')}
             hint={
-              me
+              me?.plan
                 ? t('more.planHint', {
                     name: t(`pricing.plans.${me.plan.id}.name`),
                     used: me.plan.devicesUsed,
