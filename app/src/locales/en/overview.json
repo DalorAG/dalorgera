@@ -21,17 +21,37 @@
       "message": "Add something with the +."
     },
     "actions": {
-      "title": "Actions",
-      "add": "Add invoice",
-      "extend": "Extend warranty",
-      "luxury": "Request insurance",
-      "inbox": "Inbox"
+      "title": "Actions"
     },
     "poweredBy": "Powered by Dalor AG",
     "drafts": {
       "title_one": "{{count}} draft",
       "title_other": "{{count}} drafts",
       "message": "Scanned but not saved yet. Finish them now."
+    },
+    "promos": {
+      "insurance": {
+        "badge": "−10%",
+        "title": "10% off insurance for valuables",
+        "text": "For watches, jewellery and bags in your Tresor, only through the app.",
+        "cta": "Open Tresor"
+      },
+      "extension": {
+        "title": "Extend your warranty",
+        "text": "Up to 4 weeks after purchase: more protection for your new devices.",
+        "cta": "Request now"
+      },
+      "plus": {
+        "badge": "€1.99",
+        "title": "More room with Plus",
+        "text": "Up to 125 devices for €1.99 a month.",
+        "cta": "See plans"
+      },
+      "scan": {
+        "title": "Add an invoice in seconds",
+        "text": "Take a photo, we read store, date, price and warranty.",
+        "cta": "Add invoice"
+      }
     }
   },
   "gawa": {

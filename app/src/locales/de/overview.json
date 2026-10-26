@@ -21,17 +21,37 @@
       "message": "Füge etwas mit dem + hinzu."
     },
     "actions": {
-      "title": "Aktionen",
-      "add": "Rechnung hinzufügen",
-      "extend": "Garantie verlängern",
-      "luxury": "Versicherung anfragen",
-      "inbox": "Posteingang"
+      "title": "Aktionen"
     },
     "poweredBy": "Powered by Dalor AG",
     "drafts": {
       "title_one": "{{count}} Entwurf",
       "title_other": "{{count}} Entwürfe",
       "message": "Gescannt, aber noch nicht gespeichert. Jetzt fertigstellen."
+    },
+    "promos": {
+      "insurance": {
+        "badge": "−10 %",
+        "title": "10 % Rabatt auf die Wertsachen-Versicherung",
+        "text": "Für Uhren, Schmuck und Taschen in deinem Tresor, exklusiv über die App.",
+        "cta": "Zum Tresor"
+      },
+      "extension": {
+        "title": "Garantie verlängern",
+        "text": "Bis 4 Wochen nach dem Kauf: mehr Schutz für deine neuen Geräte.",
+        "cta": "Jetzt anfragen"
+      },
+      "plus": {
+        "badge": "1,99 €",
+        "title": "Mehr Platz mit Plus",
+        "text": "Bis zu 125 Geräte für 1,99 € im Monat.",
+        "cta": "Tarife ansehen"
+      },
+      "scan": {
+        "title": "Rechnung in Sekunden erfassen",
+        "text": "Foto machen, wir lesen Händler, Datum, Preis und Garantie aus.",
+        "cta": "Rechnung hinzufügen"
+      }
     }
   },
   "gawa": {

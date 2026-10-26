@@ -16,10 +16,12 @@ const MIN_PASSWORD = 8;
 /** Name lives in the Supabase user metadata, so no API call is needed. */
 export default function ProfileScreen() {
   const theme = useTheme();
-  const { t } = useTranslation(['account', 'common']);
+  const { t } = useTranslation(['account', 'common', 'auth']);
   const email = useAppSelector((s) => s.auth.email);
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordRepeat, setPasswordRepeat] = useState('');
+  const [repeatError, setRepeatError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -32,6 +34,10 @@ export default function ProfileScreen() {
       setMessage({ ok: false, text: t('profile.passwordTooShort', { min: MIN_PASSWORD }) });
       return;
     }
+    if (password && password !== passwordRepeat) {
+      setRepeatError(t('auth:errors.passwordMismatch'));
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.auth.updateUser({
       data: { full_name: name.trim() || null },
@@ -40,6 +46,7 @@ export default function ProfileScreen() {
     setSaving(false);
     if (error) return setMessage({ ok: false, text: error.message });
     setPassword('');
+    setPasswordRepeat('');
     setMessage({ ok: true, text: t('profile.saved') });
   };
 
@@ -63,6 +70,21 @@ export default function ProfileScreen() {
           autoComplete="new-password"
           textContentType="newPassword"
         />
+        {password ? (
+          <TextField
+            label={t('auth:signIn.passwordRepeatLabel')}
+            value={passwordRepeat}
+            onChangeText={(v) => {
+              setPasswordRepeat(v);
+              setRepeatError(null);
+            }}
+            placeholder={t('auth:signIn.passwordRepeatPlaceholder')}
+            secureTextEntry
+            autoComplete="new-password"
+            textContentType="newPassword"
+            error={repeatError}
+          />
+        ) : null}
         {message && !message.ok ? (
           <Text variant="body" color="danger">
             {message.text}

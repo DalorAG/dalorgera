@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState, type ComponentProps } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { WarrantyCard } from '@/components/devices/warranty-card';
 import { InfoBanner } from '@/components/info-banner';
+import { PromoCarousel } from '@/components/promo-carousel';
 import { ScreenHeader } from '@/components/screen-header';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
@@ -97,12 +98,7 @@ export default function OverviewScreen() {
         ) : null}
 
         <Text variant="title">{t('home.actions.title')}</Text>
-        <View style={styles.actions}>
-          <Action icon="receipt-outline" label={t('home.actions.add')} onPress={() => router.push('/add')} />
-          <Action icon="shield-half-outline" label={t('home.actions.extend')} onPress={() => router.push('/warranty-request')} />
-          <Action icon="diamond-outline" label={t('home.actions.luxury')} onPress={() => router.push('/luxury-request')} />
-          <Action icon="file-tray-outline" label={t('home.actions.inbox')} onPress={() => router.push('/posteingang')} />
-        </View>
+        <PromoCarousel />
 
         {devices?.length ? (
           <View style={styles.tiles}>
@@ -166,20 +162,6 @@ export default function OverviewScreen() {
   );
 }
 
-function Action({ icon, label, onPress }: { icon: ComponentProps<typeof Ionicons>['name']; label: string; onPress: () => void }) {
-  const theme = useTheme();
-  return (
-    <Card onPress={onPress} style={styles.action}>
-      <View style={[styles.actionIcon, { backgroundColor: theme.brandSoft }]}>
-        <Ionicons name={icon} size={22} color={theme.brand} />
-      </View>
-      <Text variant="captionStrong" numberOfLines={2} style={styles.actionLabel}>
-        {label}
-      </Text>
-    </Card>
-  );
-}
-
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
@@ -188,11 +170,6 @@ const styles = StyleSheet.create({
   spent: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   tiles: { flexDirection: 'row', gap: spacing.md },
   tile: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  // Two per row.
-  action: { flexBasis: '45%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  actionIcon: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  actionLabel: { flex: 1 },
   poweredBy: { textAlign: 'center' },
   logo: {
     width: 60,

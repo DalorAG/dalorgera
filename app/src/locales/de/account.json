@@ -22,8 +22,8 @@
     "limitReached": "Limit erreicht. Wähle einen größeren Tarif, um weitere Geräte hinzuzufügen.",
     "plans": {
       "trial": {
-        "name": "Trial",
-        "price": "Kostenlos"
+        "name": "Basic",
+        "price": "0,99 € / Monat"
       },
       "plus": {
         "name": "Plus",

@@ -9,7 +9,7 @@ export type Me = {
   plan?: { id: PlanId; deviceLimit: number; devicesUsed: number };
 };
 
-/** trial: free up to 50 devices, plus: 125, pro: 1000. */
+/** trial = Basic (0,99 €): up to 50 devices, plus (1,99 €): 125, pro (9,99 €): 1000. */
 export type PlanId = 'trial' | 'plus' | 'pro';
 
 export type DeviceStatus = 'active' | 'expiring' | 'expired';

@@ -12,7 +12,10 @@ import type { PlanId } from "@/lib/api-types";
 import { useGetMeQuery } from "@/store/api";
 import { spacing, useTheme } from "@/theme";
 
-/** Same limits as the database (private.device_limit). Prices per month. */
+/**
+ * Same limits as the database (private.device_limit). Prices per month, no free plan:
+ * 'trial' is the Basic plan (0,99 €), the one everyone has until a purchase says otherwise.
+ */
 const PLANS: { id: PlanId; devices: number }[] = [
   { id: "trial", devices: 50 },
   { id: "plus", devices: 125 },

@@ -22,8 +22,8 @@
     "limitReached": "Limit reached. Choose a bigger plan to add more devices.",
     "plans": {
       "trial": {
-        "name": "Trial",
-        "price": "Free"
+        "name": "Basic",
+        "price": "€0.99 / month"
       },
       "plus": {
         "name": "Plus",

@@ -1,7 +1,7 @@
 -- Tarife: how many devices a user may keep.
---   trial: free, up to 50 devices (everyone without a row)
---   plus:  up to 125 devices
---   pro:   up to 1000 devices
+--   trial: the Basic plan (0,99 €), up to 50 devices (everyone without a row)
+--   plus:  up to 125 devices (1,99 €)
+--   pro:   up to 1000 devices (9,99 €)
 -- Rows are written only by the server (store purchases); users can read their own.
 -- Wertsachen in the Tresor do not count.
 create table public.user_plans (
