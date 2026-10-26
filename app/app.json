@@ -12,7 +12,8 @@
       "buildNumber": "1",
       "appleTeamId": "JU7XHAGP62",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -23,9 +24,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.dalorstudio.garantieradar",
+      "package": "com.dalor.garantieradar",
       "versionCode": 1,
-      "permissions": []
+      "permissions": [],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -58,7 +60,24 @@
         }
       ],
       "expo-notifications",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "de",
+              "en",
+              "ru"
+            ],
+            "android": [
+              "de",
+              "en",
+              "ru"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -70,6 +89,11 @@
         "projectId": "d6ebff56-281a-4799-b820-4c8c34479e12"
       }
     },
-    "owner": "dalorteam"
+    "owner": "dalorteam",
+    "locales": {
+      "de": "./locales/de.json",
+      "en": "./locales/en.json",
+      "ru": "./locales/ru.json"
+    }
   }
 }

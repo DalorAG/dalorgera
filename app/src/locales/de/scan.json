@@ -1,0 +1,37 @@
+{
+  "steps": {
+    "scan": "Scannen",
+    "recognize": "Erkennen",
+    "save": "Speichern"
+  },
+  "kinds": {
+    "receipt": "Kassenbon",
+    "warrantyCard": "Garantieschein",
+    "invoice": "Rechnung"
+  },
+  "title": {
+    "product": "Produkt fotografieren",
+    "receipt": "Beleg scannen"
+  },
+  "permission": {
+    "product": "Erlaube den Kamerazugriff, um das Produkt zu fotografieren.",
+    "receipt": "Erlaube den Kamerazugriff, um Belege zu fotografieren.",
+    "allow": "Kamera erlauben"
+  },
+  "torch": "Blitz",
+  "hint": {
+    "product": "Fotografiere das Produkt, z. B. die Heizung oder das Typenschild",
+    "receipt": "Positioniere den Beleg im Rahmen"
+  },
+  "pickFromLibrary": "Aus Galerie wählen",
+  "skipPhoto": "Ohne Foto",
+  "phase": {
+    "uploadingPhoto": "Foto wird hochgeladen …",
+    "uploadingReceipt": "Beleg wird hochgeladen …",
+    "recognizing": "Beleg wird erkannt …",
+    "done": "Erfolgreich gespeichert",
+    "error": "Das hat nicht geklappt",
+    "encrypted": "Sicher verschlüsselt im Tresor."
+  },
+  "newPhoto": "Neues Foto"
+}

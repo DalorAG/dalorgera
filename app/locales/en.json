@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Dalor Gawa",
+    "NSCameraUsageDescription": "Dalor Gawa uses the camera to photograph receipts and warranty cards.",
+    "NSPhotoLibraryUsageDescription": "Dalor Gawa accesses your photos so you can add receipts from your gallery."
+  },
+  "android": {
+    "app_name": "Dalor Gawa"
+  }
+}

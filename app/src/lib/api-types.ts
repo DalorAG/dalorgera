@@ -157,6 +157,17 @@ export type LuxuryItem = {
   createdAt: string;
 };
 
+/** Today's resale value of a Wertsache, estimated from web listings; not saved until the user takes it over. */
+export type MarketValueEstimate = {
+  valueCents: number;
+  lowCents: number;
+  highCents: number;
+  currency: string;
+  confidence: 'low' | 'medium' | 'high';
+  summary: string;
+  sources: { title: string; url: string }[];
+};
+
 export type LuxuryItemInput = {
   category: LuxuryCategory;
   brand: string;

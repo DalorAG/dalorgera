@@ -1,23 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { CODE_BARCODE_TYPES, readScannedCode, type CodeTarget } from '@/lib/device-codes';
 import { radius, scannerColors, spacing } from '@/theme';
 
-const LABELS: Record<CodeTarget, { title: string; hint: string }> = {
-  imei: { title: 'IMEI scannen', hint: 'Richte die Kamera auf den IMEI-Barcode auf der Verpackung oder unter Einstellungen → Info.' },
-  serial: { title: 'Seriennummer scannen', hint: 'Richte die Kamera auf den Barcode mit „S/N“ oder „Serial No.“ auf Gerät oder Verpackung.' },
-};
-
 type Props = { target: CodeTarget | null; onScanned: (target: CodeTarget, value: string) => void; onClose: () => void };
 
 /** Full-screen barcode scanner for the IMEI or Seriennummer; other codes on the box are ignored. */
 export function CodeScanner({ target, onScanned, onClose }: Props) {
+  const { t } = useTranslation(['components', 'common']);
+  // A Modal is its own native window, SafeAreaView there can report no inset on iOS.
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = useState(false);
   const [ignored, setIgnored] = useState(false);
@@ -52,15 +51,15 @@ export function CodeScanner({ target, onScanned, onClose }: Props) {
             onBarcodeScanned={handle}
           />
         ) : null}
-        <SafeAreaView style={styles.flex}>
+        <View style={[styles.flex, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
           <View style={styles.header}>
-            <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Schließen">
+            <Pressable onPress={onClose} hitSlop={12} accessibilityLabel={t('common:actions.close')}>
               <Ionicons name="close" size={28} color={scannerColors.text} />
             </Pressable>
             <Text variant="headline" style={{ color: scannerColors.text }}>
-              {target ? LABELS[target].title : ''}
+              {target ? t(`codeScanner.${target}.title`) : ''}
             </Text>
-            <Pressable onPress={() => setTorch((t) => !t)} hitSlop={12} accessibilityLabel="Blitz">
+            <Pressable onPress={() => setTorch((t) => !t)} hitSlop={12} accessibilityLabel={t('codeScanner.torch')}>
               <Ionicons name={torch ? 'flash' : 'flash-off'} size={24} color={scannerColors.text} />
             </Pressable>
           </View>
@@ -70,9 +69,9 @@ export function CodeScanner({ target, onScanned, onClose }: Props) {
               <View style={styles.permission}>
                 <Ionicons name="camera-outline" size={40} color={scannerColors.text} />
                 <Text variant="body" style={[styles.textCenter, { color: scannerColors.text }]}>
-                  Erlaube den Kamerazugriff, um Barcodes zu scannen.
+                  {t('codeScanner.permission')}
                 </Text>
-                <Button label="Kamera erlauben" onPress={requestPermission} />
+                <Button label={t('codeScanner.allowCamera')} onPress={requestPermission} />
               </View>
             ) : (
               <View style={[styles.window, { borderColor: scannerColors.frame }]} />
@@ -81,17 +80,15 @@ export function CodeScanner({ target, onScanned, onClose }: Props) {
 
           <View style={[styles.footer, { backgroundColor: scannerColors.control }]}>
             <Text variant="body" style={[styles.textCenter, { color: scannerColors.text }]}>
-              {target ? LABELS[target].hint : ''}
+              {target ? t(`codeScanner.${target}.hint`) : ''}
             </Text>
             {ignored ? (
               <Text variant="caption" style={[styles.textCenter, { color: scannerColors.textMuted }]}>
-                {target === 'imei'
-                  ? 'Dieser Barcode ist keine gültige IMEI. Versuch den Code mit „IMEI“ daneben.'
-                  : 'Das ist ein Produktcode (EAN) oder eine IMEI. Versuch den Code mit „S/N“ daneben.'}
+                {t(`codeScanner.${target ?? 'serial'}.ignored`)}
               </Text>
             ) : null}
           </View>
-        </SafeAreaView>
+        </View>
       </View>
     </Modal>
   );
@@ -104,6 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 44,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },

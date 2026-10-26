@@ -1,0 +1,55 @@
+{
+  "tabBar": {
+    "overview": "Overview",
+    "gawa": "Ga-Wa",
+    "tresor": "Vault",
+    "more": "More",
+    "add": "Add"
+  },
+  "codeScanner": {
+    "imei": {
+      "title": "Scan IMEI",
+      "hint": "Point the camera at the IMEI barcode on the box or under Settings → About.",
+      "ignored": "This barcode isn't a valid IMEI. Try the code labelled \"IMEI\"."
+    },
+    "serial": {
+      "title": "Scan serial number",
+      "hint": "Point the camera at the barcode labelled \"S/N\" or \"Serial No.\" on the device or box.",
+      "ignored": "That's a product code (EAN) or an IMEI. Try the code labelled \"S/N\"."
+    },
+    "reference": {
+      "title": "Scan reference number",
+      "hint": "Point the camera at the barcode or QR code on the certificate, warranty card or tag.",
+      "ignored": "That's a product code (EAN). Try the code labelled \"Ref.\"."
+    },
+    "torch": "Flash",
+    "permission": "Allow camera access to scan barcodes.",
+    "allowCamera": "Allow camera"
+  },
+  "deviceCodes": {
+    "serialNumber": "Serial number",
+    "serialPlaceholder": "e.g. C02XK1JHJG5J",
+    "imei": "IMEI",
+    "imeiPlaceholder": "15 digits, tip: dial *#06#",
+    "imeiInvalid": "Invalid IMEI (15 digits, check digit doesn't match).",
+    "scan": "Scan {{label}}"
+  },
+  "photo": {
+    "remove": "Remove photo",
+    "uploading": "Uploading photo …",
+    "attached": "Photo attached",
+    "reading": "One moment, we're reading the receipt.",
+    "sentWithRequest": "Will be sent to our team with the request."
+  },
+  "exportPdf": {
+    "receiptsFile": "Receipts-{{title}}",
+    "fallbackTitle": "Device"
+  },
+  "errors": {
+    "signInFailed": "Sign-in failed.",
+    "uploadFailed": "Upload failed ({{status}})"
+  },
+  "push": {
+    "channelName": "Warranty reminders"
+  }
+}

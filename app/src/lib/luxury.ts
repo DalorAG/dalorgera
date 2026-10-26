@@ -1,22 +1,35 @@
 import type { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 
+import i18n from '@/i18n';
+
 import type { LuxuryItem, LuxuryCategory, WarrantyRequestStatus } from './api-types';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
+/** Labels are getters, so they follow the current language. */
+const category = (value: LuxuryCategory, icon: IconName) => ({
+  value,
+  icon,
+  get label() {
+    return i18n.t(`labels:luxuryCategory.${value}`);
+  },
+});
+
 export const LUXURY_CATEGORIES: { value: LuxuryCategory; label: string; icon: IconName }[] = [
-  { value: 'watch', label: 'Uhr', icon: 'watch-outline' },
-  { value: 'jewelry', label: 'Schmuck', icon: 'diamond-outline' },
-  { value: 'bag', label: 'Tasche', icon: 'bag-handle-outline' },
-  { value: 'other', label: 'Sonstiges', icon: 'sparkles-outline' },
+  category('watch', 'watch-outline'),
+  category('jewelry', 'diamond-outline'),
+  category('bag', 'bag-handle-outline'),
+  category('other', 'sparkles-outline'),
 ];
 
-export const REQUEST_STATUS_LABELS: Record<WarrantyRequestStatus, string> = {
-  new: 'Gesendet',
-  contacted: 'In Bearbeitung',
-  closed: 'Abgeschlossen',
-};
+export const REQUEST_STATUS_LABELS = {} as Record<WarrantyRequestStatus, string>;
+for (const status of ['new', 'contacted', 'closed'] as const) {
+  Object.defineProperty(REQUEST_STATUS_LABELS, status, {
+    enumerable: true,
+    get: () => i18n.t(`labels:requestStatus.${status}`),
+  });
+}
 
 /** Aktueller Wert; without one the purchase price is the best guess. */
 export const currentValue = (item: LuxuryItem): number | null => item.valueCents ?? item.purchasePriceCents;

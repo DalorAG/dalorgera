@@ -1,0 +1,60 @@
+{
+  "home": {
+    "title": "Garantie Wallet",
+    "subtitle": "Deine Geräte. Deine Sicherheit.",
+    "expiring_one": "{{count}} Garantie läuft bald ab",
+    "expiring_other": "{{count}} Garantien laufen bald ab",
+    "watching": "Wir behalten deine Garantien im Blick.",
+    "bannerSubtitle": "Einfach, sicher und automatisch.",
+    "spentIn": "Im {{month}} ausgegeben",
+    "purchases_one": "{{count}} Kauf",
+    "purchases_other": "{{count}} Käufe",
+    "devices": "Geräte",
+    "allReceipts": "Alle Belege",
+    "filterAll": "Alle",
+    "empty": {
+      "title": "Noch keine Geräte",
+      "message": "Scanne deinen ersten Kassenbon oder Garantieschein. Wir erinnern dich, bevor der Schutz endet."
+    },
+    "emptyCategory": {
+      "title": "Nichts in dieser Kategorie",
+      "message": "Füge etwas mit dem + hinzu."
+    }
+  },
+  "gawa": {
+    "subtitle": "Garantie und Gewährleistung deiner Geräte.",
+    "bannerTitle": "Garantie- und Gewährleistungsfristen werden automatisch berechnet.",
+    "bannerSubtitle": "Du musst dich um nichts mehr kümmern.",
+    "devicesCount": "Geräte ({{count}})",
+    "searchPlaceholder": "Geräte durchsuchen",
+    "noMatch": "Kein Gerät passt zu „{{query}}“.",
+    "empty": {
+      "title": "Keine Geräte",
+      "message": "Füge dein erstes Gerät mit dem + hinzu."
+    },
+    "archive": "Archiv: {{count}} abgelaufen"
+  },
+  "add": {
+    "question": "Was möchtest du im Blick behalten?",
+    "luxury": {
+      "title": "Rechnung hinzufügen",
+      "description": "Uhr, Schmuck oder Tasche mit Rechnung und Wert in den Tresor legen."
+    }
+  },
+  "receipt": {
+    "notFound": {
+      "title": "Beleg nicht gefunden",
+      "message": "Er wurde vielleicht gelöscht."
+    },
+    "openFailed": "Beleg kann nicht geöffnet werden",
+    "openA11y": "Beleg öffnen",
+    "merchant": "Händler",
+    "purchaseDate": "Kaufdatum",
+    "total": "Summe",
+    "uploadedAt": "Hochgeladen am",
+    "items": "Artikel",
+    "device": "Gerät",
+    "unassigned": "Keinem Gerät zugeordnet.",
+    "createDevice": "Gerät anlegen"
+  }
+}

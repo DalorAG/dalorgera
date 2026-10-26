@@ -1,6 +1,8 @@
 import type { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 
+import i18n from '@/i18n';
+
 import type { Device, DeviceKind, DeviceStatus, DocumentItem, DocumentKind } from './api-types';
 import { formatDate, remainingLabel } from './format';
 
@@ -31,98 +33,115 @@ export function toneForStatus(status: DeviceStatus): Tone {
   return status === 'active' ? 'success' : status === 'expiring' ? 'warning' : 'danger';
 }
 
+/** Labels are getters, so they follow the current language. */
+function kindOption(kind: DeviceKind, icon: IconName) {
+  return {
+    kind,
+    icon,
+    get label() {
+      return i18n.t(`labels:deviceKind.${kind}.label`);
+    },
+    get description() {
+      return i18n.t(`labels:deviceKind.${kind}.description`);
+    },
+  };
+}
+
 export const DEVICE_KIND_OPTIONS: { kind: DeviceKind; label: string; description: string; icon: IconName }[] = [
-  {
-    kind: 'warranty',
-    label: 'Garantie',
-    description: 'Herstellergarantie laut Garantieschein, zusätzlich zur Gewährleistung.',
-    icon: 'shield-checkmark-outline',
-  },
-  {
-    kind: 'statutory',
-    label: 'Gewährleistung',
-    description: 'Gesetzliche 2 Jahre ab Kauf, auch ohne Herstellergarantie.',
-    icon: 'receipt-outline',
-  },
-  {
-    kind: 'maintenance',
-    label: 'Wartung',
-    description: 'Wiederkehrende Termine wie Pickerl, Service oder Heizungswartung.',
-    icon: 'construct-outline',
-  },
-  {
-    kind: 'vignette',
-    label: 'Vignette',
-    description: 'Autobahn-Pickerl: Jahres-, 2-Monats- oder 10-Tages-Vignette. Wir erinnern dich vor Ablauf.',
-    icon: 'car-outline',
-  },
+  kindOption('warranty', 'shield-checkmark-outline'),
+  kindOption('statutory', 'receipt-outline'),
+  kindOption('maintenance', 'construct-outline'),
+  kindOption('vignette', 'car-outline'),
 ];
 
 /** Label for purchase_date: Kaufdatum, last Wartung or first valid day of a vignette. */
 export function startDateLabel(kind: DeviceKind): string {
-  return kind === 'maintenance' ? 'Letzte Wartung am' : kind === 'vignette' ? 'Gültig ab' : 'Gekauft am';
+  return i18n.t(kind === 'maintenance' ? 'labels:startDate.maintenance' : kind === 'vignette' ? 'labels:startDate.vignette' : 'labels:startDate.purchase');
 }
 
-export const DEVICE_KIND_LABELS = Object.fromEntries(DEVICE_KIND_OPTIONS.map((o) => [o.kind, o.label])) as Record<
-  DeviceKind,
-  string
->;
+/** Read-only record whose values are looked up on access. */
+function lazyLabels<K extends string>(keys: readonly K[], label: (key: K) => string): Record<K, string> {
+  const record = {} as Record<K, string>;
+  for (const key of keys) Object.defineProperty(record, key, { enumerable: true, get: () => label(key) });
+  return record;
+}
+
+export const DEVICE_KIND_LABELS = lazyLabels(
+  DEVICE_KIND_OPTIONS.map((o) => o.kind),
+  (kind) => i18n.t(`labels:deviceKind.${kind}.label`),
+);
 
 /** Short status for badges: remaining time, or "Überfällig" for a missed Wartung. */
 export function badgeLabel(device: Device): string {
-  if (device.kind === 'maintenance' && device.daysLeft < 0) return 'Überfällig';
-  if (device.kind === 'vignette' && device.purchaseDate > new Date().toISOString().slice(0, 10)) return 'Noch nicht gültig';
+  if (device.kind === 'maintenance' && device.daysLeft < 0) return i18n.t('labels:badge.overdue');
+  if (device.kind === 'vignette' && device.purchaseDate > new Date().toISOString().slice(0, 10)) return i18n.t('labels:badge.notYetValid');
   return remainingLabel(device.daysLeft);
 }
 
 /** Card headline, e.g. "Noch 5 Monate geschützt" or "Wartung überfällig". */
 export function headlineFor(device: Device): string {
+  const remaining = remainingLabel(device.daysLeft);
   if (device.kind === 'maintenance') {
-    if (device.status === 'expired') return 'Wartung überfällig';
-    return device.status === 'expiring' ? `Wartung bald: ${remainingLabel(device.daysLeft)}` : `Wartung: ${remainingLabel(device.daysLeft)}`;
+    if (device.status === 'expired') return i18n.t('labels:headline.maintenanceOverdue');
+    return i18n.t(device.status === 'expiring' ? 'labels:headline.maintenanceSoon' : 'labels:headline.maintenance', { remaining });
   }
   if (device.kind === 'vignette') {
-    if (device.status === 'expired') return 'Vignette abgelaufen';
-    return device.status === 'expiring' ? `Vignette läuft ab: ${remainingLabel(device.daysLeft)}` : `Vignette gültig: ${remainingLabel(device.daysLeft)}`;
+    if (device.status === 'expired') return i18n.t('labels:headline.vignetteExpired');
+    return i18n.t(device.status === 'expiring' ? 'labels:headline.vignetteExpiring' : 'labels:headline.vignetteValid', { remaining });
   }
-  if (device.status === 'active') return `${remainingLabel(device.daysLeft)} geschützt`;
-  return device.status === 'expiring' ? `Achtung: ${remainingLabel(device.daysLeft)}` : 'Schutz abgelaufen';
+  if (device.status === 'active') return i18n.t('labels:headline.protected', { remaining });
+  return device.status === 'expiring' ? i18n.t('labels:headline.attention', { remaining }) : i18n.t('labels:headline.protectionExpired');
 }
 
 /** "Garantie bis 01.01.2026", "Gewährleistung bis …" or "Nächste Wartung am …". */
 export function deadlineLabel(device: Device): string {
   const date = formatDate(device.protectedUntil);
-  if (device.kind === 'maintenance') return `Nächste Wartung am ${date}`;
-  if (device.kind === 'vignette') return `Gültig bis ${date}`;
-  return `${device.warrantyUntil && device.warrantyUntil === device.protectedUntil ? 'Garantie' : 'Gewährleistung'} bis ${date}`;
+  if (device.kind === 'maintenance') return i18n.t('labels:deadline.maintenance', { date });
+  if (device.kind === 'vignette') return i18n.t('labels:deadline.vignette', { date });
+  const warranty = !!device.warrantyUntil && device.warrantyUntil === device.protectedUntil;
+  return i18n.t(warranty ? 'labels:deadline.warranty' : 'labels:deadline.statutory', { date });
 }
 
-export const WARRANTY_OPTIONS = [
-  { months: 12, label: '1 Jahr' },
-  { months: 24, label: '2 Jahre' },
-  { months: 36, label: '3 Jahre' },
-  { months: 60, label: '5 Jahre' },
-];
+const yearsOption = (months: number) => ({
+  months,
+  get label() {
+    return i18n.t('labels:warrantyYears', { count: months / 12 });
+  },
+});
 
-export const INTERVAL_OPTIONS = [
-  { months: 6, label: 'Halbjährlich' },
-  { months: 12, label: 'Jährlich' },
-  { months: 24, label: 'Alle 2 Jahre' },
-  { months: 36, label: 'Alle 3 Jahre' },
-];
+export const WARRANTY_OPTIONS: { months: number; label: string }[] = [12, 24, 36, 60].map(yearsOption);
+
+const INTERVAL_KEYS = {
+  6: 'labels:interval.halfYearly',
+  12: 'labels:interval.yearly',
+  24: 'labels:interval.every2Years',
+  36: 'labels:interval.every3Years',
+} as const;
+
+export const INTERVAL_OPTIONS: { months: number; label: string }[] = ([6, 12, 24, 36] as const).map((months) => ({
+  months,
+  get label() {
+    return i18n.t(INTERVAL_KEYS[months]);
+  },
+}));
 
 /** Seriennummer and IMEI belong to purchases, not to a Wartung or a Vignette. */
 export function hasDeviceCodes(kind: DeviceKind): boolean {
   return kind === 'warranty' || kind === 'statutory';
 }
 
-export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
-  receipt: 'Kassenbon',
-  warranty_card: 'Garantieschein',
-  invoice: 'Rechnung',
-  other: 'Sonstiges',
-  product_photo: 'Produktfoto',
-};
+const DOCUMENT_KIND_KEYS = {
+  receipt: 'labels:documentKind.receipt',
+  warranty_card: 'labels:documentKind.warrantyCard',
+  invoice: 'labels:documentKind.invoice',
+  other: 'labels:documentKind.other',
+  product_photo: 'labels:documentKind.productPhoto',
+} as const;
+
+export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = lazyLabels(
+  Object.keys(DOCUMENT_KIND_KEYS) as DocumentKind[],
+  (kind) => i18n.t(DOCUMENT_KIND_KEYS[kind]),
+);
 
 /** Belege are everything except the photo of the device itself. */
 export function isReceipt(document: Pick<DocumentItem, 'kind'>): boolean {
@@ -151,7 +170,8 @@ export function manufacturerSupportUrl(device: Pick<Device, 'brand' | 'name'>): 
   const brand = device.brand?.trim();
   const known = brand ? MANUFACTURER_SUPPORT.find(([re]) => re.test(brand))?.[1] : undefined;
   if (known) return known;
-  const query = `${brand && !device.name.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ` : ''}${device.name} Kundenservice`;
+  const name = `${brand && !device.name.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ` : ''}${device.name}`;
+  const query = i18n.t('labels:supportSearch', { query: name });
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
@@ -170,8 +190,8 @@ export function extensionWindow(purchaseDate: string, today = new Date().toISOSt
 
 /** "noch 12 Tage", "nur noch heute" */
 export function extensionDaysLabel(window: ExtensionWindow): string {
-  if (window.daysLeft === 0) return 'nur noch heute';
-  return `noch ${window.daysLeft} ${window.daysLeft === 1 ? 'Tag' : 'Tage'}`;
+  if (window.daysLeft === 0) return i18n.t('labels:extensionDays.today');
+  return i18n.t('labels:extensionDays.left', { count: window.daysLeft });
 }
 
 /**
@@ -203,43 +223,50 @@ export type ClaimGuidance = {
  * can be enforced 3 more months; a Garantie is extra and mostly matters after that.
  */
 export function claimGuidance(device: Device, today = new Date().toISOString().slice(0, 10)): ClaimGuidance {
-  const store = device.store ?? 'dem Händler';
+  const store = device.store ?? i18n.t('labels:claim.defaultStore');
   const proofUntil = addMonths(device.purchaseDate, 12);
   const claimUntil = addMonths(device.statutoryUntil, 3);
   const warrantyActive = device.kind === 'warranty' && !!device.warrantyUntil && today <= device.warrantyUntil;
-  const warranty = warrantyActive ? `Garantie von ${device.brand ?? 'dem Hersteller'} bis ${formatDate(device.warrantyUntil)}` : null;
+  const warranty = warrantyActive
+    ? { brand: device.brand ?? i18n.t('labels:claim.defaultBrand'), warrantyUntil: formatDate(device.warrantyUntil) }
+    : null;
+  const dates = {
+    proofUntil: formatDate(proofUntil),
+    statutoryUntil: formatDate(device.statutoryUntil),
+    claimUntil: formatDate(claimUntil),
+  };
 
   if (today <= proofUntil) {
     return {
-      title: 'Bei einem Mangel: zuerst zum Händler',
-      body: `Wende dich an ${store}. Bis ${formatDate(proofUntil)} muss der Händler beweisen, dass der Mangel nicht schon beim Kauf bestand.`,
+      title: i18n.t('labels:claim.firstYear.title'),
+      body: i18n.t('labels:claim.firstYear.body', { store, ...dates }),
       contact: 'store',
     };
   }
   if (today <= device.statutoryUntil) {
     return {
-      title: 'Bei einem Mangel: zum Händler',
-      body: `Die Gewährleistung bei ${store} gilt bis ${formatDate(device.statutoryUntil)}. Seit ${formatDate(proofUntil)} musst du nachweisen, dass der Mangel schon beim Kauf bestand.${
-        warranty ? ` Alternativ hilft die ${warranty}, oft ohne diesen Nachweis.` : ''
-      }`,
+      title: i18n.t('labels:claim.statutory.title'),
+      body: [
+        i18n.t('labels:claim.statutory.body', { store, ...dates }),
+        warranty ? i18n.t('labels:claim.statutory.warrantyAlternative', warranty) : null,
+      ]
+        .filter(Boolean)
+        .join(' '),
       contact: 'store',
     };
   }
-  const grace =
-    today <= claimUntil
-      ? `Ist der Mangel bis ${formatDate(device.statutoryUntil)} aufgetreten, kannst du ihn noch bis ${formatDate(claimUntil)} beim Händler geltend machen, notfalls gerichtlich.`
-      : null;
+  const grace = today <= claimUntil ? i18n.t('labels:claim.grace', dates) : null;
   if (warranty) {
     return {
-      title: 'Bei einem Mangel: zum Hersteller',
-      body: [`Die Gewährleistung ist abgelaufen. Nutze die ${warranty}.`, grace].filter(Boolean).join(' '),
+      title: i18n.t('labels:claim.manufacturer.title'),
+      body: [i18n.t('labels:claim.manufacturer.body', warranty), grace].filter(Boolean).join(' '),
       contact: 'manufacturer',
     };
   }
-  if (grace) return { title: 'Letzte Frist beim Händler', body: grace, contact: 'store' };
+  if (grace) return { title: i18n.t('labels:claim.lastDeadline.title'), body: grace, contact: 'store' };
   return {
-    title: 'Fristen abgelaufen',
-    body: 'Gewährleistung und Garantie sind abgelaufen. Frag beim Händler oder Hersteller nach Kulanz oder einer Reparatur.',
+    title: i18n.t('labels:claim.expired.title'),
+    body: i18n.t('labels:claim.expired.body'),
     contact: null,
   };
 }

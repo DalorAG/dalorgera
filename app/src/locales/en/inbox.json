@@ -1,0 +1,60 @@
+{
+  "inbox": {
+    "title": "Inbox",
+    "waiting_one": "{{count}} receipt is waiting for a device.",
+    "waiting_other": "{{count}} receipts are waiting for a device.",
+    "allAssigned": "All assigned. New scans land here.",
+    "insurance": {
+      "title": "Request extra insurance",
+      "subtitle": "Take a photo, send it: warranty extension or insurance through our partner."
+    },
+    "searchPlaceholder": "Search receipts, e.g. Media Markt",
+    "filterAll": "All",
+    "filterOpen": "Open ({{count}})",
+    "noMatch": "No receipt matches “{{query}}”.",
+    "allDone": {
+      "title": "All done",
+      "message": "Every receipt is assigned to a device."
+    },
+    "empty": {
+      "title": "Inbox is empty",
+      "message": "Take a photo of a receipt or warranty card.",
+      "action": "Scan receipt"
+    }
+  },
+  "archive": {
+    "intro": "Expired devices. Receipts and details are kept, e.g. for taxes or a resale.",
+    "searchPlaceholder": "Search archive",
+    "noMatch": "No device matches “{{query}}”.",
+    "empty": {
+      "title": "Archive is empty",
+      "message": "Expired devices end up here automatically."
+    }
+  },
+  "list": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This week",
+    "unassignedA11y": "{{sender}}, not assigned yet",
+    "assignDevice": "Assign device",
+    "device": "Device",
+    "extensionRequested": "Warranty extension requested",
+    "extendA11y": "Extend warranty, {{days}}",
+    "extend": "Extend warranty · {{days}}"
+  },
+  "documents": {
+    "valuable": "Valuable",
+    "device": "Device",
+    "pdfFailed": "Couldn't create PDF",
+    "deleteConfirm": {
+      "title": "Delete {{kind}}?",
+      "fromDevice": "The receipt will be removed from “{{owner}}”. The device is kept.",
+      "fromValuable": "The receipt will be removed from “{{owner}}”. The valuable is kept.",
+      "permanent": "The receipt will be deleted permanently."
+    },
+    "deleteFailed": "Couldn't delete receipt",
+    "uploadedAt": "Uploaded on {{date}}",
+    "unassigned": "Not assigned to a device",
+    "delete": "Delete receipt"
+  }
+}

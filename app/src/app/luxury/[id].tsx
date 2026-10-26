@@ -2,18 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { MarketValueCard } from '@/components/market-value-card';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
 import { shareDocumentAsPdf } from '@/features/export-pdf';
+import i18n from '@/i18n';
 import type { PhotoSource } from '@/features/use-product-photo';
 import { pickImages, useUploadPhoto } from '@/features/use-request-photo';
 import type { DocumentKind, LuxuryDocument } from '@/lib/api-types';
 import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
-import { LUXURY_CATEGORIES, REQUEST_STATUS_LABELS, currentValue, itemTitle, valueChange } from '@/lib/luxury';
+import { LUXURY_CATEGORIES, REQUEST_STATUS_LABELS, itemTitle } from '@/lib/luxury';
 import { useAppDispatch } from '@/store';
 import {
   api,
@@ -39,7 +42,7 @@ function confirm(title: string, message: string, action: string, destructive: bo
     return;
   }
   Alert.alert(title, message, [
-    { text: 'Abbrechen', style: 'cancel' },
+    { text: i18n.t('common:actions.cancel'), style: 'cancel' },
     { text: action, style: destructive ? 'destructive' : 'default', onPress: onConfirm },
   ]);
 }
@@ -48,15 +51,16 @@ function confirm(title: string, message: string, action: string, destructive: bo
 function chooseSource(title: string, onPick: (source: PhotoSource) => void) {
   if (Platform.OS === 'web') return onPick('library');
   Alert.alert(title, undefined, [
-    { text: 'Foto aufnehmen', onPress: () => onPick('camera') },
-    { text: 'Aus Galerie', onPress: () => onPick('library') },
-    { text: 'Abbrechen', style: 'cancel' },
+    { text: i18n.t('common:actions.takePhoto'), onPress: () => onPick('camera') },
+    { text: i18n.t('common:actions.fromLibrary'), onPress: () => onPick('library') },
+    { text: i18n.t('common:actions.cancel'), style: 'cancel' },
   ]);
 }
 
 export default function LuxuryItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
+  const { t } = useTranslation(['tresor', 'common']);
   const dispatch = useAppDispatch();
   const { data: item, isLoading, error, refetch } = useGetLuxuryItemQuery(id);
   const { data: me } = useGetMeQuery();
@@ -76,12 +80,10 @@ export default function LuxuryItemScreen() {
   // A closed request may be followed by a new one, e.g. after the item's value changed.
   const openRequest = item.request && item.request.status !== 'closed' ? item.request : null;
   const canBeReached = !!me?.email;
-  const value = currentValue(item);
-  const change = valueChange(item);
 
   /** Uploads straight onto the item, no form in between. */
   const add = (kind: 'product_photo' | 'invoice') =>
-    chooseSource(kind === 'invoice' ? 'Rechnung hinzufügen' : 'Foto hinzufügen', async (source) => {
+    chooseSource(kind === 'invoice' ? t('detail.addInvoice') : t('detail.addPhoto'), async (source) => {
       const limit = kind === 'invoice' ? 1 : MAX_PHOTOS - item.photos.length;
       const assets = await pickImages(source, limit);
       if (!assets.length) return;
@@ -92,7 +94,7 @@ export default function LuxuryItemScreen() {
         for (const asset of assets) documentIds.push((await upload(asset)).id);
         await updateItem({ id: item.id, documentIds }).unwrap();
       } catch (err) {
-        notify('Hochladen fehlgeschlagen', apiErrorMessage(err));
+        notify(t('detail.uploadFailed'), apiErrorMessage(err));
       } finally {
         setAdding(null);
       }
@@ -104,7 +106,7 @@ export default function LuxuryItemScreen() {
       const { url } = await dispatch(api.endpoints.getDocumentUrl.initiate(doc.id)).unwrap();
       await shareDocumentAsPdf(doc, url);
     } catch (err) {
-      notify('PDF konnte nicht erstellt werden', apiErrorMessage(err));
+      notify(t('detail.pdfFailed'), apiErrorMessage(err));
     } finally {
       setExportingId(null);
     }
@@ -112,28 +114,34 @@ export default function LuxuryItemScreen() {
 
   const askForInsurance = () =>
     confirm(
-      'Versicherung anfragen?',
-      `Wir senden „${title}“ mit allen Fotos und der Rechnung an unser Team und melden uns an ${me?.email}. Unverbindlich und kostenlos.`,
-      'Anfrage senden',
+      t('detail.insuranceConfirm.title'),
+      t('detail.insuranceConfirm.message', { title, email: me?.email }),
+      t('detail.insuranceConfirm.action'),
       false,
       async () => {
         try {
           await requestInsurance({ id: item.id }).unwrap();
         } catch (err) {
-          notify('Anfrage fehlgeschlagen', apiErrorMessage(err));
+          notify(t('detail.requestFailed'), apiErrorMessage(err));
         }
       },
     );
 
   const remove = () =>
-    confirm('Wertsache löschen?', `„${title}“ mit Fotos und Rechnung wird dauerhaft gelöscht.`, 'Löschen', true, async () => {
-      try {
-        await deleteItem(item.id).unwrap();
-        router.back();
-      } catch (err) {
-        notify('Löschen fehlgeschlagen', apiErrorMessage(err));
-      }
-    });
+    confirm(
+      t('detail.deleteConfirm.title'),
+      t('detail.deleteConfirm.message', { title }),
+      t('common:actions.delete'),
+      true,
+      async () => {
+        try {
+          await deleteItem(item.id).unwrap();
+          router.back();
+        } catch (err) {
+          notify(t('detail.deleteFailed'), apiErrorMessage(err));
+        }
+      },
+    );
 
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
@@ -145,14 +153,14 @@ export default function LuxuryItemScreen() {
               onPress={() => router.push({ pathname: '/luxury-request', params: { id: item.id } })}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Bearbeiten"
+              accessibilityLabel={t('common:actions.edit')}
               style={({ pressed }) => [
                 styles.editButton,
                 { backgroundColor: pressed ? theme.brandSoft : theme.surface, borderColor: theme.brand },
               ]}>
               <Ionicons name="pencil" size={14} color={theme.brand} />
               <Text variant="captionStrong" color="brand">
-                Bearbeiten
+                {t('common:actions.edit')}
               </Text>
             </Pressable>
           ),
@@ -178,7 +186,7 @@ export default function LuxuryItemScreen() {
             onPress={() => add('product_photo')}
             disabled={adding !== null}
             accessibilityRole="button"
-            accessibilityLabel="Foto hinzufügen"
+            accessibilityLabel={t('detail.addPhoto')}
             style={({ pressed }) => [
               styles.photo,
               styles.addPhoto,
@@ -190,7 +198,7 @@ export default function LuxuryItemScreen() {
               <>
                 <Ionicons name="camera-outline" size={28} color={theme.brand} />
                 <Text variant="captionStrong" color="brand">
-                  Foto hinzufügen
+                  {t('detail.addPhoto')}
                 </Text>
               </>
             )}
@@ -198,44 +206,27 @@ export default function LuxuryItemScreen() {
         ) : null}
       </ScrollView>
 
-      <Card style={styles.valueCard}>
-        <Text variant="caption" color="textSecondary">
-          Aktueller Wert
-        </Text>
-        <View style={styles.valueRow}>
-          <Text variant="display">{value != null ? formatPrice(value, item.currency) : 'Nicht angegeben'}</Text>
-          {change ? (
-            <Text variant="bodyStrong" color={change.startsWith('−') ? 'danger' : 'success'}>
-              {change}
-            </Text>
-          ) : null}
-        </View>
-        {item.valueCents == null && item.purchasePriceCents != null ? (
-          <Text variant="caption" color="textSecondary">
-            Kaufpreis, solange du keinen aktuellen Wert angibst.
-          </Text>
-        ) : null}
-      </Card>
+      <MarketValueCard item={item} />
 
       <View style={styles.group}>
-        <Text variant="title">Rechnung</Text>
+        <Text variant="title">{t('detail.invoice')}</Text>
         {item.invoices.map((doc) => (
           <Card key={doc.id} style={styles.invoice}>
             <Pressable
               onPress={() => router.push({ pathname: '/document/[id]', params: { id: doc.id } })}
               accessibilityRole="button"
-              accessibilityLabel="Rechnung öffnen"
+              accessibilityLabel={t('detail.openInvoice')}
               style={styles.invoiceOpen}>
               <Ionicons name="document-text-outline" size={26} color={theme.brandIcon} />
               <View style={styles.flex}>
-                <Text variant="bodyStrong">Rechnung</Text>
+                <Text variant="bodyStrong">{t('detail.invoice')}</Text>
                 <Text variant="caption" color="textSecondary">
-                  Hochgeladen am {formatDate(doc.createdAt)}
+                  {t('detail.uploadedOn', { date: formatDate(doc.createdAt) })}
                 </Text>
               </View>
             </Pressable>
             <Button
-              label="Als PDF herunterladen"
+              label={t('common:actions.downloadPdf')}
               variant="secondary"
               icon="download-outline"
               onPress={() => exportPdf(doc)}
@@ -244,7 +235,7 @@ export default function LuxuryItemScreen() {
           </Card>
         ))}
         <Button
-          label={item.invoices.length ? 'Weitere Rechnung hinzufügen' : 'Rechnung hinzufügen'}
+          label={item.invoices.length ? t('detail.addAnotherInvoice') : t('detail.addInvoice')}
           variant={item.invoices.length ? 'secondary' : 'primary'}
           icon="receipt-outline"
           onPress={() => add('invoice')}
@@ -254,19 +245,19 @@ export default function LuxuryItemScreen() {
       </View>
 
       <View style={styles.group}>
-        <Text variant="title">Details</Text>
+        <Text variant="title">{t('detail.details')}</Text>
         <Card style={styles.rows}>
-          <Row label="Kaufpreis" value={item.purchasePriceCents != null ? formatPrice(item.purchasePriceCents, item.currency) : '–'} />
-          <Row label="Kaufdatum" value={formatDate(item.purchaseDate)} />
-          <Row label="Händler" value={item.store ?? '–'} />
-          <Row label="Referenznummer" value={item.referenceNumber ?? '–'} />
-          <Row label="Seriennummer" value={item.serialNumber ?? '–'} />
-          <Row label="Box und Papiere" value={item.hasBoxPapers ? 'Vorhanden' : 'Nein'} />
-          <Row label="Im Tresor seit" value={formatDate(item.createdAt)} />
+          <Row label={t('detail.purchasePrice')} value={item.purchasePriceCents != null ? formatPrice(item.purchasePriceCents, item.currency) : '–'} />
+          <Row label={t('detail.purchaseDate')} value={formatDate(item.purchaseDate)} />
+          <Row label={t('detail.store')} value={item.store ?? '–'} />
+          <Row label={t('detail.referenceNumber')} value={item.referenceNumber ?? '–'} />
+          <Row label={t('detail.serialNumber')} value={item.serialNumber ?? '–'} />
+          <Row label={t('detail.boxPapers')} value={item.hasBoxPapers ? t('detail.present') : t('detail.no')} />
+          <Row label={t('detail.inVaultSince')} value={formatDate(item.createdAt)} />
           {item.notes ? (
             <View style={styles.notes}>
               <Text variant="caption" color="textSecondary">
-                Notiz
+                {t('detail.notes')}
               </Text>
               <Text variant="body">{item.notes}</Text>
             </View>
@@ -278,16 +269,19 @@ export default function LuxuryItemScreen() {
         <Card style={styles.request}>
           <Ionicons name="shield-checkmark" size={28} color={theme.success} />
           <View style={styles.flex}>
-            <Text variant="bodyStrong">Versicherung angefragt</Text>
+            <Text variant="bodyStrong">{t('detail.insuranceRequested')}</Text>
             <Text variant="caption" color="textSecondary">
-              {REQUEST_STATUS_LABELS[openRequest.status]} · am {formatDate(openRequest.createdAt)}. Wir melden uns per E-Mail.
+              {t('detail.requestStatus', {
+                status: REQUEST_STATUS_LABELS[openRequest.status],
+                date: formatDate(openRequest.createdAt),
+              })}
             </Text>
           </View>
         </Card>
       ) : (
         <View style={styles.group}>
           <Button
-            label="Versicherung anfragen"
+            label={t('detail.requestInsurance')}
             icon="shield-checkmark"
             onPress={askForInsurance}
             loading={requesting}
@@ -295,13 +289,13 @@ export default function LuxuryItemScreen() {
           />
           <Text variant="caption" color={canBeReached ? 'textSecondary' : 'warningText'}>
             {canBeReached
-              ? 'Unser Versicherungspartner schickt dir ein Angebot gegen Diebstahl, Verlust und Beschädigung.'
-              : 'Damit wir dir ein Angebot schicken können, melde dich bitte mit deiner E-Mail-Adresse an (Profil).'}
+              ? t('detail.insuranceHint')
+              : t('detail.signInHint')}
           </Text>
         </View>
       )}
 
-      <Button label="Wertsache löschen" variant="danger" icon="trash-outline" onPress={remove} loading={deleting} />
+      <Button label={t('detail.delete')} variant="danger" icon="trash-outline" onPress={remove} loading={deleting} />
     </ScrollView>
   );
 }
@@ -309,12 +303,13 @@ export default function LuxuryItemScreen() {
 /** Thumbnail through a short-lived signed URL; opens the full-screen viewer. */
 function Photo({ id }: { id: string }) {
   const theme = useTheme();
+  const { t } = useTranslation(['tresor', 'common']);
   const { data } = useGetDocumentUrlQuery(id);
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/document/[id]', params: { id } })}
       accessibilityRole="button"
-      accessibilityLabel="Foto öffnen"
+      accessibilityLabel={t('detail.openPhoto')}
       style={[styles.photo, { backgroundColor: theme.surfaceMuted }]}>
       {data ? (
         <Image source={{ uri: data.url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} />
@@ -363,8 +358,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addPhoto: { borderWidth: 1, borderStyle: 'dashed', gap: spacing.xs },
-  valueCard: { gap: spacing.xxs },
-  valueRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: spacing.md },
   group: { gap: spacing.sm },
   invoice: { gap: spacing.md },
   invoiceOpen: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

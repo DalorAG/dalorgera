@@ -1,16 +1,17 @@
-import type { Device } from './api-types';
+import i18n, { formatLocale } from '@/i18n';
 
-const OTHER_CATEGORY = 'Sonstiges';
+import type { Device } from './api-types';
 
 /** Devices grouped by category (alphabetical, "Sonstiges" last), keeping the deadline order inside a group. */
 export function groupByCategory(devices: Device[]): [string, Device[]][] {
+  const OTHER_CATEGORY = i18n.t('labels:otherCategory');
   const groups = new Map<string, Device[]>();
   for (const d of devices) {
     const category = d.category?.trim() || OTHER_CATEGORY;
     groups.set(category, [...(groups.get(category) ?? []), d]);
   }
   return [...groups].sort(([a], [b]) =>
-    a === OTHER_CATEGORY ? 1 : b === OTHER_CATEGORY ? -1 : a.localeCompare(b, 'de'),
+    a === OTHER_CATEGORY ? 1 : b === OTHER_CATEGORY ? -1 : a.localeCompare(b, formatLocale()),
   );
 }
 

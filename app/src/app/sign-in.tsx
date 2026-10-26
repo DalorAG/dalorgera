@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { Checkbox } from '@/components/checkbox';
 import { InfoBanner } from '@/components/info-banner';
+import { LanguagePicker } from '@/components/language-picker';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
 import { signInWithGoogle } from '@/features/google-sign-in';
@@ -16,16 +18,21 @@ import { radius, spacing, useTheme } from '@/theme';
 
 type Mode = 'signIn' | 'signUp';
 
-const AUTH_ERRORS: Record<string, string> = {
-  invalid_credentials: 'E-Mail oder Passwort ist falsch.',
-  email_not_confirmed: 'Bitte bestätige zuerst deine E-Mail-Adresse.',
-  user_already_exists: 'Zu dieser E-Mail gibt es bereits ein Konto.',
-  weak_password: 'Das Passwort ist zu schwach (mindestens 8 Zeichen).',
-  over_email_send_rate_limit: 'Zu viele Versuche. Bitte warte kurz.',
-};
+// Supabase error codes with a translated message in auth:errors.
+const AUTH_ERRORS = [
+  'invalid_credentials',
+  'email_not_confirmed',
+  'user_already_exists',
+  'weak_password',
+  'over_email_send_rate_limit',
+] as const;
+
+const isAuthError = (code: string | undefined): code is (typeof AUTH_ERRORS)[number] =>
+  (AUTH_ERRORS as readonly string[]).includes(code ?? '');
 
 export default function SignInScreen() {
   const theme = useTheme();
+  const { t } = useTranslation('auth');
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,9 +49,9 @@ export default function SignInScreen() {
     setError(null);
     setRepeatError(null);
     setInfo(null);
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setError('Bitte gib eine gültige E-Mail-Adresse ein.');
-    if (password.length < 8) return setError('Das Passwort muss mindestens 8 Zeichen haben.');
-    if (mode === 'signUp' && password !== passwordRepeat) return setRepeatError('Die Passwörter stimmen nicht überein.');
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setError(t('errors.invalidEmail'));
+    if (password.length < 8) return setError(t('errors.passwordTooShort'));
+    if (mode === 'signUp' && password !== passwordRepeat) return setRepeatError(t('errors.passwordMismatch'));
     if (mode === 'signUp' && !termsAccepted) return setTermsError(true);
 
     setLoading(true);
@@ -56,10 +63,10 @@ export default function SignInScreen() {
           await supabase.auth.signUp({ ...credentials, options: { data: { terms_version: TERMS_VERSION } } });
     setLoading(false);
 
-    if (authError) return setError(AUTH_ERRORS[authError.code ?? ''] ?? authError.message);
+    if (authError) return setError(isAuthError(authError.code) ? t(`errors.${authError.code}`) : authError.message);
     // With email confirmation enabled, sign-up returns no session.
     if (mode === 'signUp' && !data.session) {
-      setInfo('Fast geschafft! Wir haben dir eine E-Mail geschickt. Bestätige sie und melde dich dann an.');
+      setInfo(t('signIn.checkEmail'));
       setMode('signIn');
     }
     // On success the auth listener switches to the app.
@@ -87,17 +94,12 @@ export default function SignInScreen() {
             </View>
             <Text variant="display">Dalor Gawa</Text>
             <Text variant="body" color="textSecondary">
-              Deine Geräte. Deine Sicherheit.
+              {t('signIn.tagline')}
             </Text>
           </View>
 
           <View style={[styles.segments, { backgroundColor: theme.surfaceMuted }]}>
-            {(
-              [
-                ['signIn', 'Anmelden'],
-                ['signUp', 'Registrieren'],
-              ] as const
-            ).map(([key, label]) => (
+            {(['signIn', 'signUp'] as const).map((key) => (
               <Pressable
                 key={key}
                 onPress={() => {
@@ -110,38 +112,38 @@ export default function SignInScreen() {
                 accessibilityState={{ selected: mode === key }}
                 style={[styles.segment, mode === key && { backgroundColor: theme.surface }]}>
                 <Text variant="captionStrong" color={mode === key ? 'text' : 'textSecondary'}>
-                  {label}
+                  {t(`signIn.tabs.${key}`)}
                 </Text>
               </Pressable>
             ))}
           </View>
 
-          {info ? <InfoBanner title="E-Mail bestätigen" subtitle={info} /> : null}
+          {info ? <InfoBanner title={t('signIn.confirmEmailTitle')} subtitle={info} /> : null}
 
           <TextField
-            label="E-Mail"
+            label={t('signIn.emailLabel')}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             autoComplete="email"
             keyboardType="email-address"
             textContentType="emailAddress"
-            placeholder="du@beispiel.de"
+            placeholder={t('signIn.emailPlaceholder')}
           />
           <TextField
-            label="Passwort"
+            label={t('signIn.passwordLabel')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
             textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
-            placeholder="Mindestens 8 Zeichen"
+            placeholder={t('signIn.passwordPlaceholder')}
             onSubmitEditing={mode === 'signIn' ? submit : undefined}
             error={error}
           />
           {mode === 'signUp' ? (
             <TextField
-              label="Passwort wiederholen"
+              label={t('signIn.passwordRepeatLabel')}
               value={passwordRepeat}
               onChangeText={(v) => {
                 setPasswordRepeat(v);
@@ -150,7 +152,7 @@ export default function SignInScreen() {
               secureTextEntry
               autoComplete="new-password"
               textContentType="newPassword"
-              placeholder="Passwort erneut eingeben"
+              placeholder={t('signIn.passwordRepeatPlaceholder')}
               onSubmitEditing={submit}
               error={repeatError}
             />
@@ -165,34 +167,37 @@ export default function SignInScreen() {
               }}
               error={termsError}>
               <Text variant="caption">
-                Ich akzeptiere die{' '}
-                <Link href="/terms" style={{ color: theme.brand, fontWeight: '600' }}>
-                  Nutzungsbedingungen
-                </Link>
-                . Die{' '}
-                <Link href="/privacy" style={{ color: theme.brand, fontWeight: '600' }}>
-                  Datenschutzerklärung
-                </Link>{' '}
-                habe ich zur Kenntnis genommen.
+                <Trans
+                  t={t}
+                  i18nKey="terms.consent"
+                  components={{
+                    terms: <Link href="/terms" style={{ color: theme.brand, fontWeight: '600' }} />,
+                    privacy: <Link href="/privacy" style={{ color: theme.brand, fontWeight: '600' }} />,
+                  }}
+                />
               </Text>
               {termsError ? (
                 <Text variant="caption" color="danger">
-                  Bitte bestätige die Nutzungsbedingungen, um ein Konto zu erstellen.
+                  {t('signIn.termsRequired')}
                 </Text>
               ) : null}
             </Checkbox>
           ) : null}
 
-          <Button label={mode === 'signIn' ? 'Anmelden' : 'Konto erstellen'} onPress={submit} loading={loading} />
+          <Button label={mode === 'signIn' ? t('signIn.submitSignIn') : t('signIn.submitSignUp')} onPress={submit} loading={loading} />
 
           <View style={styles.divider}>
             <View style={[styles.line, { backgroundColor: theme.border }]} />
             <Text variant="caption" color="textSecondary">
-              oder
+              {t('signIn.or')}
             </Text>
             <View style={[styles.line, { backgroundColor: theme.border }]} />
           </View>
-          <Button label="Mit Google fortfahren" variant="secondary" icon="logo-google" onPress={google} loading={googleLoading} />
+          <Button label={t('signIn.google')} variant="secondary" icon="logo-google" onPress={google} loading={googleLoading} />
+
+          <View style={styles.language}>
+            <LanguagePicker />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -215,5 +220,6 @@ const styles = StyleSheet.create({
   divider: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   line: { flex: 1, height: StyleSheet.hairlineWidth },
   segments: { flexDirection: 'row', borderRadius: radius.md, padding: spacing.xs },
+  language: { alignItems: 'center', marginTop: spacing.lg },
   segment: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: radius.sm },
 });

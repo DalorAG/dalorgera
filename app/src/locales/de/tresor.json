@@ -1,0 +1,129 @@
+{
+  "list": {
+    "title": "Tresor",
+    "subtitle": "Deine Wertsachen und alle Belege. Sicher an einem Ort.",
+    "wealth": "Dein Vermögen",
+    "itemCount_one": "{{count}} Wertsache",
+    "itemCount_other": "{{count}} Wertsachen",
+    "totalCost": "Gesamtkosten {{amount}}",
+    "add": "Wertsache hinzufügen",
+    "addHint": "Uhr, Schmuck, Tasche: mit Rechnung, Fotos und Wert.",
+    "searchItems": "Wertsachen durchsuchen",
+    "searchDocuments": "Belege durchsuchen",
+    "tabItems": "Wertsachen ({{n}})",
+    "tabDocuments": "Alle Belege ({{n}})",
+    "noItemMatch": "Keine Wertsache passt zu „{{query}}“.",
+    "noDocumentMatch": "Kein Beleg passt zu „{{query}}“.",
+    "emptyItems": {
+      "title": "Noch keine Wertsachen",
+      "message": "Füge deine Uhr, deinen Schmuck oder deine Tasche hinzu."
+    },
+    "emptyDocuments": {
+      "title": "Keine Belege",
+      "message": "Gescannte Belege erscheinen hier."
+    },
+    "insured": "Versicherung: {{status}}",
+    "notInsured": "Nicht versichert",
+    "currentValue": "Aktueller Wert"
+  },
+  "detail": {
+    "addInvoice": "Rechnung hinzufügen",
+    "addAnotherInvoice": "Weitere Rechnung hinzufügen",
+    "addPhoto": "Foto hinzufügen",
+    "openPhoto": "Foto öffnen",
+    "uploadFailed": "Hochladen fehlgeschlagen",
+    "pdfFailed": "PDF konnte nicht erstellt werden",
+    "insuranceConfirm": {
+      "title": "Versicherung anfragen?",
+      "message": "Wir senden „{{title}}“ mit allen Fotos und der Rechnung an unser Team und melden uns an {{email}}. Unverbindlich und kostenlos.",
+      "action": "Anfrage senden"
+    },
+    "requestFailed": "Anfrage fehlgeschlagen",
+    "deleteConfirm": {
+      "title": "Wertsache löschen?",
+      "message": "„{{title}}“ mit Fotos und Rechnung wird dauerhaft gelöscht."
+    },
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "currentValue": "Aktueller Wert",
+    "purchasePriceHint": "Kaufpreis, solange du keinen aktuellen Wert angibst.",
+    "invoice": "Rechnung",
+    "openInvoice": "Rechnung öffnen",
+    "uploadedOn": "Hochgeladen am {{date}}",
+    "details": "Details",
+    "purchasePrice": "Kaufpreis",
+    "purchaseDate": "Kaufdatum",
+    "store": "Händler",
+    "referenceNumber": "Referenznummer",
+    "serialNumber": "Seriennummer",
+    "boxPapers": "Box und Papiere",
+    "present": "Vorhanden",
+    "no": "Nein",
+    "inVaultSince": "Im Tresor seit",
+    "notes": "Notiz",
+    "insuranceRequested": "Versicherung angefragt",
+    "requestStatus": "{{status}} · am {{date}}. Wir melden uns per E-Mail.",
+    "requestInsurance": "Versicherung anfragen",
+    "insuranceHint": "Unser Versicherungspartner schickt dir ein Angebot gegen Diebstahl, Verlust und Beschädigung.",
+    "signInHint": "Damit wir dir ein Angebot schicken können, melde dich bitte mit deiner E-Mail-Adresse an (Profil).",
+    "delete": "Wertsache löschen",
+    "market": {
+      "label": "Aktueller Marktwert (€)",
+      "placeholder": "z. B. 12.500",
+      "hint": "Was die Wertsache heute am Markt bringt. Leer lassen, dann gilt der Kaufpreis.",
+      "estimate": "Marktwert ermitteln",
+      "estimating": "Suche aktuelle Marktpreise …",
+      "estimated": "Geschätzter Marktwert heute",
+      "range": "Spanne {{low}} – {{high}}",
+      "confidence": {
+        "low": "grobe Schätzung",
+        "medium": "mittlere Sicherheit",
+        "high": "gut belegt"
+      },
+      "accept": "Übernehmen",
+      "adjust": "Anpassen",
+      "manual": "Selbst eingeben",
+      "estimateFailed": "Marktwert konnte nicht ermittelt werden: {{reason}}"
+    }
+  },
+  "form": {
+    "editTitle": "Wertsache bearbeiten",
+    "banner": {
+      "title": "Deine Wertsache, sicher im Tresor.",
+      "subtitle": "Rechnung, Fotos und Wert an einem Ort. Eine Versicherung gegen Diebstahl, Verlust und Beschädigung kannst du danach mit einem Tipp anfragen."
+    },
+    "invoice": "Rechnung",
+    "anotherInvoice": "Weitere Rechnung",
+    "invoiceHint": "Foto der Rechnung oder des Kaufbelegs. Marke, Modell, Preis, Händler und Datum werden automatisch ausgefüllt.",
+    "photos": "Fotos",
+    "morePhotos": "Weitere Fotos",
+    "photosHint": "Artikel, Zertifikat, Seriennummer: bis zu {{max}} Fotos.",
+    "category": "Was ist es? *",
+    "brand": "Marke *",
+    "brandPlaceholder": "z. B. Rolex, Cartier, Hermès",
+    "model": "Modell *",
+    "modelPlaceholder": "z. B. Submariner, Love Ring, Birkin 30",
+    "referenceNumber": "Referenznummer",
+    "referenceNumberPlaceholder": "Optional, z. B. 126610LN",
+    "serialNumber": "Seriennummer",
+    "serialNumberPlaceholder": "Optional, z. B. vom Gehäuse oder Zertifikat",
+    "purchase": "Kauf",
+    "purchasePrice": "Kaufpreis (€)",
+    "purchasePricePlaceholder": "z. B. 9.800",
+    "purchaseDate": "Kaufdatum",
+    "datePlaceholder": "TT.MM.JJJJ",
+    "store": "Händler",
+    "storePlaceholder": "Optional, z. B. Wempe Hamburg",
+    "value": "Aktueller Wert (€)",
+    "valuePlaceholder": "z. B. 12.500, sonst gilt der Kaufpreis",
+    "boxPapers": "Box und Papiere vorhanden",
+    "notes": "Notiz",
+    "notesPlaceholder": "Optional, z. B. Zustand, Gravur, letzte Revision",
+    "errors": {
+      "category": "Bitte wähle aus, was du hinzufügen möchtest.",
+      "brandModel": "Bitte gib Marke und Modell an.",
+      "purchasePrice": "Bitte gib den Kaufpreis als Betrag an, z. B. 9.800",
+      "value": "Bitte gib den aktuellen Wert als Betrag an, z. B. 12.500",
+      "purchaseDate": "Bitte gib das Kaufdatum als TT.MM.JJJJ an."
+    }
+  }
+}

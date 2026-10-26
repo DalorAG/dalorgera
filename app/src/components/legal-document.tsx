@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { InfoBanner } from '@/components/info-banner';
@@ -6,18 +7,25 @@ import { spacing, useTheme } from '@/theme';
 
 export type LegalSection = { title: string; body: string | string[] };
 
-type Props = { title: string; version: string; sections: LegalSection[] };
+/** notice: shown at the top when set (e.g. that only the German version is binding). */
+type Props = { title: string; version: string; sections: readonly LegalSection[]; notice?: string };
 
 /** Long-form legal text (terms, privacy policy). Marked as draft until legally reviewed. */
-export function LegalDocument({ title, version, sections }: Props) {
+export function LegalDocument({ title, version, sections, notice }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation('legal');
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
       <Text variant="display">{title}</Text>
       <Text variant="caption" color="textSecondary">
-        Stand: {version}
+        {t('document.asOf', { date: version })}
       </Text>
-      <InfoBanner title="Entwurf" subtitle="Diese Fassung wird vor dem offiziellen Start rechtlich geprüft." />
+      {notice ? (
+        <Text variant="body" color="textSecondary">
+          {notice}
+        </Text>
+      ) : null}
+      <InfoBanner title={t('document.draftTitle')} subtitle={t('document.draftSubtitle')} />
       {sections.map((s) => (
         <View key={s.title} style={styles.section}>
           <Text variant="headline">{s.title}</Text>

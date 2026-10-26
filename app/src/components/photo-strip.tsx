@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import type { PhotoSource } from '@/features/use-product-photo';
@@ -22,6 +23,7 @@ type Props = {
 /** Thumbnails of the attached photos with a remove button each, then camera and gallery buttons. */
 export function PhotoStrip({ label, hint, photos, busy, full, onAdd, onRemove }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation(['components', 'common']);
   return (
     <View style={styles.group}>
       <Text variant="captionStrong">{label}</Text>
@@ -34,7 +36,7 @@ export function PhotoStrip({ label, hint, photos, busy, full, onAdd, onRemove }:
                 onPress={() => onRemove(p.id)}
                 hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="Foto entfernen"
+                accessibilityLabel={t('photo.remove')}
                 style={[styles.remove, { backgroundColor: theme.surface }]}>
                 <Ionicons name="close-circle" size={22} color={theme.textSecondary} />
               </Pressable>
@@ -49,9 +51,9 @@ export function PhotoStrip({ label, hint, photos, busy, full, onAdd, onRemove }:
       ) : null}
       {!full ? (
         <View style={styles.buttons}>
-          <Button label="Foto aufnehmen" icon="camera-outline" onPress={() => onAdd('camera')} disabled={busy} style={styles.flex} />
+          <Button label={t('common:actions.takePhoto')} icon="camera-outline" onPress={() => onAdd('camera')} disabled={busy} style={styles.flex} />
           <Button
-            label="Aus Galerie"
+            label={t('common:actions.fromLibrary')}
             variant="secondary"
             icon="images-outline"
             onPress={() => onAdd('library')}

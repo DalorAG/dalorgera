@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,6 +12,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { SearchField } from '@/components/search-field';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
+import { useDevicePhotos } from '@/features/use-device-photos';
 import { groupByCategory, matches } from '@/lib/device-groups';
 import { useGetDevicesQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
@@ -18,8 +20,10 @@ import { radius, spacing, useTheme } from '@/theme';
 /** Ga-Wa: Garantie und Gewährleistung of every device still covered; expired ones move to the Archiv. */
 export default function GaWaScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['overview', 'common']);
   const [search, setSearch] = useState('');
   const { data, isLoading, isFetching, error, refetch } = useGetDevicesQuery();
+  const photos = useDevicePhotos();
   // An overdue Wartung stays because it still needs doing.
   const active = (data ?? []).filter((d) => d.status !== 'expired' || d.kind === 'maintenance');
   const archived = (data?.length ?? 0) - active.length;
@@ -34,7 +38,7 @@ export default function GaWaScreen() {
         <ScreenHeader
           icon={<Ionicons name="shield-checkmark" size={40} color={theme.brand} />}
           title="Ga-Wa"
-          subtitle="Garantie und Gewährleistung deiner Geräte."
+          subtitle={t('gawa.subtitle')}
         />
 
         <InfoBanner
@@ -46,12 +50,12 @@ export default function GaWaScreen() {
               </View>
             </View>
           }
-          title="Garantie- und Gewährleistungsfristen werden automatisch berechnet."
-          subtitle="Du musst dich um nichts mehr kümmern."
+          title={t('gawa.bannerTitle')}
+          subtitle={t('gawa.bannerSubtitle')}
         />
 
-        <Text variant="title">Geräte ({active.length})</Text>
-        {active.length ? <SearchField value={search} onChangeText={setSearch} placeholder="Geräte durchsuchen" /> : null}
+        <Text variant="title">{t('gawa.devicesCount', { count: active.length })}</Text>
+        {active.length ? <SearchField value={search} onChangeText={setSearch} placeholder={t('gawa.searchPlaceholder')} /> : null}
 
         {isLoading ? (
           <StateView kind="loading" />
@@ -64,21 +68,26 @@ export default function GaWaScreen() {
                 {category} ({items.length})
               </Text>
               {items.map((d) => (
-                <VaultRow key={d.id} device={d} />
+                <VaultRow key={d.id} device={d} photo={photos.get(d.id)} />
               ))}
             </View>
           ))
         ) : query ? (
-          <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Kein Gerät passt zu „${search.trim()}“.`} />
+          <StateView
+            kind="empty"
+            icon="search-outline"
+            title={t('common:state.nothingFound')}
+            message={t('gawa.noMatch', { query: search.trim() })}
+          />
         ) : (
-          <StateView kind="empty" icon="cube-outline" title="Keine Geräte" message="Füge dein erstes Gerät mit dem + hinzu." />
+          <StateView kind="empty" icon="cube-outline" title={t('gawa.empty.title')} message={t('gawa.empty.message')} />
         )}
 
         {archived > 0 ? (
           <Card onPress={() => router.push('/archiv')} style={styles.archive}>
             <Ionicons name="archive-outline" size={22} color={theme.brandIcon} />
             <Text variant="body" style={styles.flex}>
-              Archiv: {archived} abgelaufen
+              {t('gawa.archive', { count: archived })}
             </Text>
             <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
           </Card>

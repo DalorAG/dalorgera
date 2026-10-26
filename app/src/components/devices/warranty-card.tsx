@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
@@ -13,6 +14,7 @@ import { spacing, useTheme } from '@/theme';
 
 export function WarrantyCard({ device, photo }: { device: Device; photo?: DocumentItem }) {
   const theme = useTheme();
+  const { t } = useTranslation('device');
   const tone = toneForStatus(device.status);
   const accent = tone === 'success' ? theme.success : tone === 'warning' ? theme.warning : theme.danger;
 
@@ -31,7 +33,7 @@ export function WarrantyCard({ device, photo }: { device: Device; photo?: Docume
           ) : null}
           <Text variant="caption" color="textSecondary" style={styles.meta}>
             {startDateLabel(device.kind)} {formatDate(device.purchaseDate)}
-            {device.store ? `\nbei ${device.store}` : ''}
+            {device.store ? `\n${t('list.atStore', { store: device.store })}` : ''}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />

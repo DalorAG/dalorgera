@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import type { RequestPhoto } from '@/features/use-request-photo';
@@ -20,6 +21,7 @@ type Props = {
 /** Camera and gallery buttons, then the attached photo while it uploads and after. */
 export function RequestPhotoField({ label, hint, photo, busy, onAdd, onRemove }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation(['components', 'common']);
   return (
     <View style={styles.group}>
       <Text variant="captionStrong">{label}</Text>
@@ -33,21 +35,21 @@ export function RequestPhotoField({ label, hint, photo, busy, onAdd, onRemove }:
             </View>
           )}
           <View style={styles.flex}>
-            <Text variant="bodyStrong">{busy ? 'Foto wird hochgeladen …' : 'Foto angehängt'}</Text>
+            <Text variant="bodyStrong">{busy ? t('photo.uploading') : t('photo.attached')}</Text>
             <Text variant="caption" color="textSecondary">
-              {busy ? 'Einen Moment, wir lesen den Beleg.' : 'Wird mit der Anfrage an unser Team gesendet.'}
+              {busy ? t('photo.reading') : t('photo.sentWithRequest')}
             </Text>
           </View>
           {photo && !busy ? (
-            <Pressable onPress={onRemove} hitSlop={8} accessibilityRole="button" accessibilityLabel="Foto entfernen">
+            <Pressable onPress={onRemove} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('photo.remove')}>
               <Ionicons name="close-circle" size={24} color={theme.textSecondary} />
             </Pressable>
           ) : null}
         </View>
       ) : (
         <View style={styles.photoButtons}>
-          <Button label="Foto aufnehmen" icon="camera-outline" onPress={() => onAdd('camera')} style={styles.flex} />
-          <Button label="Aus Galerie" variant="secondary" icon="images-outline" onPress={() => onAdd('library')} style={styles.flex} />
+          <Button label={t('common:actions.takePhoto')} icon="camera-outline" onPress={() => onAdd('camera')} style={styles.flex} />
+          <Button label={t('common:actions.fromLibrary')} variant="secondary" icon="images-outline" onPress={() => onAdd('library')} style={styles.flex} />
         </View>
       )}
       <Text variant="caption" color="textSecondary">

@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -25,12 +26,6 @@ import { scanCleared } from '@/store/scan-slice';
 import { radius, spacing, useTheme } from '@/theme';
 
 const DEVICE_KINDS: DeviceKind[] = ['statutory', 'warranty', 'maintenance', 'vignette'];
-const TITLES: Record<DeviceKind, string> = {
-  statutory: 'Gewährleistung hinzufügen',
-  warranty: 'Garantie hinzufügen',
-  maintenance: 'Wartung hinzufügen',
-  vignette: 'Vignette hinzufügen',
-};
 
 type Form = {
   name: string;
@@ -64,6 +59,7 @@ function formFromExtraction(extraction: ReceiptExtraction | null, productIndex =
 
 export default function NewDeviceScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['device', 'common']);
   const dispatch = useAppDispatch();
   const params = useLocalSearchParams<{ kind?: string }>();
   const kind = DEVICE_KINDS.find((k) => k === params.kind) ?? 'warranty';
@@ -126,12 +122,12 @@ export default function NewDeviceScreen() {
     const name = form.name.trim() || (kind === 'vignette' ? defaultVignetteName : '');
     const priceCents = form.price.trim() ? parsePrice(form.price) : undefined;
     const next: typeof errors = {};
-    if (!name) next.name = 'Bitte gib einen Namen ein.';
-    if (!purchaseDate) next.purchaseDate = 'Format: TT.MM.JJJJ';
+    if (!name) next.name = t('form.errors.nameRequired');
+    if (!purchaseDate) next.purchaseDate = t('form.errors.dateFormat');
     // A vignette can be bought in advance; purchases and services cannot lie in the future.
     else if (kind !== 'vignette' && purchaseDate > new Date().toISOString().slice(0, 10))
-      next.purchaseDate = 'Das Datum liegt in der Zukunft.';
-    if (priceCents === null) next.price = 'Ungültiger Betrag';
+      next.purchaseDate = t('form.errors.dateInFuture');
+    if (priceCents === null) next.price = t('form.errors.invalidAmount');
     if (hasDeviceCodes(kind)) next.imei = imeiError(form.imei);
     if (!next.imei) delete next.imei;
     setErrors(next);
@@ -176,28 +172,28 @@ export default function NewDeviceScreen() {
     <KeyboardAvoidingView
       style={[styles.flex, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Stack.Screen options={{ title: TITLES[kind] }} />
+      <Stack.Screen options={{ title: t(`new.title.${kind}`) }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {scan.extraction ? (
-          <InfoBanner title="Automatisch erkannt" subtitle="Bitte prüfe die Angaben, bevor du speicherst." />
+          <InfoBanner title={t('new.autoDetected.title')} subtitle={t('new.autoDetected.subtitle')} />
         ) : scan.documentId ? (
           <InfoBanner
-            title={scan.kind === 'product_photo' ? 'Foto gespeichert' : 'Beleg gespeichert'}
-            subtitle="Ergänze die Angaben zum Gerät."
+            title={scan.kind === 'product_photo' ? t('new.photoSaved') : t('new.receiptSaved')}
+            subtitle={t('new.completeDetails')}
           />
         ) : null}
 
         {products.length > 1 ? (
           <View style={styles.group}>
             <View style={styles.groupHeader}>
-              <Text variant="captionStrong">Welche Produkte übernehmen?</Text>
+              <Text variant="captionStrong">{t('new.products.title')}</Text>
               <Pressable
                 hitSlop={8}
                 onPress={() =>
                   setSelection(remaining.length ? savedProducts : products.map((_, i) => i))
                 }>
                 <Text variant="captionStrong" color="brand">
-                  {remaining.length ? 'Keine' : 'Alle'}
+                  {remaining.length ? t('new.products.none') : t('new.products.all')}
                 </Text>
               </Pressable>
             </View>
@@ -211,7 +207,13 @@ export default function NewDeviceScreen() {
                   onPress={() => !saved && editProduct(i)}
                   disabled={saved}
                   accessibilityRole="button"
-                  accessibilityLabel={saved ? `${p.name}, gespeichert` : editing ? `${p.name}, wird bearbeitet` : `${p.name} bearbeiten`}
+                  accessibilityLabel={
+                    saved
+                      ? t('new.products.a11ySaved', { name: p.name })
+                      : editing
+                        ? t('new.products.a11yEditing', { name: p.name })
+                        : t('new.products.a11yEdit', { name: p.name })
+                  }
                   style={[
                     styles.product,
                     editing
@@ -223,7 +225,7 @@ export default function NewDeviceScreen() {
                     disabled={saved}
                     hitSlop={10}
                     accessibilityRole="checkbox"
-                    accessibilityLabel={`${p.name} übernehmen`}
+                    accessibilityLabel={t('new.products.a11yInclude', { name: p.name })}
                     accessibilityState={{ checked, disabled: saved }}>
                     <Ionicons
                       name={saved ? 'checkmark-circle' : checked ? 'checkbox' : 'square-outline'}
@@ -240,44 +242,47 @@ export default function NewDeviceScreen() {
                   </Text>
                   {saved ? (
                     <Text variant="captionStrong" color="success">
-                      Gespeichert
+                      {t('new.products.saved')}
                     </Text>
                   ) : editing ? (
                     <View style={[styles.editingBadge, { backgroundColor: theme.brand }]}>
                       <Ionicons name="pencil" size={12} color={theme.textOnBrand} />
                       <Text variant="micro" color="textOnBrand" style={styles.badgeLabel}>
-                        Wird bearbeitet
+                        {t('new.products.editing')}
                       </Text>
                     </View>
                   ) : checked ? (
                     <View style={[styles.editButton, { borderColor: theme.brand }]}>
                       <Ionicons name="pencil-outline" size={12} color={theme.brand} />
                       <Text variant="micro" color="brand" style={styles.badgeLabel}>
-                        Bearbeiten
+                        {t('common:actions.edit')}
                       </Text>
                     </View>
                   ) : (
                     <Text variant="caption" color="textSecondary">
-                      Nicht übernehmen
+                      {t('new.products.exclude')}
                     </Text>
                   )}
                 </Pressable>
               );
             })}
             <Text variant="caption" color="textSecondary">
-              Tippe auf ein Produkt, um es zu bearbeiten. Nicht benötigte Positionen (z. B. Lebensmittel) per Kästchen abwählen.
+              {t('new.products.hint')}
             </Text>
           </View>
         ) : null}
-        {lastSaved ? <InfoBanner title={`„${lastSaved}“ gespeichert`} subtitle="Jetzt das nächste Produkt prüfen." /> : null}
+        {lastSaved ? <InfoBanner title={t('new.products.lastSaved', { name: lastSaved })} subtitle={t('new.products.nextProduct')} /> : null}
         {products.length > 1 && products[productIndex] && !savedProducts.includes(productIndex) ? (
           <View style={[styles.formHeader, { borderColor: theme.brand }]}>
             <Ionicons name="pencil" size={16} color={theme.brand} />
             <Text variant="headline" numberOfLines={1} style={styles.flex}>
-              Angaben zu „{products[productIndex].name}“
+              {t('new.products.detailsFor', { name: products[productIndex].name })}
             </Text>
             <Text variant="caption" color="textSecondary">
-              {pending(included).indexOf(productIndex) + 1 + savedProducts.length} von {pending(included).length + savedProducts.length}
+              {t('new.products.position', {
+                current: pending(included).indexOf(productIndex) + 1 + savedProducts.length,
+                total: pending(included).length + savedProducts.length,
+              })}
             </Text>
           </View>
         ) : null}
@@ -285,7 +290,7 @@ export default function NewDeviceScreen() {
         {kind === 'vignette' ? (
           <>
             <View style={styles.group}>
-              <Text variant="captionStrong">Art der Vignette</Text>
+              <Text variant="captionStrong">{t('new.vignette.type')}</Text>
               <View style={styles.chips}>
                 {VIGNETTE_TYPES.map((v) => (
                   <Chip key={v.type} label={v.label} selected={vignetteType === v.type} onPress={() => setVignetteType(v.type)} />
@@ -294,7 +299,7 @@ export default function NewDeviceScreen() {
             </View>
             {vignetteType === 'year' ? (
               <View style={styles.group}>
-                <Text variant="captionStrong">Jahr</Text>
+                <Text variant="captionStrong">{t('new.vignette.year')}</Text>
                 <View style={styles.chips}>
                   {selectableVignetteYears().map((y) => (
                     <Chip key={y} label={String(y)} selected={vignetteYear === y} onPress={() => setVignetteYear(y)} />
@@ -303,59 +308,69 @@ export default function NewDeviceScreen() {
               </View>
             ) : (
               <TextField
-                label="Gültig ab *"
+                label={t('new.vignette.validFrom')}
                 value={form.purchaseDate}
                 onChangeText={(v) => set('purchaseDate', v)}
-                placeholder="TT.MM.JJJJ"
+                placeholder={t('form.datePlaceholder')}
                 keyboardType="numbers-and-punctuation"
                 error={errors.purchaseDate}
               />
             )}
             {vignette ? (
               <InfoBanner
-                title={`Gültig von ${formatDate(vignette.validFrom)} bis ${formatDate(vignette.validUntil)}`}
-                subtitle="Wir erinnern dich 30 und 7 Tage vor Ablauf."
+                title={t('new.vignette.period', { from: formatDate(vignette.validFrom), until: formatDate(vignette.validUntil) })}
+                subtitle={t('new.vignette.reminder')}
               />
             ) : null}
             <TextField
-              label="Bezeichnung"
+              label={t('new.vignette.name')}
               value={form.name}
               onChangeText={(v) => set('name', v)}
               placeholder={defaultVignetteName}
-              hint="Optional, z. B. mit Kennzeichen: „Vignette W-12345“"
+              hint={t('new.vignette.nameHint')}
               error={errors.name}
             />
             <Text variant="caption" color="textSecondary">
-              Digitale Vignetten, die online gekauft werden, gelten für Privatkunden erst ab dem 18. Tag nach dem Kauf.
+              {t('new.vignette.digitalNote')}
             </Text>
           </>
         ) : (
           <>
           <TextField
-            label={kind === 'maintenance' ? 'Was wird gewartet? *' : 'Gerät *'}
+            label={kind === 'maintenance' ? t('form.maintenanceNameLabel') : t('form.nameLabel')}
             value={form.name}
             onChangeText={(v) => set('name', v)}
-            placeholder={kind === 'maintenance' ? 'z. B. Auto (Pickerl)' : 'z. B. iPhone 15'}
+            placeholder={kind === 'maintenance' ? t('form.maintenanceNamePlaceholder') : t('form.namePlaceholder')}
             error={errors.name}
           />
-          <TextField label="Kategorie" value={form.category} onChangeText={(v) => set('category', v)} placeholder="z. B. Smartphone" />
-          <TextField label="Marke" value={form.brand} onChangeText={(v) => set('brand', v)} />
-          <TextField label={kind === 'maintenance' ? 'Werkstatt / Firma' : 'Gekauft bei'} value={form.store} onChangeText={(v) => set('store', v)} placeholder="z. B. TechnikMarkt" />
           <TextField
-            label={kind === 'maintenance' ? 'Letzte Wartung *' : 'Kaufdatum *'}
+            label={t('form.category')}
+            value={form.category}
+            onChangeText={(v) => set('category', v)}
+            placeholder={t('form.categoryPlaceholder')}
+          />
+          <TextField label={t('form.brand')} value={form.brand} onChangeText={(v) => set('brand', v)} />
+          <TextField
+            label={kind === 'maintenance' ? t('form.workshop') : t('form.store')}
+            value={form.store}
+            onChangeText={(v) => set('store', v)}
+            placeholder={t('form.storePlaceholder')}
+          />
+          <TextField
+            label={kind === 'maintenance' ? t('form.lastService') : t('form.purchaseDate')}
             value={form.purchaseDate}
             onChangeText={(v) => set('purchaseDate', v)}
-            placeholder="TT.MM.JJJJ"
+            placeholder={t('form.datePlaceholder')}
             keyboardType="numbers-and-punctuation"
             error={errors.purchaseDate}
           />
           </>
         )}
         <TextField
-          label={`Preis (${currencySymbol(scan.extraction?.currency)})`}
+          label={t('form.price', { currency: currencySymbol(scan.extraction?.currency) })}
           value={form.price}
           onChangeText={(v) => set('price', v)}
-          placeholder="0,00"
+          placeholder={t('form.pricePlaceholder')}
           keyboardType="decimal-pad"
           error={errors.price}
         />
@@ -371,34 +386,33 @@ export default function NewDeviceScreen() {
 
         {kind === 'warranty' ? (
           <View style={styles.group}>
-            <Text variant="captionStrong">Herstellergarantie</Text>
+            <Text variant="captionStrong">{t('form.manufacturerWarranty')}</Text>
             <View style={styles.chips}>
               {WARRANTY_OPTIONS.map((o) => (
                 <Chip key={o.months} label={o.label} selected={form.warrantyMonths === o.months} onPress={() => set('warrantyMonths', o.months)} />
               ))}
             </View>
             <Text variant="caption" color="textSecondary">
-              Die gesetzliche Gewährleistung von 2 Jahren wird automatisch berücksichtigt (beim Kauf von einem Unternehmen).
+              {t('new.warrantyHint')}
             </Text>
             <RightsLink />
           </View>
         ) : kind === 'maintenance' ? (
           <View style={styles.group}>
-            <Text variant="captionStrong">Intervall</Text>
+            <Text variant="captionStrong">{t('form.interval')}</Text>
             <View style={styles.chips}>
               {INTERVAL_OPTIONS.map((o) => (
                 <Chip key={o.months} label={o.label} selected={form.intervalMonths === o.months} onPress={() => set('intervalMonths', o.months)} />
               ))}
             </View>
             <Text variant="caption" color="textSecondary">
-              Wir erinnern dich 30 und 7 Tage vor der nächsten Wartung.
+              {t('new.maintenanceHint')}
             </Text>
           </View>
         ) : kind === 'statutory' ? (
           <View style={styles.group}>
             <Text variant="caption" color="textSecondary">
-              Gesetzliche Gewährleistung: 2 Jahre ab Kaufdatum, im ersten Jahr trägt der Händler die Beweislast. Gilt beim Kauf von einem
-              Unternehmen, nicht von Privat an Privat.
+              {t('new.statutoryHint')}
             </Text>
             <RightsLink />
           </View>
@@ -410,7 +424,7 @@ export default function NewDeviceScreen() {
           </Text>
         ) : null}
         <Button
-          label={remaining.length > 1 ? `Speichern & weiter (${remaining.length - 1} übrig)` : 'Speichern'}
+          label={remaining.length > 1 ? t('new.saveAndNext', { left: remaining.length - 1 }) : t('common:actions.save')}
           icon="checkmark"
           onPress={save}
           loading={creating || linking}
@@ -421,10 +435,11 @@ export default function NewDeviceScreen() {
 }
 
 function RightsLink() {
+  const { t } = useTranslation('device');
   return (
     <Pressable onPress={() => router.push('/rechte')} accessibilityRole="link" hitSlop={8}>
       <Text variant="captionStrong" color="brand">
-        Garantie oder Gewährleistung? Mehr erfahren
+        {t('rightsLink')}
       </Text>
     </Pressable>
   );

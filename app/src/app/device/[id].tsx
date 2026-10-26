@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { StatusBadge } from '@/components/badge';
@@ -14,6 +15,7 @@ import { Text } from '@/components/text';
 import { shareDocumentsAsPdf } from '@/features/export-pdf';
 import { openDocument } from '@/features/open-document';
 import { useProductPhoto, type PhotoSource } from '@/features/use-product-photo';
+import i18n from '@/i18n';
 import type { DocumentItem } from '@/lib/api-types';
 import {
   addMonths,
@@ -51,14 +53,15 @@ function confirm(title: string, message: string, onConfirm: () => void) {
     return;
   }
   Alert.alert(title, message, [
-    { text: 'Abbrechen', style: 'cancel' },
-    { text: 'Löschen', style: 'destructive', onPress: onConfirm },
+    { text: i18n.t('common:actions.cancel'), style: 'cancel' },
+    { text: i18n.t('common:actions.delete'), style: 'destructive', onPress: onConfirm },
   ]);
 }
 
 export default function DeviceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
+  const { t } = useTranslation(['device', 'common']);
   const dispatch = useAppDispatch();
   const { data: device, isLoading, error, refetch } = useGetDeviceQuery(id);
   const { data: documents } = useGetDocumentsQuery({ deviceId: id });
@@ -82,7 +85,7 @@ export default function DeviceScreen() {
     try {
       await openDocument(doc, dispatch);
     } catch (err) {
-      notify('Beleg kann nicht geöffnet werden', apiErrorMessage(err));
+      notify(t('detail.errors.openReceipt'), apiErrorMessage(err));
     }
   };
 
@@ -90,17 +93,17 @@ export default function DeviceScreen() {
     try {
       await chooseProductPhoto(source);
     } catch (err) {
-      notify('Foto konnte nicht gespeichert werden', apiErrorMessage(err));
+      notify(t('detail.errors.savePhoto'), apiErrorMessage(err));
     }
   };
 
   const pickProductPhoto = () => {
     // The browser file dialog offers the camera itself where there is one.
     if (Platform.OS === 'web') return saveProductPhoto('library');
-    Alert.alert('Produktfoto', undefined, [
-      { text: 'Foto aufnehmen', onPress: () => saveProductPhoto('camera') },
-      { text: 'Aus Galerie wählen', onPress: () => saveProductPhoto('library') },
-      { text: 'Abbrechen', style: 'cancel' },
+    Alert.alert(t('detail.photo.title'), undefined, [
+      { text: t('common:actions.takePhoto'), onPress: () => saveProductPhoto('camera') },
+      { text: t('detail.photo.fromLibrary'), onPress: () => saveProductPhoto('library') },
+      { text: t('common:actions.cancel'), style: 'cancel' },
     ]);
   };
 
@@ -115,7 +118,7 @@ export default function DeviceScreen() {
       );
       await shareDocumentsAsPdf(files, device.name);
     } catch (err) {
-      notify('PDF konnte nicht erstellt werden', apiErrorMessage(err));
+      notify(t('detail.errors.createPdf'), apiErrorMessage(err));
     } finally {
       setDownloading(false);
     }
@@ -126,17 +129,17 @@ export default function DeviceScreen() {
     try {
       await updateDevice({ id: device.id, purchaseDate: new Date().toISOString().slice(0, 10) }).unwrap();
     } catch (err) {
-      Alert.alert('Speichern fehlgeschlagen', apiErrorMessage(err));
+      Alert.alert(t('detail.errors.saveFailed'), apiErrorMessage(err));
     }
   };
 
   const remove = () =>
-    confirm('Gerät löschen?', 'Das Gerät, seine Belege und Erinnerungen werden dauerhaft gelöscht.', async () => {
+    confirm(t('detail.deleteConfirm.title'), t('detail.deleteConfirm.message'), async () => {
       try {
         await deleteDevice(device.id).unwrap();
         router.back();
       } catch (err) {
-        Alert.alert('Löschen fehlgeschlagen', apiErrorMessage(err));
+        Alert.alert(t('detail.errors.deleteFailed'), apiErrorMessage(err));
       }
     });
 
@@ -150,11 +153,11 @@ export default function DeviceScreen() {
               onPress={() => router.push({ pathname: '/device/edit', params: { id: device.id } })}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Bearbeiten"
+              accessibilityLabel={t('common:actions.edit')}
               style={({ pressed }) => [styles.editButton, { backgroundColor: pressed ? theme.brandSoft : theme.surface, borderColor: theme.brand }]}>
               <Ionicons name="pencil" size={14} color={theme.brand} />
               <Text variant="captionStrong" color="brand">
-                Bearbeiten
+                {t('common:actions.edit')}
               </Text>
             </Pressable>
           ),
@@ -166,7 +169,7 @@ export default function DeviceScreen() {
           onPress={pickProductPhoto}
           disabled={savingPhoto}
           accessibilityRole="button"
-          accessibilityLabel={productPhoto ? 'Produktfoto ändern' : 'Produktfoto hinzufügen'}>
+          accessibilityLabel={productPhoto ? t('detail.photo.change') : t('detail.photo.add')}>
           <DeviceThumb icon={iconForDevice(device.category, device.name)} size={72} photo={productPhoto} />
           <View style={[styles.photoBadge, { backgroundColor: theme.brand, borderColor: theme.background }]}>
             {savingPhoto ? (
@@ -190,23 +193,29 @@ export default function DeviceScreen() {
         <View style={[styles.flex, styles.rows]}>
           {device.kind === 'vignette' ? (
             <>
-              <Row label="Gültig ab" value={formatDate(device.purchaseDate)} />
-              <Row label="Gültig bis" value={formatDate(device.protectedUntil)} strong />
+              <Row label={t('detail.rows.validFrom')} value={formatDate(device.purchaseDate)} />
+              <Row label={t('detail.rows.validUntil')} value={formatDate(device.protectedUntil)} strong />
             </>
           ) : device.kind === 'maintenance' ? (
             <>
-              <Row label="Letzte Wartung" value={formatDate(device.purchaseDate)} />
-              <Row label="Intervall" value={`${device.maintenanceIntervalMonths} Monate`} />
-              <Row label="Nächste Wartung" value={formatDate(device.protectedUntil)} strong />
+              <Row label={t('detail.rows.lastService')} value={formatDate(device.purchaseDate)} />
+              <Row
+                label={t('detail.rows.interval')}
+                value={t('detail.rows.intervalMonths', { count: device.maintenanceIntervalMonths ?? 0 })}
+              />
+              <Row label={t('detail.rows.nextService')} value={formatDate(device.protectedUntil)} strong />
             </>
           ) : (
             <>
               {device.kind === 'warranty' ? (
-                <Row label="Garantie bis" value={device.warrantyUntil ? formatDate(device.warrantyUntil) : 'keine'} />
+                <Row
+                  label={t('detail.rows.warrantyUntil')}
+                  value={device.warrantyUntil ? formatDate(device.warrantyUntil) : t('detail.rows.noWarranty')}
+                />
               ) : null}
-              <Row label="Beweislast beim Händler bis" value={formatDate(addMonths(device.purchaseDate, 12))} />
-              <Row label="Gewährleistung bis" value={formatDate(device.statutoryUntil)} />
-              <Row label="Geschützt bis" value={formatDate(device.protectedUntil)} strong />
+              <Row label={t('detail.rows.burdenOfProofUntil')} value={formatDate(addMonths(device.purchaseDate, 12))} />
+              <Row label={t('detail.rows.statutoryUntil')} value={formatDate(device.statutoryUntil)} />
+              <Row label={t('detail.rows.protectedUntil')} value={formatDate(device.protectedUntil)} strong />
             </>
           )}
         </View>
@@ -229,22 +238,22 @@ export default function DeviceScreen() {
           </Text>
           <Pressable onPress={() => router.push('/rechte')} accessibilityRole="link" hitSlop={8}>
             <Text variant="captionStrong" color="brand">
-              Garantie oder Gewährleistung? Mehr erfahren
+              {t('rightsLink')}
             </Text>
           </Pressable>
         </Card>
       ) : null}
 
       {device.kind === 'maintenance' ? (
-        <Button label="Wartung erledigt" icon="checkmark" onPress={markServiced} loading={servicing} />
+        <Button label={t('detail.markServiced')} icon="checkmark" onPress={markServiced} loading={servicing} />
       ) : null}
 
       <Card style={styles.rows}>
-        {device.kind === 'warranty' || device.kind === 'statutory' ? <Row label="Kaufdatum" value={formatDate(device.purchaseDate)} /> : null}
-        {device.store ? <Row label="Gekauft bei" value={device.store} /> : null}
-        {device.priceCents != null ? <Row label="Preis" value={formatPrice(device.priceCents, device.currency)} /> : null}
-        {device.serialNumber ? <Row label="Seriennummer" value={device.serialNumber} selectable /> : null}
-        {device.imei ? <Row label="IMEI" value={device.imei} selectable /> : null}
+        {device.kind === 'warranty' || device.kind === 'statutory' ? <Row label={t('detail.rows.purchaseDate')} value={formatDate(device.purchaseDate)} /> : null}
+        {device.store ? <Row label={t('detail.rows.store')} value={device.store} /> : null}
+        {device.priceCents != null ? <Row label={t('detail.rows.price')} value={formatPrice(device.priceCents, device.currency)} /> : null}
+        {device.serialNumber ? <Row label={t('detail.rows.serialNumber')} value={device.serialNumber} selectable /> : null}
+        {device.imei ? <Row label={t('detail.rows.imei')} value={device.imei} selectable /> : null}
       </Card>
 
       {extension ? (
@@ -252,18 +261,17 @@ export default function DeviceScreen() {
           <View style={styles.guidanceHeader}>
             <Ionicons name="shield-half-outline" size={22} color={theme.brand} />
             <Text variant="headline" style={styles.flex}>
-              Garantie verlängern möglich
+              {t('detail.extension.title')}
             </Text>
             <Text variant="captionStrong" color="brand">
               {extensionDaysLabel(extension)}
             </Text>
           </View>
           <Text variant="body" color="textSecondary">
-            Eine Garantieverlängerung kannst du bis 4 Wochen nach dem Kauf abschließen, also bis {formatDate(extension.until)}. Über
-            unseren Versicherungspartner geht das direkt aus der App.
+            {t('detail.extension.body', { date: formatDate(extension.until) })}
           </Text>
           <Button
-            label="Garantie verlängern"
+            label={t('detail.extension.action')}
             icon="shield-outline"
             onPress={() =>
               router.push({
@@ -275,7 +283,7 @@ export default function DeviceScreen() {
         </Card>
       ) : null}
 
-      <Text variant="title">Belege</Text>
+      <Text variant="title">{t('detail.receipts')}</Text>
       {receipts.length ? (
         <Card style={styles.rows}>
           {receipts.map((doc) => (
@@ -283,7 +291,7 @@ export default function DeviceScreen() {
               <Pressable
                 onPress={() => openReceipt(doc)}
                 accessibilityRole="button"
-                accessibilityLabel={`${DOCUMENT_KIND_LABELS[doc.kind]} öffnen`}
+                accessibilityLabel={t('detail.openDocument', { label: DOCUMENT_KIND_LABELS[doc.kind] })}
                 style={styles.docOpen}>
                 <Ionicons name="document-text-outline" size={20} color={theme.brandIcon} />
                 <View style={styles.flex}>
@@ -298,12 +306,12 @@ export default function DeviceScreen() {
         </Card>
       ) : (
         <Text variant="body" color="textSecondary">
-          Keine Belege gespeichert.
+          {t('detail.noReceipts')}
         </Text>
       )}
       {device.kind !== 'vignette' ? (
         <Button
-          label={device.brand ? `${device.brand} kontaktieren` : 'Hersteller kontaktieren'}
+          label={device.brand ? t('detail.contactBrand', { brand: device.brand }) : t('detail.contactManufacturer')}
           variant="secondary"
           icon="chatbubbles-outline"
           onPress={() => WebBrowser.openBrowserAsync(manufacturerSupportUrl(device))}
@@ -311,14 +319,14 @@ export default function DeviceScreen() {
       ) : null}
       {receipts.length ? (
         <Button
-          label="Herunterladen"
+          label={t('detail.download')}
           variant="secondary"
           icon="download-outline"
           onPress={downloadReceipts}
           loading={downloading}
         />
       ) : null}
-      <Button label="Gerät löschen" variant="danger" icon="trash-outline" onPress={remove} loading={deleting} />
+      <Button label={t('detail.delete')} variant="danger" icon="trash-outline" onPress={remove} loading={deleting} />
     </ScrollView>
   );
 }

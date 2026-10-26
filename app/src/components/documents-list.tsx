@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState, type ComponentProps } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { DocumentThumb } from '@/components/document-thumb';
 import { Text } from '@/components/text';
 import { shareDocumentAsPdf } from '@/features/export-pdf';
+import i18n from '@/i18n';
 import type { Device, DocumentItem, LuxuryItem } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
 import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
@@ -24,8 +26,8 @@ function confirmDelete(title: string, message: string, onConfirm: () => void) {
     return;
   }
   Alert.alert(title, message, [
-    { text: 'Abbrechen', style: 'cancel' },
-    { text: 'Löschen', style: 'destructive', onPress: onConfirm },
+    { text: i18n.t('common:actions.cancel'), style: 'cancel' },
+    { text: i18n.t('common:actions.delete'), style: 'destructive', onPress: onConfirm },
   ]);
 }
 
@@ -42,14 +44,15 @@ export function useOpenDocument() {
 
 export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation(['inbox', 'common']);
   const dispatch = useAppDispatch();
   const deviceNames = new Map(devices.map((d) => [d.id, d.name]));
   const itemNames = new Map(luxuryItems.map((i) => [i.id, itemTitle(i)]));
   const owner = (doc: DocumentItem) =>
     doc.luxuryItemId
-      ? (itemNames.get(doc.luxuryItemId) ?? 'Wertsache')
+      ? (itemNames.get(doc.luxuryItemId) ?? t('documents.valuable'))
       : doc.deviceId
-        ? (deviceNames.get(doc.deviceId) ?? 'Gerät')
+        ? (deviceNames.get(doc.deviceId) ?? t('documents.device'))
         : null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const open = useOpenDocument();
@@ -61,7 +64,7 @@ export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
       const { url } = await dispatch(api.endpoints.getDocumentUrl.initiate(doc.id)).unwrap();
       await shareDocumentAsPdf(doc, url);
     } catch (err) {
-      Alert.alert('PDF konnte nicht erstellt werden', apiErrorMessage(err));
+      Alert.alert(t('documents.pdfFailed'), apiErrorMessage(err));
     } finally {
       setBusyId(null);
     }
@@ -69,16 +72,16 @@ export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
 
   const remove = (doc: DocumentItem) =>
     confirmDelete(
-      `${DOCUMENT_KIND_LABELS[doc.kind]} löschen?`,
+      t('documents.deleteConfirm.title', { kind: DOCUMENT_KIND_LABELS[doc.kind] }),
       owner(doc)
-        ? `Der Beleg wird von „${owner(doc)}“ entfernt. ${doc.luxuryItemId ? 'Die Wertsache' : 'Das Gerät'} bleibt erhalten.`
-        : 'Der Beleg wird endgültig gelöscht.',
+        ? t(doc.luxuryItemId ? 'documents.deleteConfirm.fromValuable' : 'documents.deleteConfirm.fromDevice', { owner: owner(doc) })
+        : t('documents.deleteConfirm.permanent'),
       async () => {
         setBusyId(doc.id);
         try {
           await deleteDocument(doc.id).unwrap();
         } catch (err) {
-          Alert.alert('Beleg konnte nicht gelöscht werden', apiErrorMessage(err));
+          Alert.alert(t('documents.deleteFailed'), apiErrorMessage(err));
         } finally {
           setBusyId(null);
         }
@@ -95,18 +98,18 @@ export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
             <Text variant="caption" color="textSecondary">
               {[doc.extracted?.merchant, formatPrice(doc.extracted?.totalCents, doc.extracted?.currency ?? 'EUR')]
                 .filter(Boolean)
-                .join(' · ') || `Hochgeladen am ${formatDate(doc.createdAt)}`}
+                .join(' · ') || t('documents.uploadedAt', { date: formatDate(doc.createdAt) })}
             </Text>
             <Text variant="caption" color={owner(doc) ? 'textSecondary' : 'warningText'}>
-              {owner(doc) ?? 'Keinem Gerät zugeordnet'}
+              {owner(doc) ?? t('documents.unassigned')}
             </Text>
           </View>
           {busyId === doc.id ? (
             <ActivityIndicator color={theme.brand} />
           ) : (
             <View style={styles.actions}>
-              <Action icon="download-outline" label="Als PDF herunterladen" onPress={() => exportPdf(doc)} />
-              <Action icon="trash-outline" label="Beleg löschen" onPress={() => remove(doc)} danger />
+              <Action icon="download-outline" label={t('common:actions.downloadPdf')} onPress={() => exportPdf(doc)} />
+              <Action icon="trash-outline" label={t('documents.delete')} onPress={() => remove(doc)} danger />
             </View>
           )}
         </Card>

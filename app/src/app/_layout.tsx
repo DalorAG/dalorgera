@@ -1,7 +1,8 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Provider } from 'react-redux';
 
@@ -9,6 +10,7 @@ import { CloseButton } from '@/components/close-button';
 import { StateView } from '@/components/state-view';
 import { useAuthSync } from '@/features/use-auth-sync';
 import { usePushRegistration } from '@/features/use-push-registration';
+import { restoreLanguage } from '@/i18n';
 import { store, useAppSelector } from '@/store';
 import { useGetMeQuery } from '@/store/api';
 import { colors, useScheme } from '@/theme';
@@ -32,8 +34,14 @@ function RootNavigator() {
   const signedIn = authStatus === 'signedIn';
   const me = useGetMeQuery(undefined, { skip: !signedIn });
   const scheme = useScheme();
+  const { t, i18n } = useTranslation('nav');
+  const [languageReady, setLanguageReady] = useState(false);
   // Wait for the profile so the terms gate does not flash for users who already accepted.
-  const ready = authStatus !== 'loading' && (!signedIn || !!me.data || !!me.error);
+  const ready = languageReady && authStatus !== 'loading' && (!signedIn || !!me.data || !!me.error);
+
+  useEffect(() => {
+    restoreLanguage().finally(() => setLanguageReady(true));
+  }, []);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
@@ -63,34 +71,35 @@ function RootNavigator() {
   return (
     <ThemeProvider value={navTheme}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false }}>
+      {/* Remounted on a language change, so labels computed outside React (lib/) follow too. */}
+      <Stack key={i18n.language} screenOptions={{ headerShown: false, headerBackTitle: t('back') }}>
         <Stack.Protected guard={termsAccepted}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="add" options={{ ...MODAL, title: 'Hinzufügen' }} />
+          <Stack.Screen name="add" options={{ ...MODAL, title: t('add') }} />
           <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
           <Stack.Screen
             name="device/new"
-            options={{ ...MODAL, title: 'Gerät hinzufügen' }}
+            options={{ ...MODAL, title: t('deviceNew') }}
           />
-          <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil', headerBackTitle: 'Zurück' }} />
-          <Stack.Screen name="pricing" options={{ headerShown: true, title: 'Tarife', headerBackTitle: 'Zurück' }} />
-          <Stack.Screen name="posteingang" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
-          <Stack.Screen name="archiv" options={{ headerShown: true, title: 'Archiv', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen name="profile" options={{ headerShown: true, title: t('profile') }} />
+          <Stack.Screen name="pricing" options={{ headerShown: true, title: t('pricing') }} />
+          <Stack.Screen name="posteingang" options={{ headerShown: true, title: '' }} />
+          <Stack.Screen name="archiv" options={{ headerShown: true, title: t('archive') }} />
           <Stack.Screen
             name="device/edit"
-            options={{ ...MODAL, title: 'Bearbeiten' }}
+            options={{ ...MODAL, title: t('edit') }}
           />
-          <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
-          <Stack.Screen name="luxury/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
-          <Stack.Screen name="receipt/[id]" options={{ headerShown: true, title: '', headerBackTitle: 'Zurück' }} />
+          <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '' }} />
+          <Stack.Screen name="luxury/[id]" options={{ headerShown: true, title: '' }} />
+          <Stack.Screen name="receipt/[id]" options={{ headerShown: true, title: '' }} />
           <Stack.Screen name="document/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen
             name="warranty-request"
-            options={{ ...MODAL, title: 'Garantie verlängern' }}
+            options={{ ...MODAL, title: t('warrantyRequest') }}
           />
           <Stack.Screen
             name="luxury-request"
-            options={{ ...MODAL, title: 'Wertsache hinzufügen' }}
+            options={{ ...MODAL, title: t('luxuryNew') }}
           />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !termsAccepted}>
@@ -101,15 +110,15 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Screen
           name="terms"
-          options={{ ...MODAL, title: 'Nutzungsbedingungen' }}
+          options={{ ...MODAL, title: t('terms') }}
         />
         <Stack.Screen
           name="privacy"
-          options={{ ...MODAL, title: 'Datenschutzerklärung' }}
+          options={{ ...MODAL, title: t('privacy') }}
         />
         <Stack.Screen
           name="rechte"
-          options={{ ...MODAL, title: 'Deine Rechte' }}
+          options={{ ...MODAL, title: t('rights') }}
         />
         <Stack.Screen name="auth-callback" />
       </Stack>

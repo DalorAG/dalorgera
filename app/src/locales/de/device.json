@@ -1,0 +1,133 @@
+{
+  "form": {
+    "nameLabel": "Gerät *",
+    "namePlaceholder": "z. B. iPhone 15",
+    "maintenanceNameLabel": "Was wird gewartet? *",
+    "maintenanceNamePlaceholder": "z. B. Auto (Pickerl)",
+    "vignetteNameLabel": "Bezeichnung *",
+    "category": "Kategorie",
+    "categoryPlaceholder": "z. B. Smartphone",
+    "brand": "Marke",
+    "store": "Gekauft bei",
+    "storePlaceholder": "z. B. TechnikMarkt",
+    "workshop": "Werkstatt / Firma",
+    "purchaseDate": "Kaufdatum *",
+    "lastService": "Letzte Wartung *",
+    "datePlaceholder": "TT.MM.JJJJ",
+    "price": "Preis ({{currency}})",
+    "pricePlaceholder": "0,00",
+    "manufacturerWarranty": "Herstellergarantie",
+    "interval": "Intervall",
+    "notes": "Notizen",
+    "errors": {
+      "nameRequired": "Bitte gib einen Namen ein.",
+      "dateFormat": "Format: TT.MM.JJJJ",
+      "dateInFuture": "Das Datum liegt in der Zukunft.",
+      "invalidAmount": "Ungültiger Betrag"
+    }
+  },
+  "new": {
+    "title": {
+      "statutory": "Gewährleistung hinzufügen",
+      "warranty": "Garantie hinzufügen",
+      "maintenance": "Wartung hinzufügen",
+      "vignette": "Vignette hinzufügen"
+    },
+    "autoDetected": {
+      "title": "Automatisch erkannt",
+      "subtitle": "Bitte prüfe die Angaben, bevor du speicherst."
+    },
+    "photoSaved": "Foto gespeichert",
+    "receiptSaved": "Beleg gespeichert",
+    "completeDetails": "Ergänze die Angaben zum Gerät.",
+    "products": {
+      "title": "Welche Produkte übernehmen?",
+      "none": "Keine",
+      "all": "Alle",
+      "a11ySaved": "{{name}}, gespeichert",
+      "a11yEditing": "{{name}}, wird bearbeitet",
+      "a11yEdit": "{{name}} bearbeiten",
+      "a11yInclude": "{{name}} übernehmen",
+      "saved": "Gespeichert",
+      "editing": "Wird bearbeitet",
+      "exclude": "Nicht übernehmen",
+      "hint": "Tippe auf ein Produkt, um es zu bearbeiten. Nicht benötigte Positionen (z. B. Lebensmittel) per Kästchen abwählen.",
+      "lastSaved": "„{{name}}“ gespeichert",
+      "nextProduct": "Jetzt das nächste Produkt prüfen.",
+      "detailsFor": "Angaben zu „{{name}}“",
+      "position": "{{current}} von {{total}}"
+    },
+    "vignette": {
+      "type": "Art der Vignette",
+      "year": "Jahr",
+      "validFrom": "Gültig ab *",
+      "period": "Gültig von {{from}} bis {{until}}",
+      "reminder": "Wir erinnern dich 30 und 7 Tage vor Ablauf.",
+      "name": "Bezeichnung",
+      "nameHint": "Optional, z. B. mit Kennzeichen: „Vignette W-12345“",
+      "digitalNote": "Digitale Vignetten, die online gekauft werden, gelten für Privatkunden erst ab dem 18. Tag nach dem Kauf."
+    },
+    "warrantyHint": "Die gesetzliche Gewährleistung von 2 Jahren wird automatisch berücksichtigt (beim Kauf von einem Unternehmen).",
+    "maintenanceHint": "Wir erinnern dich 30 und 7 Tage vor der nächsten Wartung.",
+    "statutoryHint": "Gesetzliche Gewährleistung: 2 Jahre ab Kaufdatum, im ersten Jahr trägt der Händler die Beweislast. Gilt beim Kauf von einem Unternehmen, nicht von Privat an Privat.",
+    "saveAndNext": "Speichern & weiter ({{left}} übrig)"
+  },
+  "rightsLink": "Garantie oder Gewährleistung? Mehr erfahren",
+  "detail": {
+    "errors": {
+      "openReceipt": "Beleg kann nicht geöffnet werden",
+      "savePhoto": "Foto konnte nicht gespeichert werden",
+      "createPdf": "PDF konnte nicht erstellt werden",
+      "saveFailed": "Speichern fehlgeschlagen",
+      "deleteFailed": "Löschen fehlgeschlagen"
+    },
+    "photo": {
+      "title": "Produktfoto",
+      "fromLibrary": "Aus Galerie wählen",
+      "change": "Produktfoto ändern",
+      "add": "Produktfoto hinzufügen"
+    },
+    "deleteConfirm": {
+      "title": "Gerät löschen?",
+      "message": "Das Gerät, seine Belege und Erinnerungen werden dauerhaft gelöscht."
+    },
+    "rows": {
+      "validFrom": "Gültig ab",
+      "validUntil": "Gültig bis",
+      "lastService": "Letzte Wartung",
+      "interval": "Intervall",
+      "intervalMonths_one": "{{count}} Monat",
+      "intervalMonths_other": "{{count}} Monate",
+      "nextService": "Nächste Wartung",
+      "warrantyUntil": "Garantie bis",
+      "noWarranty": "keine",
+      "burdenOfProofUntil": "Beweislast beim Händler bis",
+      "statutoryUntil": "Gewährleistung bis",
+      "protectedUntil": "Geschützt bis",
+      "purchaseDate": "Kaufdatum",
+      "store": "Gekauft bei",
+      "price": "Preis",
+      "serialNumber": "Seriennummer",
+      "imei": "IMEI"
+    },
+    "markServiced": "Wartung erledigt",
+    "extension": {
+      "title": "Garantie verlängern möglich",
+      "body": "Eine Garantieverlängerung kannst du bis 4 Wochen nach dem Kauf abschließen, also bis {{date}}. Über unseren Versicherungspartner geht das direkt aus der App.",
+      "action": "Garantie verlängern"
+    },
+    "receipts": "Belege",
+    "openDocument": "{{label}} öffnen",
+    "noReceipts": "Keine Belege gespeichert.",
+    "contactBrand": "{{brand}} kontaktieren",
+    "contactManufacturer": "Hersteller kontaktieren",
+    "download": "Herunterladen",
+    "delete": "Gerät löschen"
+  },
+  "list": {
+    "documents_one": "{{count}} Beleg",
+    "documents_other": "{{count}} Belege",
+    "protectedUntil": "Geschützt bis {{date}}",
+    "atStore": "bei {{store}}"
+  }
+}

@@ -100,3 +100,10 @@ export class RequestInsuranceDto {
   @MaxLength(1000)
   message?: string;
 }
+
+export class EstimateMarketValueDto {
+  @ApiPropertyOptional({ enum: ['de', 'en', 'ru'], default: 'de', description: 'Language of the summary' })
+  @IsOptional()
+  @IsIn(['de', 'en', 'ru'])
+  language?: 'de' | 'en' | 'ru';
+}

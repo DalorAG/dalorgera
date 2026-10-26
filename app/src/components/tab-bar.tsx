@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/tabs';
 import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { radius, shadow, spacing, useTheme } from '@/theme';
@@ -11,16 +12,17 @@ import { Text } from './text';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
-const TABS: Record<string, { label: string; icon: IconName; iconActive: IconName }> = {
-  index: { label: 'Übersicht', icon: 'home-outline', iconActive: 'home' },
-  gawa: { label: 'Ga-Wa', icon: 'shield-checkmark-outline', iconActive: 'shield-checkmark' },
-  tresor: { label: 'Tresor', icon: 'lock-closed-outline', iconActive: 'lock-closed' },
-  mehr: { label: 'Mehr', icon: 'ellipsis-horizontal', iconActive: 'ellipsis-horizontal' },
+const TABS: Record<string, { label: 'overview' | 'gawa' | 'tresor' | 'more'; icon: IconName; iconActive: IconName }> = {
+  index: { label: 'overview', icon: 'home-outline', iconActive: 'home' },
+  gawa: { label: 'gawa', icon: 'shield-checkmark-outline', iconActive: 'shield-checkmark' },
+  tresor: { label: 'tresor', icon: 'lock-closed-outline', iconActive: 'lock-closed' },
+  mehr: { label: 'more', icon: 'ellipsis-horizontal', iconActive: 'ellipsis-horizontal' },
 };
 
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation('components');
 
   const items = state.routes.map((route, index) => {
     const config = TABS[route.name];
@@ -48,7 +50,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
           variant="micro"
           color={focused ? 'tabActive' : 'tabInactive'}
           style={focused && styles.labelActive}>
-          {config.label}
+          {t(`tabBar.${config.label}`)}
         </Text>
       </Pressable>
     );
@@ -65,7 +67,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         <Pressable
           onPress={() => router.push('/add')}
           accessibilityRole="button"
-          accessibilityLabel="Hinzufügen"
+          accessibilityLabel={t('tabBar.add')}
           style={({ pressed }) => [
             styles.fab,
             { backgroundColor: pressed ? theme.brandPressed : theme.brand },

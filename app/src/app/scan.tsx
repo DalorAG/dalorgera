@@ -5,8 +5,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { ProgressBar } from '@/components/progress';
@@ -20,12 +21,12 @@ import { useRecognizeDocumentMutation } from '@/store/api';
 import { scanCleared, scanCompleted } from '@/store/scan-slice';
 import { radius, scannerColors, spacing, useTheme } from '@/theme';
 
-const STEPS = ['Scannen', 'Erkennen', 'Speichern'] as const;
-const KINDS: { kind: DocumentKind; label: string }[] = [
-  { kind: 'receipt', label: 'Kassenbon' },
-  { kind: 'warranty_card', label: 'Garantieschein' },
-  { kind: 'invoice', label: 'Rechnung' },
-];
+const STEPS = ['scan', 'recognize', 'save'] as const;
+const KINDS = [
+  { kind: 'receipt', label: 'kinds.receipt' },
+  { kind: 'warranty_card', label: 'kinds.warrantyCard' },
+  { kind: 'invoice', label: 'kinds.invoice' },
+] as const satisfies readonly { kind: DocumentKind; label: string }[];
 const UPLOADABLE = new Set<DocumentMimeType>(['image/jpeg', 'image/png', 'image/webp', 'image/heic']);
 
 type Phase =
@@ -37,6 +38,9 @@ type Phase =
 
 export default function ScanScreen() {
   const theme = useTheme();
+  // Inside a full-screen modal SafeAreaView can report no inset on iOS; the window insets are reliable.
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['scan', 'common']);
   const dispatch = useAppDispatch();
   // kind: what was picked on "+", handed on to the device form.
   const { kind: deviceKind } = useLocalSearchParams<{ kind?: DeviceKind }>();
@@ -112,17 +116,17 @@ export default function ScanScreen() {
       ) : null}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: scannerColors.overlay }]} />
 
-      <SafeAreaView edges={['top']} style={styles.flex}>
+      <View style={[styles.flex, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel="Zurück" disabled={busy}>
+          <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel={t('common:actions.back')} disabled={busy}>
             <Ionicons name="chevron-back" size={26} color={scannerColors.text} />
           </Pressable>
           <Text variant="headline" style={{ color: scannerColors.text }}>
-            {productOnly ? 'Produkt fotografieren' : 'Beleg scannen'}
+            {productOnly ? t('title.product') : t('title.receipt')}
           </Text>
           <Pressable onPress={() => router.back()} hitSlop={12} disabled={busy}>
             <Text variant="body" style={{ color: scannerColors.text }}>
-              Abbrechen
+              {t('common:actions.cancel')}
             </Text>
           </Pressable>
         </View>
@@ -137,7 +141,7 @@ export default function ScanScreen() {
               accessibilityState={{ selected: kind === k.kind }}
               style={[styles.kind, { backgroundColor: kind === k.kind ? scannerColors.frame : scannerColors.control }]}>
               <Text variant="captionStrong" style={{ color: kind === k.kind ? scannerColors.ink : scannerColors.text }}>
-                {k.label}
+                {t(k.label)}
               </Text>
             </Pressable>
           ))}
@@ -151,9 +155,9 @@ export default function ScanScreen() {
             <View style={styles.permission}>
               <Ionicons name="camera-outline" size={40} color={scannerColors.text} />
               <Text variant="body" style={[styles.center, { color: scannerColors.text }]}>
-                Erlaube den Kamerazugriff, um {productOnly ? 'das Produkt' : 'Belege'} zu fotografieren.
+                {productOnly ? t('permission.product') : t('permission.receipt')}
               </Text>
-              <Button label="Kamera erlauben" onPress={requestPermission} />
+              <Button label={t('permission.allow')} onPress={requestPermission} />
             </View>
           ) : (
             <View style={styles.frame}>
@@ -165,7 +169,7 @@ export default function ScanScreen() {
           )}
           {permission?.granted && !previewUri ? (
             <View style={styles.sideControls}>
-              <RoundControl onPress={() => setTorch((t) => !t)} label="Blitz">
+              <RoundControl onPress={() => setTorch((t) => !t)} label={t('torch')}>
                 <Ionicons name={torch ? 'flash' : 'flash-off'} size={18} color={scannerColors.text} />
               </RoundControl>
             </View>
@@ -175,24 +179,24 @@ export default function ScanScreen() {
         {phase.name === 'capture' ? (
           <>
             <Text variant="caption" style={[styles.hint, { color: scannerColors.textMuted }]}>
-              {productOnly ? 'Fotografiere das Produkt, z. B. die Heizung oder das Typenschild' : 'Positioniere den Beleg im Rahmen'}
+              {productOnly ? t('hint.product') : t('hint.receipt')}
             </Text>
-            <View style={styles.controls}>
-              <RoundControl onPress={pickFromLibrary} label="Aus Galerie wählen" size={52}>
+            <View style={[styles.controls, { marginBottom: spacing.xl + insets.bottom }]}>
+              <RoundControl onPress={pickFromLibrary} label={t('pickFromLibrary')} size={52}>
                 <Ionicons name="images-outline" size={22} color={scannerColors.text} />
               </RoundControl>
               <Pressable
                 onPress={takePhoto}
                 disabled={!permission?.granted}
                 accessibilityRole="button"
-                accessibilityLabel="Foto aufnehmen"
+                accessibilityLabel={t('common:actions.takePhoto')}
                 style={({ pressed }) => [styles.shutter, (pressed || !permission?.granted) && styles.dimmed]}>
                 <View style={styles.shutterInner} />
               </Pressable>
               {productOnly ? (
                 <Pressable onPress={skipPhoto} accessibilityRole="button" style={styles.controlSpacer}>
                   <Text variant="captionStrong" style={[styles.center, { color: scannerColors.text }]}>
-                    Ohne Foto
+                    {t('skipPhoto')}
                   </Text>
                 </Pressable>
               ) : (
@@ -201,10 +205,10 @@ export default function ScanScreen() {
             </View>
           </>
         ) : null}
-      </SafeAreaView>
+      </View>
 
       {phase.name !== 'capture' ? (
-        <SafeAreaView edges={['bottom']} style={[styles.sheet, { backgroundColor: theme.surface }]}>
+        <View style={[styles.sheet, { backgroundColor: theme.surface, paddingBottom: insets.bottom }]}>
           <View style={styles.sheetTop}>
             <View style={[styles.docTile, { backgroundColor: theme.surfaceMuted }]}>
               {busy ? (
@@ -220,15 +224,15 @@ export default function ScanScreen() {
             <View style={styles.flex}>
               <Text variant="headline">
                 {phase.name === 'uploading'
-                  ? `${productOnly ? 'Foto' : 'Beleg'} wird hochgeladen …`
+                  ? t(productOnly ? 'phase.uploadingPhoto' : 'phase.uploadingReceipt')
                   : phase.name === 'recognizing'
-                    ? 'Beleg wird erkannt …'
+                    ? t('phase.recognizing')
                     : phase.name === 'done'
-                      ? 'Erfolgreich gespeichert'
-                      : 'Das hat nicht geklappt'}
+                      ? t('phase.done')
+                      : t('phase.error')}
               </Text>
               <Text variant="caption" color="textSecondary">
-                {phase.name === 'error' ? phase.message : 'Sicher verschlüsselt im Tresor.'}
+                {phase.name === 'error' ? phase.message : t('phase.encrypted')}
               </Text>
             </View>
             <View style={[styles.safeTile, { backgroundColor: theme.brandSoft }]}>
@@ -238,17 +242,17 @@ export default function ScanScreen() {
 
           {phase.name === 'error' ? (
             <View style={styles.errorActions}>
-              <Button label="Neues Foto" variant="secondary" onPress={() => setPhase({ name: 'capture' })} style={styles.flex} />
-              <Button label="Erneut versuchen" onPress={phase.retry} style={styles.flex} />
+              <Button label={t('newPhoto')} variant="secondary" onPress={() => setPhase({ name: 'capture' })} style={styles.flex} />
+              <Button label={t('common:actions.retry')} onPress={phase.retry} style={styles.flex} />
             </View>
           ) : (
             <>
               <ProgressBar progress={[0.2, 0.65, 1][step] ?? 0} color={theme.success} height={6} />
               <View style={styles.stepper}>
-                {STEPS.map((label, i) => {
+                {STEPS.map((key, i) => {
                   const done = i < step || step === 2;
                   return (
-                    <View key={label} style={styles.stepItem}>
+                    <View key={key} style={styles.stepItem}>
                       <View
                         style={[
                           styles.stepDot,
@@ -259,7 +263,7 @@ export default function ScanScreen() {
                         {done ? <Ionicons name="checkmark" size={14} color={theme.textOnBrand} /> : <Text variant="micro">{i + 1}</Text>}
                       </View>
                       <Text variant="micro" color="textSecondary">
-                        {label}
+                        {t(`steps.${key}`)}
                       </Text>
                     </View>
                   );
@@ -267,7 +271,7 @@ export default function ScanScreen() {
               </View>
             </>
           )}
-        </SafeAreaView>
+        </View>
       ) : null}
     </View>
   );
@@ -306,6 +310,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 44,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },

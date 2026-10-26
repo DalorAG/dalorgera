@@ -3,6 +3,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 
+import i18n from '@/i18n';
 import type { DocumentItem as FullDocument } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
 
@@ -89,7 +90,8 @@ export async function shareDocumentsAsPdf(
     if (document.mimeType !== 'application/pdf') photos.push(await photoDataUri(dir, document, url));
   }
   if (!photos.length) return shareDocumentAsPdf(documents[0].document, documents[0].url);
-  const target = freshFile(dir, `Belege-${title.replace(/[\\/:*?"<>|]/g, '').trim() || 'Gerät'}.pdf`);
+  const name = title.replace(/[\\/:*?"<>|]/g, '').trim() || i18n.t('components:exportPdf.fallbackTitle');
+  const target = freshFile(dir, `${i18n.t('components:exportPdf.receiptsFile', { title: name })}.pdf`);
   await photosToPdf(photos, target);
   await share(target);
 }

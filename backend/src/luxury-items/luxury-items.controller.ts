@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import type { AuthUser } from '../auth/auth.types.js';
 import { CurrentUser } from '../auth/decorators.js';
-import { CreateLuxuryItemDto, RequestInsuranceDto, UpdateLuxuryItemDto } from './luxury-items.dto.js';
+import { CreateLuxuryItemDto, EstimateMarketValueDto, RequestInsuranceDto, UpdateLuxuryItemDto } from './luxury-items.dto.js';
 import { LuxuryItemsService } from './luxury-items.service.js';
 
 @ApiTags('luxury-items')
@@ -42,5 +42,12 @@ export class LuxuryItemsController {
   @Post(':id/insurance-request')
   requestInsurance(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RequestInsuranceDto) {
     return this.items.requestInsurance(user, id, dto);
+  }
+
+  /** Estimates today's market value from web listings; nothing is saved, the app lets the user take it over. */
+  @Post(':id/market-value')
+  @HttpCode(200)
+  estimateMarketValue(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: EstimateMarketValueDto) {
+    return this.items.estimateMarketValue(user, id, dto.language ?? 'de');
   }
 }

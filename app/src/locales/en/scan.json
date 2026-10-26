@@ -1,0 +1,37 @@
+{
+  "steps": {
+    "scan": "Scan",
+    "recognize": "Recognise",
+    "save": "Save"
+  },
+  "kinds": {
+    "receipt": "Receipt",
+    "warrantyCard": "Warranty card",
+    "invoice": "Invoice"
+  },
+  "title": {
+    "product": "Photograph product",
+    "receipt": "Scan receipt"
+  },
+  "permission": {
+    "product": "Allow camera access to photograph the product.",
+    "receipt": "Allow camera access to photograph receipts.",
+    "allow": "Allow camera"
+  },
+  "torch": "Flash",
+  "hint": {
+    "product": "Photograph the product, e.g. the boiler or its rating plate",
+    "receipt": "Position the receipt inside the frame"
+  },
+  "pickFromLibrary": "Choose from library",
+  "skipPhoto": "No photo",
+  "phase": {
+    "uploadingPhoto": "Uploading photo …",
+    "uploadingReceipt": "Uploading receipt …",
+    "recognizing": "Recognising receipt …",
+    "done": "Saved successfully",
+    "error": "That didn't work",
+    "encrypted": "Securely encrypted in the vault."
+  },
+  "newPhoto": "New photo"
+}

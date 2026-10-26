@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -42,6 +43,7 @@ function documentMatches(doc: DocumentItem, owner: string | undefined, query: st
 /** Tresor: Wertsachen with what they are worth today, and every Beleg in the app. */
 export default function TresorScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['tresor', 'common']);
   const params = useLocalSearchParams<{ segment?: Segment }>();
   const [segment, setSegment] = useState<Segment>(params.segment === 'documents' ? 'documents' : 'items');
   const [search, setSearch] = useState('');
@@ -67,23 +69,23 @@ export default function TresorScreen() {
         refreshControl={<RefreshControl refreshing={active.isFetching && !active.isLoading} onRefresh={active.refetch} />}>
         <ScreenHeader
           icon={<Ionicons name="lock-closed" size={40} color={theme.brand} />}
-          title="Tresor"
-          subtitle="Deine Wertsachen und alle Belege. Sicher an einem Ort."
+          title={t('list.title')}
+          subtitle={t('list.subtitle')}
         />
 
         <Card style={[styles.wealth, { backgroundColor: theme.brand }]}>
           <Text variant="caption" color="textOnBrand">
-            Dein Vermögen
+            {t('list.wealth')}
           </Text>
           <Text variant="display" color="textOnBrand">
             {formatPrice(sum.value, currency)}
           </Text>
           <View style={styles.wealthRow}>
             <Text variant="caption" color="textOnBrand">
-              {items.data?.length ?? 0} {items.data?.length === 1 ? 'Wertsache' : 'Wertsachen'}
+              {t('list.itemCount', { count: items.data?.length ?? 0 })}
             </Text>
             <Text variant="caption" color="textOnBrand">
-              Gesamtkosten {formatPrice(sum.cost, currency)}
+              {t('list.totalCost', { amount: formatPrice(sum.cost, currency) })}
             </Text>
           </View>
         </Card>
@@ -99,9 +101,9 @@ export default function TresorScreen() {
             <Ionicons name="add" size={22} color={theme.textOnBrand} />
           </View>
           <View style={styles.flex}>
-            <Text variant="bodyStrong">Wertsache hinzufügen</Text>
+            <Text variant="bodyStrong">{t('list.add')}</Text>
             <Text variant="caption" color="textSecondary">
-              Uhr, Schmuck, Tasche: mit Rechnung, Fotos und Wert.
+              {t('list.addHint')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={theme.brand} />
@@ -110,14 +112,14 @@ export default function TresorScreen() {
         <SearchField
           value={search}
           onChangeText={setSearch}
-          placeholder={segment === 'items' ? 'Wertsachen durchsuchen' : 'Belege durchsuchen'}
+          placeholder={segment === 'items' ? t('list.searchItems') : t('list.searchDocuments')}
         />
 
         <View style={[styles.segments, { borderBottomColor: theme.border }]}>
           {(
             [
-              ['items', `Wertsachen (${items.data?.length ?? 0})`],
-              ['documents', `Alle Belege (${documents.data?.length ?? 0})`],
+              ['items', t('list.tabItems', { n: items.data?.length ?? 0 })],
+              ['documents', t('list.tabDocuments', { n: documents.data?.length ?? 0 })],
             ] as const
           ).map(([key, label]) => {
             const selected = segment === key;
@@ -148,21 +150,27 @@ export default function TresorScreen() {
               ))}
             </View>
           ) : query ? (
-            <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Keine Wertsache passt zu „${search.trim()}“.`} />
+            <StateView kind="empty" icon="search-outline" title={t('common:state.nothingFound')}
+              message={t('list.noItemMatch', { query: search.trim() })}
+             />
           ) : (
             <StateView
               kind="empty"
               icon="diamond-outline"
-              title="Noch keine Wertsachen"
-              message="Füge deine Uhr, deinen Schmuck oder deine Tasche hinzu."
+              title={t('list.emptyItems.title')}
+              message={t('list.emptyItems.message')}
             />
           )
         ) : shownDocuments.length ? (
           <DocumentsList documents={shownDocuments} devices={devices ?? []} luxuryItems={items.data ?? []} />
         ) : query ? (
-          <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Kein Beleg passt zu „${search.trim()}“.`} />
+          <StateView kind="empty" icon="search-outline" title={t('common:state.nothingFound')}
+            message={t('list.noDocumentMatch', { query: search.trim() })}
+           />
         ) : (
-          <StateView kind="empty" icon="receipt-outline" title="Keine Belege" message="Gescannte Belege erscheinen hier." />
+          <StateView kind="empty" icon="receipt-outline" title={t('list.emptyDocuments.title')}
+            message={t('list.emptyDocuments.message')}
+           />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -176,12 +184,15 @@ function ownerNames(devices: Device[], items: LuxuryItem[]) {
 
 function ItemRow({ item }: { item: LuxuryItem }) {
   const theme = useTheme();
+  const { t } = useTranslation(['tresor', 'common']);
   const category = LUXURY_CATEGORIES.find((c) => c.value === item.category);
   const cover = item.photos[0];
   const { data: coverUrl } = useGetDocumentUrlQuery(cover?.id ?? '', { skip: !cover });
   const value = currentValue(item);
   const change = valueChange(item);
-  const status = item.request ? `Versicherung: ${REQUEST_STATUS_LABELS[item.request.status]}` : 'Nicht versichert';
+  const status = item.request
+    ? t('list.insured', { status: REQUEST_STATUS_LABELS[item.request.status] })
+    : t('list.notInsured');
 
   return (
     <Card onPress={() => router.push({ pathname: '/luxury/[id]', params: { id: item.id } })} style={styles.row}>
@@ -202,7 +213,7 @@ function ItemRow({ item }: { item: LuxuryItem }) {
       </View>
       <View style={styles.value}>
         <Text variant="micro" color="textSecondary">
-          Aktueller Wert
+          {t('list.currentValue')}
         </Text>
         <Text variant="bodyStrong">{value != null ? formatPrice(value, item.currency) : '–'}</Text>
         {change ? (

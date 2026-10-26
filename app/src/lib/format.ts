@@ -1,14 +1,17 @@
-/** 2023-09-12 → 12.09.2023 */
+import i18n, { formatLocale } from '@/i18n';
+
+/** 2023-09-12 → 12.09.2023 (de, ru) or 12/09/2023 (en) */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '–';
   const [y, m, d] = iso.slice(0, 10).split('-');
-  return `${d}.${m}.${y}`;
+  const sep = i18n.language === 'en' ? '/' : '.';
+  return `${d}${sep}${m}${sep}${y}`;
 }
 
-/** 12.09.2023 or 2023-09-12 → 2023-09-12, otherwise null */
+/** 12.09.2023, 12/09/2023 or 2023-09-12 → 2023-09-12, otherwise null */
 export function parseDate(input: string): string | null {
   const s = input.trim();
-  const de = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s);
+  const de = /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/.exec(s);
   const iso = de ? `${de[3]}-${de[2].padStart(2, '0')}-${de[1].padStart(2, '0')}` : s;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const date = new Date(`${iso}T00:00:00Z`);
@@ -17,13 +20,13 @@ export function parseDate(input: string): string | null {
 
 export function formatPrice(cents: number | null | undefined, currency = 'EUR'): string {
   if (cents == null) return '';
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(cents / 100);
+  return new Intl.NumberFormat(formatLocale(), { style: 'currency', currency }).format(cents / 100);
 }
 
 /** EUR → €, USD → $, CHF → CHF */
 export function currencySymbol(currency: string | null | undefined = 'EUR'): string {
   try {
-    const parts = new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency ?? 'EUR' }).formatToParts(0);
+    const parts = new Intl.NumberFormat(formatLocale(), { style: 'currency', currency: currency ?? 'EUR' }).formatToParts(0);
     return parts.find((p) => p.type === 'currency')?.value ?? currency ?? '€';
   } catch {
     return currency ?? '€';
@@ -49,16 +52,15 @@ export function spentInMonth(items: { purchaseDate: string; priceCents: number |
 
 /** Human readable remaining time for badges and cards. */
 export function remainingLabel(daysLeft: number): string {
-  if (daysLeft < 0) return 'Abgelaufen';
-  if (daysLeft === 0) return 'Läuft heute ab';
-  if (daysLeft <= 60) return daysLeft === 1 ? 'Nur noch 1 Tag' : `Nur noch ${daysLeft} Tage`;
-  const months = Math.round(daysLeft / 30.44);
-  return months === 1 ? 'Noch 1 Monat' : `Noch ${months} Monate`;
+  if (daysLeft < 0) return i18n.t('labels:remaining.expired');
+  if (daysLeft === 0) return i18n.t('labels:remaining.today');
+  if (daysLeft <= 60) return i18n.t('labels:remaining.days', { count: daysLeft });
+  return i18n.t('labels:remaining.months', { count: Math.round(daysLeft / 30.44) });
 }
 
 export function apiErrorMessage(err: unknown): string {
   const e = err as { status?: number | string; data?: { message?: string | string[] }; message?: string };
-  if (e?.status === 'FETCH_ERROR') return 'Server nicht erreichbar. Prüfe deine Verbindung.';
+  if (e?.status === 'FETCH_ERROR') return i18n.t('labels:apiError.network');
   const msg = e?.data?.message ?? e?.message;
-  return Array.isArray(msg) ? msg.join('\n') : (msg ?? 'Etwas ist schiefgelaufen.');
+  return Array.isArray(msg) ? msg.join('\n') : (msg ?? i18n.t('labels:apiError.generic'));
 }

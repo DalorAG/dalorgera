@@ -1,13 +1,17 @@
 // Austrian Autobahnvignette ("Autobahn-Pickerl"), validity rules of ASFINAG.
 
+import i18n from '@/i18n';
+
 export type VignetteType = 'year' | 'twoMonths' | 'tenDays' | 'oneDay';
 
-export const VIGNETTE_TYPES: { type: VignetteType; label: string }[] = [
-  { type: 'year', label: 'Jahresvignette' },
-  { type: 'twoMonths', label: '2-Monats-Vignette' },
-  { type: 'tenDays', label: '10-Tages-Vignette' },
-  { type: 'oneDay', label: '1-Tages-Vignette' },
-];
+export const VIGNETTE_TYPES: { type: VignetteType; label: string }[] = (['year', 'twoMonths', 'tenDays', 'oneDay'] as const).map(
+  (type) => ({
+    type,
+    get label() {
+      return i18n.t(`labels:vignetteType.${type}`);
+    },
+  }),
+);
 
 function iso(date: Date): string {
   return date.toISOString().slice(0, 10);

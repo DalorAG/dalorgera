@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import i18n from '@/i18n';
 import { CodeScanner } from '@/components/code-scanner';
 import { TextField } from '@/components/text-field';
 import { isValidImei, type CodeTarget } from '@/lib/device-codes';
@@ -18,24 +20,25 @@ type Props = {
 
 /** Seriennummer and IMEI, typed in or scanned from the barcode. */
 export function DeviceCodeFields({ serialNumber, imei, onChange, showImei, errors }: Props) {
+  const { t } = useTranslation('components');
   const [scanning, setScanning] = useState<CodeTarget | null>(null);
   return (
     <>
-      <CodeRow
-        label="Seriennummer"
+      <ScannableTextField
+        label={t('deviceCodes.serialNumber')}
         value={serialNumber}
         onChangeText={(v) => onChange('serial', v)}
-        placeholder="z. B. C02XK1JHJG5J"
+        placeholder={t('deviceCodes.serialPlaceholder')}
         autoCapitalize="characters"
         error={errors?.serialNumber}
         onScan={() => setScanning('serial')}
       />
       {showImei ? (
-        <CodeRow
-          label="IMEI"
+        <ScannableTextField
+          label={t('deviceCodes.imei')}
           value={imei}
           onChangeText={(v) => onChange('imei', v.replace(/\D/g, '').slice(0, 15))}
-          placeholder="15 Ziffern, Tipp: *#06# wählen"
+          placeholder={t('deviceCodes.imeiPlaceholder')}
           keyboardType="number-pad"
           error={errors?.imei}
           onScan={() => setScanning('imei')}
@@ -55,15 +58,17 @@ export function DeviceCodeFields({ serialNumber, imei, onChange, showImei, error
 
 /** Validation for the form: empty is fine, otherwise a checksum-valid IMEI. */
 export function imeiError(imei: string): string | undefined {
-  return imei && !isValidImei(imei) ? 'Ungültige IMEI (15 Ziffern, Prüfziffer stimmt nicht).' : undefined;
+  return imei && !isValidImei(imei) ? i18n.t('components:deviceCodes.imeiInvalid') : undefined;
 }
 
-function CodeRow({
+/** A text field with a barcode button beside it; the scanner is up to the caller. */
+export function ScannableTextField({
   onScan,
   label,
   ...rest
 }: React.ComponentProps<typeof TextField> & { onScan: () => void }) {
   const theme = useTheme();
+  const { t } = useTranslation('components');
   return (
     <View style={styles.row}>
       <View style={styles.flex}>
@@ -72,7 +77,7 @@ function CodeRow({
       <Pressable
         onPress={onScan}
         accessibilityRole="button"
-        accessibilityLabel={`${label} scannen`}
+        accessibilityLabel={t('deviceCodes.scan', { label })}
         style={[styles.scan, { backgroundColor: theme.brandSoft, borderColor: theme.brand }]}>
         <Ionicons name="barcode-outline" size={24} color={theme.brand} />
       </Pressable>

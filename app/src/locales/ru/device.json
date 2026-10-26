@@ -1,0 +1,137 @@
+{
+  "form": {
+    "nameLabel": "Устройство *",
+    "namePlaceholder": "напр. iPhone 15",
+    "maintenanceNameLabel": "Что обслуживается? *",
+    "maintenanceNamePlaceholder": "напр. Машина (техосмотр)",
+    "vignetteNameLabel": "Название *",
+    "category": "Категория",
+    "categoryPlaceholder": "напр. Смартфон",
+    "brand": "Марка",
+    "store": "Где куплено",
+    "storePlaceholder": "напр. TechnikMarkt",
+    "workshop": "Мастерская / компания",
+    "purchaseDate": "Дата покупки *",
+    "lastService": "Последнее обслуживание *",
+    "datePlaceholder": "ДД.ММ.ГГГГ",
+    "price": "Цена ({{currency}})",
+    "pricePlaceholder": "0,00",
+    "manufacturerWarranty": "Гарантия производителя",
+    "interval": "Интервал",
+    "notes": "Заметки",
+    "errors": {
+      "nameRequired": "Введи название.",
+      "dateFormat": "Формат: ДД.ММ.ГГГГ",
+      "dateInFuture": "Дата в будущем.",
+      "invalidAmount": "Неверная сумма"
+    }
+  },
+  "new": {
+    "title": {
+      "statutory": "Добавить законную гарантию",
+      "warranty": "Добавить гарантию",
+      "maintenance": "Добавить обслуживание",
+      "vignette": "Добавить виньетку"
+    },
+    "autoDetected": {
+      "title": "Распознано автоматически",
+      "subtitle": "Проверь данные перед сохранением."
+    },
+    "photoSaved": "Фото сохранено",
+    "receiptSaved": "Чек сохранён",
+    "completeDetails": "Дополни данные об устройстве.",
+    "products": {
+      "title": "Какие товары добавить?",
+      "none": "Ни одного",
+      "all": "Все",
+      "a11ySaved": "{{name}}, сохранено",
+      "a11yEditing": "{{name}}, редактируется",
+      "a11yEdit": "Редактировать {{name}}",
+      "a11yInclude": "Добавить {{name}}",
+      "saved": "Сохранено",
+      "editing": "Редактируется",
+      "exclude": "Не добавлять",
+      "hint": "Нажми на товар, чтобы отредактировать его. Ненужные позиции (напр. продукты) сними галочкой.",
+      "lastSaved": "«{{name}}» сохранено",
+      "nextProduct": "Теперь проверь следующий товар.",
+      "detailsFor": "Данные для «{{name}}»",
+      "position": "{{current}} из {{total}}"
+    },
+    "vignette": {
+      "type": "Тип виньетки",
+      "year": "Год",
+      "validFrom": "Действует с *",
+      "period": "Действует с {{from}} по {{until}}",
+      "reminder": "Мы напомним тебе за 30 и 7 дней до окончания.",
+      "name": "Название",
+      "nameHint": "Необязательно, напр. с номером: «Виньетка W-12345»",
+      "digitalNote": "Цифровые виньетки, купленные онлайн, действуют для частных лиц только с 18-го дня после покупки."
+    },
+    "warrantyHint": "Законная гарантия 2 года учитывается автоматически (при покупке у компании).",
+    "maintenanceHint": "Мы напомним тебе за 30 и 7 дней до следующего обслуживания.",
+    "statutoryHint": "Законная гарантия: 2 года с даты покупки, в первый год бремя доказывания лежит на продавце. Действует при покупке у компании, а не между частными лицами.",
+    "saveAndNext": "Сохранить и дальше (осталось {{left}})"
+  },
+  "rightsLink": "Гарантия или законная гарантия? Подробнее",
+  "detail": {
+    "errors": {
+      "openReceipt": "Не удаётся открыть чек",
+      "savePhoto": "Не удалось сохранить фото",
+      "createPdf": "Не удалось создать PDF",
+      "saveFailed": "Не удалось сохранить",
+      "deleteFailed": "Не удалось удалить"
+    },
+    "photo": {
+      "title": "Фото товара",
+      "fromLibrary": "Выбрать из галереи",
+      "change": "Изменить фото товара",
+      "add": "Добавить фото товара"
+    },
+    "deleteConfirm": {
+      "title": "Удалить устройство?",
+      "message": "Устройство, его чеки и напоминания будут удалены безвозвратно."
+    },
+    "rows": {
+      "validFrom": "Действует с",
+      "validUntil": "Действует до",
+      "lastService": "Последнее обслуживание",
+      "interval": "Интервал",
+      "intervalMonths_one": "{{count}} месяц",
+      "intervalMonths_few": "{{count}} месяца",
+      "intervalMonths_many": "{{count}} месяцев",
+      "intervalMonths_other": "{{count}} месяца",
+      "nextService": "Следующее обслуживание",
+      "warrantyUntil": "Гарантия до",
+      "noWarranty": "нет",
+      "burdenOfProofUntil": "Бремя доказывания на продавце до",
+      "statutoryUntil": "Законная гарантия до",
+      "protectedUntil": "Защищено до",
+      "purchaseDate": "Дата покупки",
+      "store": "Где куплено",
+      "price": "Цена",
+      "serialNumber": "Серийный номер",
+      "imei": "IMEI"
+    },
+    "markServiced": "Обслуживание выполнено",
+    "extension": {
+      "title": "Можно продлить гарантию",
+      "body": "Продлить гарантию можно в течение 4 недель после покупки, то есть до {{date}}. Через нашего страхового партнёра это делается прямо в приложении.",
+      "action": "Продлить гарантию"
+    },
+    "receipts": "Чеки",
+    "openDocument": "Открыть: {{label}}",
+    "noReceipts": "Нет сохранённых чеков.",
+    "contactBrand": "Связаться с {{brand}}",
+    "contactManufacturer": "Связаться с производителем",
+    "download": "Скачать",
+    "delete": "Удалить устройство"
+  },
+  "list": {
+    "documents_one": "{{count}} чек",
+    "documents_few": "{{count}} чека",
+    "documents_many": "{{count}} чеков",
+    "documents_other": "{{count}} чека",
+    "protectedUntil": "Защищено до {{date}}",
+    "atStore": "в {{store}}"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "actions": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "close": "Schließen",
+    "retry": "Erneut versuchen",
+    "continue": "Weiter",
+    "done": "Fertig",
+    "ok": "OK",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "send": "Senden",
+    "open": "Öffnen",
+    "takePhoto": "Foto aufnehmen",
+    "fromLibrary": "Aus Galerie",
+    "downloadPdf": "Als PDF herunterladen"
+  },
+  "state": {
+    "loadFailed": "Laden fehlgeschlagen",
+    "nothingFound": "Nichts gefunden",
+    "notSpecified": "Nicht angegeben",
+    "none": "–",
+    "optional": "Optional"
+  },
+  "language": {
+    "title": "Sprache"
+  }
+}

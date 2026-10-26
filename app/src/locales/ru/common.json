@@ -1,0 +1,31 @@
+{
+  "actions": {
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Изменить",
+    "back": "Назад",
+    "close": "Закрыть",
+    "retry": "Повторить",
+    "continue": "Далее",
+    "done": "Готово",
+    "ok": "OK",
+    "add": "Добавить",
+    "remove": "Убрать",
+    "send": "Отправить",
+    "open": "Открыть",
+    "takePhoto": "Сделать фото",
+    "fromLibrary": "Из галереи",
+    "downloadPdf": "Скачать PDF"
+  },
+  "state": {
+    "loadFailed": "Не удалось загрузить",
+    "nothingFound": "Ничего не найдено",
+    "notSpecified": "Не указано",
+    "none": "–",
+    "optional": "Необязательно"
+  },
+  "language": {
+    "title": "Язык"
+  }
+}

@@ -1,4 +1,5 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -18,6 +19,7 @@ import { spacing, useTheme } from '@/theme';
 export default function ReceiptScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
+  const { t } = useTranslation('overview');
   const dispatch = useAppDispatch();
   // There is no single-document endpoint; the list is usually cached already from the Posteingang tab.
   const { data: documents, isLoading, error, refetch } = useGetDocumentsQuery();
@@ -27,7 +29,9 @@ export default function ReceiptScreen() {
 
   if (isLoading) return <StateView kind="loading" />;
   if (error) return <StateView kind="error" error={error} onRetry={refetch} />;
-  if (!doc) return <StateView kind="empty" icon="receipt-outline" title="Beleg nicht gefunden" message="Er wurde vielleicht gelöscht." />;
+  if (!doc) {
+    return <StateView kind="empty" icon="receipt-outline" title={t('receipt.notFound.title')} message={t('receipt.notFound.message')} />;
+  }
 
   const extracted = doc.extracted;
   const products = extracted?.products ?? [];
@@ -36,7 +40,7 @@ export default function ReceiptScreen() {
     try {
       await openDocument(doc, dispatch);
     } catch (err) {
-      Alert.alert('Beleg kann nicht geöffnet werden', apiErrorMessage(err));
+      Alert.alert(t('receipt.openFailed'), apiErrorMessage(err));
     }
   };
 
@@ -49,22 +53,22 @@ export default function ReceiptScreen() {
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: DOCUMENT_KIND_LABELS[doc.kind] }} />
 
-      <Pressable onPress={openPhoto} accessibilityRole="button" accessibilityLabel="Beleg öffnen" style={styles.photo}>
+      <Pressable onPress={openPhoto} accessibilityRole="button" accessibilityLabel={t('receipt.openA11y')} style={styles.photo}>
         <DocumentThumb document={doc} size={180} />
       </Pressable>
 
       <Card style={styles.rows}>
-        {extracted?.merchant ? <Row label="Händler" value={extracted.merchant} /> : null}
-        {extracted?.purchaseDate ? <Row label="Kaufdatum" value={formatDate(extracted.purchaseDate)} /> : null}
+        {extracted?.merchant ? <Row label={t('receipt.merchant')} value={extracted.merchant} /> : null}
+        {extracted?.purchaseDate ? <Row label={t('receipt.purchaseDate')} value={formatDate(extracted.purchaseDate)} /> : null}
         {extracted?.totalCents != null ? (
-          <Row label="Summe" value={formatPrice(extracted.totalCents, extracted.currency ?? 'EUR')} strong />
+          <Row label={t('receipt.total')} value={formatPrice(extracted.totalCents, extracted.currency ?? 'EUR')} strong />
         ) : null}
-        <Row label="Hochgeladen am" value={formatDate(doc.createdAt)} />
+        <Row label={t('receipt.uploadedAt')} value={formatDate(doc.createdAt)} />
       </Card>
 
       {products.length ? (
         <>
-          <Text variant="title">Artikel</Text>
+          <Text variant="title">{t('receipt.items')}</Text>
           <Card style={styles.rows}>
             {products.map((p, i) => (
               <Row
@@ -77,15 +81,15 @@ export default function ReceiptScreen() {
         </>
       ) : null}
 
-      <Text variant="title">Gerät</Text>
+      <Text variant="title">{t('receipt.device')}</Text>
       {device ? (
         <VaultRow device={device} />
       ) : (
         <>
           <Text variant="body" color="warningText">
-            Keinem Gerät zugeordnet.
+            {t('receipt.unassigned')}
           </Text>
-          <Button label="Gerät anlegen" icon="add" onPress={createDevice} />
+          <Button label={t('receipt.createDevice')} icon="add" onPress={createDevice} />
         </>
       )}
 

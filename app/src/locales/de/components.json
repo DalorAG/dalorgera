@@ -1,0 +1,55 @@
+{
+  "tabBar": {
+    "overview": "Übersicht",
+    "gawa": "Ga-Wa",
+    "tresor": "Tresor",
+    "more": "Mehr",
+    "add": "Hinzufügen"
+  },
+  "codeScanner": {
+    "imei": {
+      "title": "IMEI scannen",
+      "hint": "Richte die Kamera auf den IMEI-Barcode auf der Verpackung oder unter Einstellungen → Info.",
+      "ignored": "Dieser Barcode ist keine gültige IMEI. Versuch den Code mit „IMEI“ daneben."
+    },
+    "serial": {
+      "title": "Seriennummer scannen",
+      "hint": "Richte die Kamera auf den Barcode mit „S/N“ oder „Serial No.“ auf Gerät oder Verpackung.",
+      "ignored": "Das ist ein Produktcode (EAN) oder eine IMEI. Versuch den Code mit „S/N“ daneben."
+    },
+    "reference": {
+      "title": "Referenznummer scannen",
+      "hint": "Richte die Kamera auf den Barcode oder QR-Code auf Zertifikat, Garantiekarte oder Etikett.",
+      "ignored": "Das ist ein Produktcode (EAN). Versuch den Code mit „Ref.“ daneben."
+    },
+    "torch": "Blitz",
+    "permission": "Erlaube den Kamerazugriff, um Barcodes zu scannen.",
+    "allowCamera": "Kamera erlauben"
+  },
+  "deviceCodes": {
+    "serialNumber": "Seriennummer",
+    "serialPlaceholder": "z. B. C02XK1JHJG5J",
+    "imei": "IMEI",
+    "imeiPlaceholder": "15 Ziffern, Tipp: *#06# wählen",
+    "imeiInvalid": "Ungültige IMEI (15 Ziffern, Prüfziffer stimmt nicht).",
+    "scan": "{{label}} scannen"
+  },
+  "photo": {
+    "remove": "Foto entfernen",
+    "uploading": "Foto wird hochgeladen …",
+    "attached": "Foto angehängt",
+    "reading": "Einen Moment, wir lesen den Beleg.",
+    "sentWithRequest": "Wird mit der Anfrage an unser Team gesendet."
+  },
+  "exportPdf": {
+    "receiptsFile": "Belege-{{title}}",
+    "fallbackTitle": "Gerät"
+  },
+  "errors": {
+    "signInFailed": "Anmeldung fehlgeschlagen.",
+    "uploadFailed": "Upload fehlgeschlagen ({{status}})"
+  },
+  "push": {
+    "channelName": "Garantie-Erinnerungen"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "nameRequired": "Bitte gib an, was abgesichert werden soll.",
+  "sent": {
+    "title": "Anfrage gesendet",
+    "message": "Unser Versicherungspartner prüft dein Angebot für „{{name}}“. Wir melden uns per E-Mail an {{email}}."
+  },
+  "banner": {
+    "title": "Keine Garantie? Wir sichern es ab.",
+    "subtitle": "Über unseren Versicherungspartner bekommst du eine Garantieverlängerung oder Versicherung, auch für Kleidung oder Schuhe. Möglich bis 4 Wochen nach dem Kauf."
+  },
+  "extension": {
+    "until": "Abschluss bis {{date}} möglich ({{days}}, 4 Wochen ab Kauf).",
+    "expired": "Die 4 Wochen ab Kauf sind vorbei. Wir prüfen trotzdem, ob unser Partner noch ein Angebot hat."
+  },
+  "photo": {
+    "label": "Beleg oder Produkt fotografieren",
+    "hint": "Am besten den Kassenbon, sonst ein Foto vom Produkt. Optional, hilft aber bei einem schnellen Angebot."
+  },
+  "fromReceipt": "Vom Beleg",
+  "whichProduct": "Welches Produkt?",
+  "product": {
+    "label": "Produkt *",
+    "placeholder": "z. B. Abendkleid, Winterjacke, Fahrrad"
+  },
+  "message": {
+    "label": "Nachricht",
+    "placeholder": "Optional, z. B. wogegen du es absichern möchtest"
+  },
+  "signInRequired": "Damit wir dir ein Angebot schicken können, melde dich bitte mit deiner E-Mail-Adresse an (Profil).",
+  "disclaimer": "Wir senden deine Angaben und den Beleg an unser Team und melden uns an {{email}}. Unverbindlich und kostenlos.",
+  "send": "Anfrage senden"
+}

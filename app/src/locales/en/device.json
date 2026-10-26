@@ -1,0 +1,133 @@
+{
+  "form": {
+    "nameLabel": "Device *",
+    "namePlaceholder": "e.g. iPhone 15",
+    "maintenanceNameLabel": "What needs servicing? *",
+    "maintenanceNamePlaceholder": "e.g. Car (MOT)",
+    "vignetteNameLabel": "Name *",
+    "category": "Category",
+    "categoryPlaceholder": "e.g. Smartphone",
+    "brand": "Brand",
+    "store": "Bought at",
+    "storePlaceholder": "e.g. TechStore",
+    "workshop": "Workshop / company",
+    "purchaseDate": "Purchase date *",
+    "lastService": "Last service *",
+    "datePlaceholder": "DD/MM/YYYY",
+    "price": "Price ({{currency}})",
+    "pricePlaceholder": "0.00",
+    "manufacturerWarranty": "Manufacturer warranty",
+    "interval": "Interval",
+    "notes": "Notes",
+    "errors": {
+      "nameRequired": "Please enter a name.",
+      "dateFormat": "Format: DD/MM/YYYY",
+      "dateInFuture": "The date is in the future.",
+      "invalidAmount": "Invalid amount"
+    }
+  },
+  "new": {
+    "title": {
+      "statutory": "Add statutory warranty",
+      "warranty": "Add warranty",
+      "maintenance": "Add maintenance",
+      "vignette": "Add vignette"
+    },
+    "autoDetected": {
+      "title": "Detected automatically",
+      "subtitle": "Please check the details before saving."
+    },
+    "photoSaved": "Photo saved",
+    "receiptSaved": "Receipt saved",
+    "completeDetails": "Add the device details.",
+    "products": {
+      "title": "Which products to add?",
+      "none": "None",
+      "all": "All",
+      "a11ySaved": "{{name}}, saved",
+      "a11yEditing": "{{name}}, editing",
+      "a11yEdit": "Edit {{name}}",
+      "a11yInclude": "Add {{name}}",
+      "saved": "Saved",
+      "editing": "Editing",
+      "exclude": "Don't add",
+      "hint": "Tap a product to edit it. Untick items you don't need (e.g. groceries).",
+      "lastSaved": "“{{name}}” saved",
+      "nextProduct": "Now check the next product.",
+      "detailsFor": "Details for “{{name}}”",
+      "position": "{{current}} of {{total}}"
+    },
+    "vignette": {
+      "type": "Vignette type",
+      "year": "Year",
+      "validFrom": "Valid from *",
+      "period": "Valid from {{from}} to {{until}}",
+      "reminder": "We'll remind you 30 and 7 days before it expires.",
+      "name": "Name",
+      "nameHint": "Optional, e.g. with licence plate: “Vignette W-12345”",
+      "digitalNote": "Digital vignettes bought online are only valid for private customers from the 18th day after purchase."
+    },
+    "warrantyHint": "The 2-year statutory warranty is included automatically (when buying from a business).",
+    "maintenanceHint": "We'll remind you 30 and 7 days before the next service.",
+    "statutoryHint": "Statutory warranty: 2 years from the purchase date; in the first year the seller bears the burden of proof. Applies when buying from a business, not between private individuals.",
+    "saveAndNext": "Save & next ({{left}} left)"
+  },
+  "rightsLink": "Warranty or statutory warranty? Learn more",
+  "detail": {
+    "errors": {
+      "openReceipt": "Can't open receipt",
+      "savePhoto": "Couldn't save photo",
+      "createPdf": "Couldn't create PDF",
+      "saveFailed": "Saving failed",
+      "deleteFailed": "Deleting failed"
+    },
+    "photo": {
+      "title": "Product photo",
+      "fromLibrary": "Choose from library",
+      "change": "Change product photo",
+      "add": "Add product photo"
+    },
+    "deleteConfirm": {
+      "title": "Delete device?",
+      "message": "The device, its receipts and reminders will be permanently deleted."
+    },
+    "rows": {
+      "validFrom": "Valid from",
+      "validUntil": "Valid until",
+      "lastService": "Last service",
+      "interval": "Interval",
+      "intervalMonths_one": "{{count}} month",
+      "intervalMonths_other": "{{count}} months",
+      "nextService": "Next service",
+      "warrantyUntil": "Warranty until",
+      "noWarranty": "none",
+      "burdenOfProofUntil": "Seller's burden of proof until",
+      "statutoryUntil": "Statutory warranty until",
+      "protectedUntil": "Protected until",
+      "purchaseDate": "Purchase date",
+      "store": "Bought at",
+      "price": "Price",
+      "serialNumber": "Serial number",
+      "imei": "IMEI"
+    },
+    "markServiced": "Service done",
+    "extension": {
+      "title": "Warranty extension available",
+      "body": "You can take out a warranty extension up to 4 weeks after purchase, i.e. until {{date}}. Our insurance partner lets you do it right from the app.",
+      "action": "Extend warranty"
+    },
+    "receipts": "Receipts",
+    "openDocument": "Open {{label}}",
+    "noReceipts": "No receipts saved.",
+    "contactBrand": "Contact {{brand}}",
+    "contactManufacturer": "Contact manufacturer",
+    "download": "Download",
+    "delete": "Delete device"
+  },
+  "list": {
+    "documents_one": "{{count}} receipt",
+    "documents_other": "{{count}} receipts",
+    "protectedUntil": "Protected until {{date}}",
+    "atStore": "at {{store}}"
+  }
+}

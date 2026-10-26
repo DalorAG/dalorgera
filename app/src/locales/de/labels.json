@@ -1,0 +1,122 @@
+{
+  "deviceKind": {
+    "warranty": {
+      "label": "Garantie",
+      "description": "Herstellergarantie laut Garantieschein, zusätzlich zur Gewährleistung."
+    },
+    "statutory": {
+      "label": "Gewährleistung",
+      "description": "Gesetzliche 2 Jahre ab Kauf, auch ohne Herstellergarantie."
+    },
+    "maintenance": {
+      "label": "Wartung",
+      "description": "Wiederkehrende Termine wie Pickerl, Service oder Heizungswartung."
+    },
+    "vignette": {
+      "label": "Vignette",
+      "description": "Autobahn-Pickerl: Jahres-, 2-Monats- oder 10-Tages-Vignette. Wir erinnern dich vor Ablauf."
+    }
+  },
+  "startDate": {
+    "purchase": "Gekauft am",
+    "maintenance": "Letzte Wartung am",
+    "vignette": "Gültig ab"
+  },
+  "badge": {
+    "overdue": "Überfällig",
+    "notYetValid": "Noch nicht gültig"
+  },
+  "headline": {
+    "maintenanceOverdue": "Wartung überfällig",
+    "maintenanceSoon": "Wartung bald: {{remaining}}",
+    "maintenance": "Wartung: {{remaining}}",
+    "vignetteExpired": "Vignette abgelaufen",
+    "vignetteExpiring": "Vignette läuft ab: {{remaining}}",
+    "vignetteValid": "Vignette gültig: {{remaining}}",
+    "protected": "{{remaining}} geschützt",
+    "attention": "Achtung: {{remaining}}",
+    "protectionExpired": "Schutz abgelaufen"
+  },
+  "deadline": {
+    "maintenance": "Nächste Wartung am {{date}}",
+    "vignette": "Gültig bis {{date}}",
+    "warranty": "Garantie bis {{date}}",
+    "statutory": "Gewährleistung bis {{date}}"
+  },
+  "remaining": {
+    "expired": "Abgelaufen",
+    "today": "Läuft heute ab",
+    "days_one": "Nur noch {{count}} Tag",
+    "days_other": "Nur noch {{count}} Tage",
+    "months_one": "Noch {{count}} Monat",
+    "months_other": "Noch {{count}} Monate"
+  },
+  "warrantyYears_one": "{{count}} Jahr",
+  "warrantyYears_other": "{{count}} Jahre",
+  "interval": {
+    "halfYearly": "Halbjährlich",
+    "yearly": "Jährlich",
+    "every2Years": "Alle 2 Jahre",
+    "every3Years": "Alle 3 Jahre"
+  },
+  "documentKind": {
+    "receipt": "Kassenbon",
+    "warrantyCard": "Garantieschein",
+    "invoice": "Rechnung",
+    "other": "Sonstiges",
+    "productPhoto": "Produktfoto"
+  },
+  "supportSearch": "{{query}} Kundenservice",
+  "extensionDays": {
+    "today": "nur noch heute",
+    "left_one": "noch {{count}} Tag",
+    "left_other": "noch {{count}} Tage"
+  },
+  "claim": {
+    "defaultStore": "dem Händler",
+    "defaultBrand": "dem Hersteller",
+    "firstYear": {
+      "title": "Bei einem Mangel: zuerst zum Händler",
+      "body": "Wende dich an {{store}}. Bis {{proofUntil}} muss der Händler beweisen, dass der Mangel nicht schon beim Kauf bestand."
+    },
+    "statutory": {
+      "title": "Bei einem Mangel: zum Händler",
+      "body": "Die Gewährleistung bei {{store}} gilt bis {{statutoryUntil}}. Seit {{proofUntil}} musst du nachweisen, dass der Mangel schon beim Kauf bestand.",
+      "warrantyAlternative": "Alternativ hilft die Garantie von {{brand}} bis {{warrantyUntil}}, oft ohne diesen Nachweis."
+    },
+    "grace": "Ist der Mangel bis {{statutoryUntil}} aufgetreten, kannst du ihn noch bis {{claimUntil}} beim Händler geltend machen, notfalls gerichtlich.",
+    "manufacturer": {
+      "title": "Bei einem Mangel: zum Hersteller",
+      "body": "Die Gewährleistung ist abgelaufen. Nutze die Garantie von {{brand}} bis {{warrantyUntil}}."
+    },
+    "lastDeadline": {
+      "title": "Letzte Frist beim Händler"
+    },
+    "expired": {
+      "title": "Fristen abgelaufen",
+      "body": "Gewährleistung und Garantie sind abgelaufen. Frag beim Händler oder Hersteller nach Kulanz oder einer Reparatur."
+    }
+  },
+  "otherCategory": "Sonstiges",
+  "luxuryCategory": {
+    "watch": "Uhr",
+    "jewelry": "Schmuck",
+    "bag": "Tasche",
+    "other": "Sonstiges"
+  },
+  "requestStatus": {
+    "new": "Gesendet",
+    "contacted": "In Bearbeitung",
+    "closed": "Abgeschlossen"
+  },
+  "vignetteType": {
+    "year": "Jahresvignette",
+    "twoMonths": "2-Monats-Vignette",
+    "tenDays": "10-Tages-Vignette",
+    "oneDay": "1-Tages-Vignette"
+  },
+  "apiError": {
+    "network": "Server nicht erreichbar. Prüfe deine Verbindung.",
+    "generic": "Etwas ist schiefgelaufen."
+  }
+}

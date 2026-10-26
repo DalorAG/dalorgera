@@ -2,6 +2,7 @@ import { File, UploadType } from 'expo-file-system';
 import { useCallback } from 'react';
 import { Platform } from 'react-native';
 
+import i18n from '@/i18n';
 import type { DocumentItem, DocumentKind, DocumentMimeType } from '@/lib/api-types';
 import { env } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
@@ -37,7 +38,7 @@ async function uploadNative(uri: string, storagePath: string, token: string, mim
     },
   });
   if (result.status < 200 || result.status >= 300) {
-    let message = `Upload fehlgeschlagen (${result.status})`;
+    let message = i18n.t('components:errors.uploadFailed', { status: result.status });
     try {
       message = JSON.parse(result.body).message ?? message;
     } catch {

@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Checkbox } from '@/components/checkbox';
 import { Chip } from '@/components/chip';
+import { CodeScanner } from '@/components/code-scanner';
+import { ScannableTextField } from '@/components/device-code-fields';
 import { InfoBanner } from '@/components/info-banner';
 import { PhotoStrip } from '@/components/photo-strip';
 import { RequestPhotoField } from '@/components/request-photo-field';
@@ -15,6 +18,7 @@ import { TextField } from '@/components/text-field';
 import type { PhotoSource } from '@/features/use-product-photo';
 import { useRequestPhoto, useRequestPhotos, type RequestPhoto } from '@/features/use-request-photo';
 import type { LuxuryCategory, LuxuryItem } from '@/lib/api-types';
+import type { CodeTarget } from '@/lib/device-codes';
 import { apiErrorMessage, formatDate, parseDate, parsePrice } from '@/lib/format';
 import { LUXURY_CATEGORIES } from '@/lib/luxury';
 import { useCreateLuxuryItemMutation, useGetLuxuryItemQuery, useUpdateLuxuryItemMutation } from '@/store/api';
@@ -36,6 +40,7 @@ export default function LuxuryItemFormScreen() {
 
 function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
   const theme = useTheme();
+  const { t } = useTranslation(['tresor', 'common']);
   const { photos, busy: photosBusy, add: attachPhotos, remove: removePhoto, full } = useRequestPhotos(
     MAX_PHOTOS - (item?.photos.length ?? 0),
   );
@@ -46,6 +51,7 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
   const [model, setModel] = useState(item?.model ?? '');
   const [referenceNumber, setReferenceNumber] = useState(item?.referenceNumber ?? '');
   const [serialNumber, setSerialNumber] = useState(item?.serialNumber ?? '');
+  const [scanning, setScanning] = useState<CodeTarget | null>(null);
   const [purchasePrice, setPurchasePrice] = useState(centsToInput(item?.purchasePriceCents));
   const [purchaseDate, setPurchaseDate] = useState(item?.purchaseDate ? formatDate(item.purchaseDate) : '');
   const [store, setStore] = useState(item?.store ?? '');
@@ -91,14 +97,14 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
   };
 
   const save = async () => {
-    if (!category) return setError('Bitte wähle aus, was du hinzufügen möchtest.');
-    if (!brand.trim() || !model.trim()) return setError('Bitte gib Marke und Modell an.');
+    if (!category) return setError(t('form.errors.category'));
+    if (!brand.trim() || !model.trim()) return setError(t('form.errors.brandModel'));
     const purchasePriceCents = purchasePrice.trim() ? parsePrice(purchasePrice) : null;
-    if (purchasePriceCents === null && purchasePrice.trim()) return setError('Bitte gib den Kaufpreis als Betrag an, z. B. 9.800');
+    if (purchasePriceCents === null && purchasePrice.trim()) return setError(t('form.errors.purchasePrice'));
     const valueCents = value.trim() ? parsePrice(value) : null;
-    if (valueCents === null && value.trim()) return setError('Bitte gib den aktuellen Wert als Betrag an, z. B. 12.500');
+    if (valueCents === null && value.trim()) return setError(t('form.errors.value'));
     const date = purchaseDate.trim() ? parseDate(purchaseDate) : null;
-    if (date === null && purchaseDate.trim()) return setError('Bitte gib das Kaufdatum als TT.MM.JJJJ an.');
+    if (date === null && purchaseDate.trim()) return setError(t('form.errors.purchaseDate'));
     setError(null);
 
     const body = {
@@ -134,12 +140,12 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
     <KeyboardAvoidingView
       style={[styles.flex, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {item ? <Stack.Screen options={{ title: 'Wertsache bearbeiten' }} /> : null}
+      {item ? <Stack.Screen options={{ title: t('form.editTitle') }} /> : null}
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {!item ? (
           <InfoBanner
-            title="Deine Wertsache, sicher im Tresor."
-            subtitle="Rechnung, Fotos und Wert an einem Ort. Eine Versicherung gegen Diebstahl, Verlust und Beschädigung kannst du danach mit einem Tipp anfragen."
+            title={t('form.banner.title')}
+            subtitle={t('form.banner.subtitle')}
             icon={
               <View style={[styles.icon, { backgroundColor: theme.brand }]}>
                 <Ionicons name="lock-closed" size={18} color={theme.textOnBrand} />
@@ -149,8 +155,8 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
         ) : null}
 
         <RequestPhotoField
-          label={item?.invoices.length ? 'Weitere Rechnung' : 'Rechnung'}
-          hint="Foto der Rechnung oder des Kaufbelegs. Marke, Modell, Preis, Händler und Datum werden automatisch ausgefüllt."
+          label={item?.invoices.length ? t('form.anotherInvoice') : t('form.invoice')}
+          hint={t('form.invoiceHint')}
           photo={invoice.photo}
           busy={invoice.busy}
           onAdd={addInvoice}
@@ -158,8 +164,8 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
         />
 
         <PhotoStrip
-          label={item?.photos.length ? 'Weitere Fotos' : 'Fotos'}
-          hint={`Artikel, Zertifikat, Seriennummer: bis zu ${MAX_PHOTOS} Fotos.`}
+          label={item?.photos.length ? t('form.morePhotos') : t('form.photos')}
+          hint={t('form.photosHint', { max: MAX_PHOTOS })}
           photos={photos}
           busy={photosBusy}
           full={full}
@@ -168,71 +174,99 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
         />
 
         <View style={styles.group}>
-          <Text variant="captionStrong">Was ist es? *</Text>
+          <Text variant="captionStrong">{t('form.category')}</Text>
           <View style={styles.chips}>
             {LUXURY_CATEGORIES.map((c) => (
               <Chip key={c.value} label={c.label} selected={category === c.value} onPress={() => setCategory(c.value)} />
             ))}
           </View>
         </View>
-        <TextField label="Marke *" value={brand} onChangeText={setBrand} placeholder="z. B. Rolex, Cartier, Hermès" maxLength={60} />
-        <TextField label="Modell *" value={model} onChangeText={setModel} placeholder="z. B. Submariner, Love Ring, Birkin 30" maxLength={120} />
         <TextField
-          label="Referenznummer"
+          label={t('form.brand')}
+          value={brand}
+          onChangeText={setBrand}
+          placeholder={t('form.brandPlaceholder')}
+          maxLength={60}
+        />
+        <TextField
+          label={t('form.model')}
+          value={model}
+          onChangeText={setModel}
+          placeholder={t('form.modelPlaceholder')}
+          maxLength={120}
+        />
+        <ScannableTextField
+          onScan={() => setScanning('reference')}
+          label={t('form.referenceNumber')}
           value={referenceNumber}
           onChangeText={setReferenceNumber}
-          placeholder="Optional, z. B. 126610LN"
+          placeholder={t('form.referenceNumberPlaceholder')}
           autoCapitalize="characters"
           autoCorrect={false}
           maxLength={64}
         />
-        <TextField
-          label="Seriennummer"
+        <ScannableTextField
+          onScan={() => setScanning('serial')}
+          label={t('form.serialNumber')}
           value={serialNumber}
           onChangeText={setSerialNumber}
-          placeholder="Optional, z. B. vom Gehäuse oder Zertifikat"
+          placeholder={t('form.serialNumberPlaceholder')}
           autoCapitalize="characters"
           autoCorrect={false}
           maxLength={64}
         />
+        <CodeScanner
+          target={scanning}
+          onScanned={(target, value) => {
+            (target === 'reference' ? setReferenceNumber : setSerialNumber)(value);
+            setScanning(null);
+          }}
+          onClose={() => setScanning(null)}
+        />
 
-        <Text variant="title">Kauf</Text>
+        <Text variant="title">{t('form.purchase')}</Text>
         <View style={styles.pair}>
           <View style={styles.flex}>
             <TextField
-              label="Kaufpreis (€)"
+              label={t('form.purchasePrice')}
               value={purchasePrice}
               onChangeText={setPurchasePrice}
-              placeholder="z. B. 9.800"
+              placeholder={t('form.purchasePricePlaceholder')}
               keyboardType="decimal-pad"
             />
           </View>
           <View style={styles.flex}>
             <TextField
-              label="Kaufdatum"
+              label={t('form.purchaseDate')}
               value={purchaseDate}
               onChangeText={setPurchaseDate}
-              placeholder="TT.MM.JJJJ"
+              placeholder={t('form.datePlaceholder')}
               keyboardType="numbers-and-punctuation"
             />
           </View>
         </View>
-        <TextField label="Händler" value={store} onChangeText={setStore} placeholder="Optional, z. B. Wempe Hamburg" maxLength={120} />
         <TextField
-          label="Aktueller Wert (€)"
+          label={t('form.store')}
+          value={store}
+          onChangeText={setStore}
+          placeholder={t('form.storePlaceholder')}
+          maxLength={120}
+        />
+        <TextField
+          label={t('form.value')}
           value={value}
           onChangeText={setValue}
-          placeholder="z. B. 12.500, sonst gilt der Kaufpreis"
+          placeholder={t('form.valuePlaceholder')}
           keyboardType="decimal-pad"
         />
         <Checkbox checked={hasBoxPapers} onChange={setHasBoxPapers}>
-          <Text variant="body">Box und Papiere vorhanden</Text>
+          <Text variant="body">{t('form.boxPapers')}</Text>
         </Checkbox>
         <TextField
-          label="Notiz"
+          label={t('form.notes')}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Optional, z. B. Zustand, Gravur, letzte Revision"
+          placeholder={t('form.notesPlaceholder')}
           multiline
           maxLength={1000}
           style={styles.notes}
@@ -243,7 +277,7 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
             {error}
           </Text>
         ) : null}
-        <Button label="Speichern" icon="checkmark" onPress={save} loading={creating || updating} disabled={busy} />
+        <Button label={t('common:actions.save')} icon="checkmark" onPress={save} loading={creating || updating} disabled={busy} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

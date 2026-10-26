@@ -1,0 +1,122 @@
+{
+  "deviceKind": {
+    "warranty": {
+      "label": "Warranty",
+      "description": "Manufacturer's warranty as per the warranty card, on top of the statutory warranty."
+    },
+    "statutory": {
+      "label": "Statutory warranty",
+      "description": "2 years by law from purchase, even without a manufacturer's warranty."
+    },
+    "maintenance": {
+      "label": "Maintenance",
+      "description": "Recurring appointments such as vehicle inspection, servicing or heating maintenance."
+    },
+    "vignette": {
+      "label": "Vignette",
+      "description": "Motorway vignette: annual, 2-month or 10-day vignette. We'll remind you before it expires."
+    }
+  },
+  "startDate": {
+    "purchase": "Purchased on",
+    "maintenance": "Last maintenance on",
+    "vignette": "Valid from"
+  },
+  "badge": {
+    "overdue": "Overdue",
+    "notYetValid": "Not yet valid"
+  },
+  "headline": {
+    "maintenanceOverdue": "Maintenance overdue",
+    "maintenanceSoon": "Maintenance soon: {{remaining}}",
+    "maintenance": "Maintenance: {{remaining}}",
+    "vignetteExpired": "Vignette expired",
+    "vignetteExpiring": "Vignette expiring: {{remaining}}",
+    "vignetteValid": "Vignette valid: {{remaining}}",
+    "protected": "Protected: {{remaining}}",
+    "attention": "Heads up: {{remaining}}",
+    "protectionExpired": "Protection expired"
+  },
+  "deadline": {
+    "maintenance": "Next maintenance on {{date}}",
+    "vignette": "Valid until {{date}}",
+    "warranty": "Warranty until {{date}}",
+    "statutory": "Statutory warranty until {{date}}"
+  },
+  "remaining": {
+    "expired": "Expired",
+    "today": "Expires today",
+    "days_one": "Only {{count}} day left",
+    "days_other": "Only {{count}} days left",
+    "months_one": "{{count}} month left",
+    "months_other": "{{count}} months left"
+  },
+  "warrantyYears_one": "{{count}} year",
+  "warrantyYears_other": "{{count}} years",
+  "interval": {
+    "halfYearly": "Every 6 months",
+    "yearly": "Yearly",
+    "every2Years": "Every 2 years",
+    "every3Years": "Every 3 years"
+  },
+  "documentKind": {
+    "receipt": "Receipt",
+    "warrantyCard": "Warranty card",
+    "invoice": "Invoice",
+    "other": "Other",
+    "productPhoto": "Product photo"
+  },
+  "supportSearch": "{{query}} customer service",
+  "extensionDays": {
+    "today": "today only",
+    "left_one": "{{count}} day left",
+    "left_other": "{{count}} days left"
+  },
+  "claim": {
+    "defaultStore": "the seller",
+    "defaultBrand": "the manufacturer",
+    "firstYear": {
+      "title": "If there's a defect: go to the seller first",
+      "body": "Contact {{store}}. Until {{proofUntil}}, the seller has to prove that the defect wasn't already there at purchase."
+    },
+    "statutory": {
+      "title": "If there's a defect: go to the seller",
+      "body": "The statutory warranty with {{store}} is valid until {{statutoryUntil}}. Since {{proofUntil}}, you have to prove that the defect was already there at purchase.",
+      "warrantyAlternative": "Alternatively, the warranty from {{brand}} until {{warrantyUntil}} can help, often without this proof."
+    },
+    "grace": "If the defect appeared by {{statutoryUntil}}, you can still claim it with the seller until {{claimUntil}}, in court if necessary.",
+    "manufacturer": {
+      "title": "If there's a defect: go to the manufacturer",
+      "body": "The statutory warranty has expired. Use the warranty from {{brand}} until {{warrantyUntil}}."
+    },
+    "lastDeadline": {
+      "title": "Last deadline with the seller"
+    },
+    "expired": {
+      "title": "Deadlines expired",
+      "body": "The statutory warranty and the warranty have expired. Ask the seller or manufacturer about a goodwill gesture or a repair."
+    }
+  },
+  "otherCategory": "Other",
+  "luxuryCategory": {
+    "watch": "Watch",
+    "jewelry": "Jewellery",
+    "bag": "Bag",
+    "other": "Other"
+  },
+  "requestStatus": {
+    "new": "Sent",
+    "contacted": "In progress",
+    "closed": "Completed"
+  },
+  "vignetteType": {
+    "year": "Annual vignette",
+    "twoMonths": "2-month vignette",
+    "tenDays": "10-day vignette",
+    "oneDay": "1-day vignette"
+  },
+  "apiError": {
+    "network": "Server unreachable. Check your connection.",
+    "generic": "Something went wrong."
+  }
+}

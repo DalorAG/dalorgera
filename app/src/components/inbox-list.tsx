@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { DocumentThumb } from '@/components/document-thumb';
 import { useOpenDocument } from '@/components/documents-list';
 import { Text } from '@/components/text';
+import i18n, { formatLocale } from '@/i18n';
 import type { Device, DocumentItem } from '@/lib/api-types';
 import { documentExtensionWindow, DOCUMENT_KIND_LABELS, extensionDaysLabel } from '@/lib/device-ui';
 import { formatDate, formatPrice } from '@/lib/format';
@@ -24,18 +26,18 @@ function startOfDay(date: Date) {
 function bucketLabel(createdAt: string, today: number): string {
   const created = new Date(createdAt);
   const day = startOfDay(created);
-  if (day >= today) return 'Heute';
-  if (day >= today - DAY) return 'Gestern';
-  if (day >= today - 6 * DAY) return 'Diese Woche';
-  return created.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  if (day >= today) return i18n.t('inbox:list.today');
+  if (day >= today - DAY) return i18n.t('inbox:list.yesterday');
+  if (day >= today - 6 * DAY) return i18n.t('inbox:list.thisWeek');
+  return created.toLocaleDateString(formatLocale(), { month: 'long', year: 'numeric' });
 }
 
 /** 14:05 for today, "Mo." this week, otherwise 12.09.2026. */
 function timeLabel(createdAt: string, today: number): string {
   const created = new Date(createdAt);
   const day = startOfDay(created);
-  if (day >= today) return created.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  if (day >= today - 6 * DAY) return created.toLocaleDateString('de-DE', { weekday: 'short' });
+  if (day >= today) return created.toLocaleTimeString(formatLocale(), { hour: '2-digit', minute: '2-digit' });
+  if (day >= today - 6 * DAY) return created.toLocaleDateString(formatLocale(), { weekday: 'short' });
   return formatDate(createdAt);
 }
 
@@ -54,6 +56,7 @@ function groupByDay(documents: DocumentItem[]) {
 
 export function InboxList({ documents, devices }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation('inbox');
   const open = useOpenDocument();
   const devicesById = new Map(devices.map((d) => [d.id, d]));
   const { data: requests } = useGetWarrantyRequestsQuery();
@@ -80,7 +83,7 @@ export function InboxList({ documents, devices }: Props) {
                   <Pressable
                     onPress={() => open(doc)}
                     accessibilityRole="button"
-                    accessibilityLabel={`${sender}${unassigned ? ', noch nicht zugeordnet' : ''}`}
+                    accessibilityLabel={unassigned ? t('list.unassignedA11y', { sender }) : sender}
                     style={({ pressed }) => [styles.row, pressed && { backgroundColor: theme.surfaceMuted }]}>
                     <View style={[styles.dot, { backgroundColor: unassigned ? theme.brand : 'transparent' }]} />
                     <DocumentThumb document={doc} size={40} />
@@ -103,14 +106,14 @@ export function InboxList({ documents, devices }: Props) {
                         <View style={[styles.pill, { backgroundColor: theme.warningSoft, borderColor: theme.warningSoftBorder }]}>
                           <Ionicons name="add-circle-outline" size={14} color={theme.warningText} />
                           <Text variant="micro" color="warningText" style={styles.pillLabel}>
-                            Gerät zuordnen
+                            {t('list.assignDevice')}
                           </Text>
                         </View>
                       ) : (
                         <View style={styles.line}>
                           <Ionicons name="checkmark-circle" size={14} color={theme.success} />
                           <Text variant="caption" color="textSecondary" numberOfLines={1} style={styles.sender}>
-                            {device?.name ?? 'Gerät'}
+                            {device?.name ?? t('list.device')}
                           </Text>
                         </View>
                       )}
@@ -118,7 +121,7 @@ export function InboxList({ documents, devices }: Props) {
                         <View style={styles.line}>
                           <Ionicons name="shield-checkmark-outline" size={14} color={theme.brand} />
                           <Text variant="caption" color="brand">
-                            Garantieverlängerung angefragt
+                            {t('list.extensionRequested')}
                           </Text>
                         </View>
                       ) : extension ? (
@@ -131,11 +134,11 @@ export function InboxList({ documents, devices }: Props) {
                           }
                           hitSlop={6}
                           accessibilityRole="button"
-                          accessibilityLabel={`Garantie verlängern, ${extensionDaysLabel(extension)} möglich`}
+                          accessibilityLabel={t('list.extendA11y', { days: extensionDaysLabel(extension) })}
                           style={[styles.pill, { backgroundColor: theme.brandSoft, borderColor: theme.brand }]}>
                           <Ionicons name="shield-half-outline" size={14} color={theme.brand} />
                           <Text variant="micro" color="brand" style={styles.pillLabel}>
-                            Garantie verlängern · {extensionDaysLabel(extension)}
+                            {t('list.extend', { days: extensionDaysLabel(extension) })}
                           </Text>
                         </Pressable>
                       ) : null}

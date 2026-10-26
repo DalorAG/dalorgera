@@ -1,13 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState, type ComponentProps } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { LanguagePicker } from '@/components/language-picker';
 import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
+import i18n from '@/i18n';
 import { apiErrorMessage, formatDate } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import { useAppSelector } from '@/store';
@@ -25,13 +28,14 @@ function confirmDestructive(title: string, message: string, action: string, onCo
     return;
   }
   Alert.alert(title, message, [
-    { text: 'Abbrechen', style: 'cancel' },
+    { text: i18n.t('common:actions.cancel'), style: 'cancel' },
     { text: action, style: 'destructive', onPress: onConfirm },
   ]);
 }
 
 export default function MoreScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['account', 'nav']);
   const email = useAppSelector((s) => s.auth.email);
   const { data: reminders } = useGetRemindersQuery();
   const [deleteAccount, { isLoading: deleting }] = useDeleteAccountMutation();
@@ -41,21 +45,21 @@ export default function MoreScreen() {
     setSigningOut(true);
     const { error } = await supabase.auth.signOut();
     setSigningOut(false);
-    if (error) notify('Abmelden fehlgeschlagen', error.message);
+    if (error) notify(t('more.signOutFailed'), error.message);
   };
 
   const removeAccount = () =>
     confirmDestructive(
-      'Konto löschen?',
-      'Dein Konto, alle Geräte, Belege und Erinnerungen werden sofort und endgültig gelöscht.',
-      'Endgültig löschen',
+      t('more.deleteConfirm.title'),
+      t('more.deleteConfirm.message'),
+      t('more.deleteConfirm.action'),
       async () => {
         try {
           await deleteAccount().unwrap();
           // The user no longer exists; drop the local session.
           await supabase.auth.signOut({ scope: 'local' });
         } catch (err) {
-          notify('Löschen fehlgeschlagen', apiErrorMessage(err));
+          notify(t('more.deleteFailed'), apiErrorMessage(err));
         }
       },
     );
@@ -65,23 +69,27 @@ export default function MoreScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <ScreenHeader
           icon={<Ionicons name="person-circle-outline" size={44} color={theme.brand} />}
-          title="Mehr"
+          title={t('more.title')}
           subtitle={email ?? ''}
         />
 
         <Card style={styles.links}>
-          <LinkRow icon="person-outline" label="Profil bearbeiten" onPress={() => router.push('/profile')} />
+          <LinkRow icon="person-outline" label={t('more.editProfile')} onPress={() => router.push('/profile')} />
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
-          <LinkRow icon="file-tray-outline" label="Posteingang" onPress={() => router.push('/posteingang')} />
+          <LinkRow icon="file-tray-outline" label={t('more.inbox')} onPress={() => router.push('/posteingang')} />
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
-          <LinkRow icon="archive-outline" label="Archiv" onPress={() => router.push('/archiv')} />
+          <LinkRow icon="archive-outline" label={t('nav:archive')} onPress={() => router.push('/archiv')} />
         </Card>
 
         <Card style={styles.links}>
-          <LinkRow icon="pricetags-outline" label="Tarife" onPress={() => router.push('/pricing')} />
+          <LinkRow icon="pricetags-outline" label={t('nav:pricing')} onPress={() => router.push('/pricing')} />
         </Card>
 
-        <Text variant="title">Nächste Erinnerungen</Text>
+        <Card>
+          <LanguagePicker />
+        </Card>
+
+        <Text variant="title">{t('more.upcomingReminders')}</Text>
         <Card style={styles.list}>
           {reminders?.length ? (
             reminders.slice(0, 5).map((r) => (
@@ -90,37 +98,41 @@ export default function MoreScreen() {
                 <View style={styles.flex}>
                   <Text variant="bodyStrong">{r.deviceName}</Text>
                   <Text variant="caption" color="textSecondary">
-                    {r.kind === 'maintenance'
-                      ? `Wartung fällig am ${formatDate(r.dueDate)}`
-                      : r.kind === 'vignette'
-                        ? `Vignette gültig bis ${formatDate(r.dueDate)}`
-                      : r.kind === 'burden_of_proof'
-                        ? `Beweislast beim Händler bis ${formatDate(r.dueDate)}`
-                      : `${r.kind === 'warranty' ? 'Garantie' : 'Gewährleistung'} endet am ${formatDate(r.dueDate)}`}{' '}
-                    · Erinnerung am{' '}
-                    {formatDate(r.remindAt)}
+                    {t(
+                      r.kind === 'maintenance'
+                        ? 'more.reminder.maintenance'
+                        : r.kind === 'vignette'
+                          ? 'more.reminder.vignette'
+                          : r.kind === 'burden_of_proof'
+                            ? 'more.reminder.burdenOfProof'
+                            : r.kind === 'warranty'
+                              ? 'more.reminder.warranty'
+                              : 'more.reminder.legalWarranty',
+                      { date: formatDate(r.dueDate) },
+                    )}{' '}
+                    · {t('more.reminder.remindAt', { date: formatDate(r.remindAt) })}
                   </Text>
                 </View>
               </View>
             ))
           ) : (
             <Text variant="body" color="textSecondary">
-              Keine anstehenden Erinnerungen.
+              {t('more.noReminders')}
             </Text>
           )}
         </Card>
 
-        <Text variant="title">Rechtliches</Text>
+        <Text variant="title">{t('more.legal')}</Text>
         <Card style={styles.links}>
-          <LinkRow icon="help-circle-outline" label="Garantie oder Gewährleistung?" onPress={() => router.push('/rechte')} />
+          <LinkRow icon="help-circle-outline" label={t('more.rights')} onPress={() => router.push('/rechte')} />
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
-          <LinkRow icon="document-text-outline" label="Nutzungsbedingungen" onPress={() => router.push('/terms')} />
+          <LinkRow icon="document-text-outline" label={t('nav:terms')} onPress={() => router.push('/terms')} />
           <View style={[styles.separator, { backgroundColor: theme.border }]} />
-          <LinkRow icon="shield-outline" label="Datenschutzerklärung" onPress={() => router.push('/privacy')} />
+          <LinkRow icon="shield-outline" label={t('nav:privacy')} onPress={() => router.push('/privacy')} />
         </Card>
 
-        <Button label="Abmelden" variant="secondary" icon="log-out-outline" onPress={signOut} loading={signingOut} />
-        <Button label="Konto löschen" variant="danger" icon="trash-outline" onPress={removeAccount} loading={deleting} />
+        <Button label={t('more.signOut')} variant="secondary" icon="log-out-outline" onPress={signOut} loading={signingOut} />
+        <Button label={t('more.deleteAccount')} variant="danger" icon="trash-outline" onPress={removeAccount} loading={deleting} />
       </ScrollView>
     </SafeAreaView>
   );

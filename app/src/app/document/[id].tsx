@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ import { spacing } from '@/theme';
 export default function DocumentViewerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useGetDocumentUrlQuery(id);
 
   return (
@@ -27,7 +29,7 @@ export default function DocumentViewerScreen() {
       <Pressable
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         accessibilityRole="button"
-        accessibilityLabel="Schließen"
+        accessibilityLabel={t('actions.close')}
         hitSlop={12}
         style={[styles.close, { top: insets.top + spacing.md }]}>
         <Ionicons name="close" size={24} color="#fff" />

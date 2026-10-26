@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -17,6 +18,7 @@ import { spacing, useTheme } from '@/theme';
  */
 export default function AuthCallbackScreen() {
   const theme = useTheme();
+  const { t } = useTranslation('auth');
   const params = useLocalSearchParams<{ code?: string; error_description?: string }>();
   const status = useAppSelector((s) => s.auth.status);
   const { data: me } = useGetMeQuery(undefined, { skip: status !== 'signedIn' });
@@ -35,9 +37,7 @@ export default function AuthCallbackScreen() {
   // Auth finished without a session: the code was invalid, expired or already used.
   const message =
     error ??
-    (status === 'signedOut' && !exchanging
-      ? 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.'
-      : null);
+    (status === 'signedOut' && !exchanging ? t('callback.failedMessage') : null);
 
   // Go to a route the user may open: '/' stays protected until the terms are accepted.
   useEffect(() => {
@@ -47,11 +47,11 @@ export default function AuthCallbackScreen() {
   if (!message) return <StateView kind="loading" />;
   return (
     <View style={[styles.center, { backgroundColor: theme.background }]}>
-      <Text variant="headline">Anmeldung fehlgeschlagen</Text>
+      <Text variant="headline">{t('callback.failedTitle')}</Text>
       <Text variant="body" color="textSecondary" style={styles.text}>
         {message}
       </Text>
-      <Button label="Zurück zur Anmeldung" onPress={() => router.replace('/sign-in')} />
+      <Button label={t('callback.backToSignIn')} onPress={() => router.replace('/sign-in')} />
     </View>
   );
 }

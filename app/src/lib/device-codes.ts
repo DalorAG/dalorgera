@@ -1,6 +1,7 @@
 import type { BarcodeType } from 'expo-camera';
 
-export type CodeTarget = 'imei' | 'serial';
+/** reference: the Referenznummer of a Wertsache, e.g. 126610LN on a watch's certificate. */
+export type CodeTarget = 'imei' | 'serial' | 'reference';
 
 /** 15 digits with a valid Luhn check digit, e.g. 356938035643809. */
 export function isValidImei(value: string): boolean {
@@ -28,8 +29,9 @@ export function readScannedCode(target: CodeTarget, data: string, type: BarcodeT
     return isValidImei(digits) ? digits : null;
   }
   if (PRODUCT_CODE_TYPES.has(type) || isValidImei(raw.replace(/[\s-]/g, ''))) return null;
-  // "S/N: C02XK1JHJG5J", "(S) C02XK1JHJG5J", "SN C02XK1JHJG5J"
-  const serial = raw.replace(/^(?:\(S\)|S\/?N|Serial(?:\s*No\.?)?)\s*[:#]?\s*/i, '').replace(/\s+/g, '');
+  // "S/N: C02XK1JHJG5J", "(S) C02XK1JHJG5J", "SN C02XK1JHJG5J", "Ref. 126610LN"
+  const label = target === 'reference' ? /^Ref(?:erence|erenz)?(?:\s*No\.?)?\.?\s*[:#]?\s*/i : /^(?:\(S\)|S\/?N|Serial(?:\s*No\.?)?)\s*[:#]?\s*/i;
+  const serial = raw.replace(label, '').replace(/\s+/g, '');
   return /^[A-Za-z0-9\-/.]{4,64}$/.test(serial) ? serial.toUpperCase() : null;
 }
 

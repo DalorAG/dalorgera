@@ -1,0 +1,130 @@
+{
+  "deviceKind": {
+    "warranty": {
+      "label": "Гарантия",
+      "description": "Гарантия производителя по гарантийному талону, в дополнение к законной гарантии."
+    },
+    "statutory": {
+      "label": "Законная гарантия",
+      "description": "2 года по закону с момента покупки, даже без гарантии производителя."
+    },
+    "maintenance": {
+      "label": "Обслуживание",
+      "description": "Регулярные сроки: техосмотр, сервис или обслуживание отопления."
+    },
+    "vignette": {
+      "label": "Виньетка",
+      "description": "Виньетка для автобанов: годовая, на 2 месяца или на 10 дней. Мы напомним до окончания срока."
+    }
+  },
+  "startDate": {
+    "purchase": "Дата покупки",
+    "maintenance": "Последнее обслуживание",
+    "vignette": "Действует с"
+  },
+  "badge": {
+    "overdue": "Просрочено",
+    "notYetValid": "Ещё не действует"
+  },
+  "headline": {
+    "maintenanceOverdue": "Обслуживание просрочено",
+    "maintenanceSoon": "Скоро обслуживание: {{remaining}}",
+    "maintenance": "Обслуживание: {{remaining}}",
+    "vignetteExpired": "Виньетка истекла",
+    "vignetteExpiring": "Виньетка истекает: {{remaining}}",
+    "vignetteValid": "Виньетка действует: {{remaining}}",
+    "protected": "Под защитой: {{remaining}}",
+    "attention": "Внимание: {{remaining}}",
+    "protectionExpired": "Защита истекла"
+  },
+  "deadline": {
+    "maintenance": "Следующее обслуживание {{date}}",
+    "vignette": "Действует до {{date}}",
+    "warranty": "Гарантия до {{date}}",
+    "statutory": "Законная гарантия до {{date}}"
+  },
+  "remaining": {
+    "expired": "Истекло",
+    "today": "Истекает сегодня",
+    "days_one": "Остался {{count}} день",
+    "days_few": "Осталось {{count}} дня",
+    "days_many": "Осталось {{count}} дней",
+    "days_other": "Осталось {{count}} дня",
+    "months_one": "Ещё {{count}} месяц",
+    "months_few": "Ещё {{count}} месяца",
+    "months_many": "Ещё {{count}} месяцев",
+    "months_other": "Ещё {{count}} месяца"
+  },
+  "warrantyYears_one": "{{count}} год",
+  "warrantyYears_few": "{{count}} года",
+  "warrantyYears_many": "{{count}} лет",
+  "warrantyYears_other": "{{count}} года",
+  "interval": {
+    "halfYearly": "Раз в полгода",
+    "yearly": "Ежегодно",
+    "every2Years": "Раз в 2 года",
+    "every3Years": "Раз в 3 года"
+  },
+  "documentKind": {
+    "receipt": "Чек",
+    "warrantyCard": "Гарантийный талон",
+    "invoice": "Счёт",
+    "other": "Другое",
+    "productPhoto": "Фото товара"
+  },
+  "supportSearch": "{{query}} служба поддержки",
+  "extensionDays": {
+    "today": "только сегодня",
+    "left_one": "остался {{count}} день",
+    "left_few": "осталось {{count}} дня",
+    "left_many": "осталось {{count}} дней",
+    "left_other": "осталось {{count}} дня"
+  },
+  "claim": {
+    "defaultStore": "продавцу",
+    "defaultBrand": "производителя",
+    "firstYear": {
+      "title": "При дефекте: сначала к продавцу",
+      "body": "Обратись к {{store}}. До {{proofUntil}} продавец должен доказать, что дефекта не было уже при покупке."
+    },
+    "statutory": {
+      "title": "При дефекте: к продавцу",
+      "body": "Претензии по законной гарантии к {{store}} принимаются до {{statutoryUntil}}. С {{proofUntil}} ты должен доказать, что дефект был уже при покупке.",
+      "warrantyAlternative": "Также может помочь гарантия от {{brand}} до {{warrantyUntil}}, часто без такого доказательства."
+    },
+    "grace": "Если дефект появился до {{statutoryUntil}}, ты ещё можешь предъявить его продавцу до {{claimUntil}}, при необходимости через суд.",
+    "manufacturer": {
+      "title": "При дефекте: к производителю",
+      "body": "Законная гарантия истекла. Воспользуйся гарантией от {{brand}} до {{warrantyUntil}}."
+    },
+    "lastDeadline": {
+      "title": "Последний срок у продавца"
+    },
+    "expired": {
+      "title": "Сроки истекли",
+      "body": "Законная гарантия и гарантия истекли. Спроси у продавца или производителя о ремонте или замене в порядке исключения."
+    }
+  },
+  "otherCategory": "Другое",
+  "luxuryCategory": {
+    "watch": "Часы",
+    "jewelry": "Украшения",
+    "bag": "Сумка",
+    "other": "Другое"
+  },
+  "requestStatus": {
+    "new": "Отправлено",
+    "contacted": "В работе",
+    "closed": "Завершено"
+  },
+  "vignetteType": {
+    "year": "Годовая виньетка",
+    "twoMonths": "Виньетка на 2 месяца",
+    "tenDays": "Виньетка на 10 дней",
+    "oneDay": "Виньетка на 1 день"
+  },
+  "apiError": {
+    "network": "Сервер недоступен. Проверь подключение.",
+    "generic": "Что-то пошло не так."
+  }
+}

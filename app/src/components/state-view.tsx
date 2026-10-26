@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { apiErrorMessage } from '@/lib/format';
@@ -22,6 +23,7 @@ type Props =
 /** Loading, error and empty states with one consistent look. */
 export function StateView(props: Props) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   if (props.kind === 'loading') {
     return (
@@ -35,11 +37,11 @@ export function StateView(props: Props) {
     return (
       <View style={styles.center}>
         <Ionicons name="cloud-offline-outline" size={40} color={theme.textTertiary} />
-        <Text variant="headline">Laden fehlgeschlagen</Text>
+        <Text variant="headline">{t('state.loadFailed')}</Text>
         <Text variant="body" color="textSecondary" style={styles.text}>
           {apiErrorMessage(props.error)}
         </Text>
-        <Button label="Erneut versuchen" variant="secondary" onPress={props.onRetry} />
+        <Button label={t('actions.retry')} variant="secondary" onPress={props.onRetry} />
       </View>
     );
   }

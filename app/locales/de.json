@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Dalor Gawa",
+    "NSCameraUsageDescription": "Dalor Gawa nutzt die Kamera, um Kassenbons und Garantiescheine zu fotografieren.",
+    "NSPhotoLibraryUsageDescription": "Dalor Gawa greift auf deine Fotos zu, damit du Belege aus der Galerie hinzufügen kannst."
+  },
+  "android": {
+    "app_name": "Dalor Gawa"
+  }
+}

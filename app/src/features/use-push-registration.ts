@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+import i18n from '@/i18n';
 import { useAppSelector } from '@/store';
 import { useRegisterPushTokenMutation } from '@/store/api';
 
@@ -44,7 +45,7 @@ export function usePushRegistration() {
       try {
         if (Platform.OS === 'android') {
           await Notifications.setNotificationChannelAsync('reminders', {
-            name: 'Garantie-Erinnerungen',
+            name: i18n.t('components:push.channelName'),
             importance: Notifications.AndroidImportance.DEFAULT,
           });
         }

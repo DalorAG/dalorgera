@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -17,6 +18,7 @@ import { radius, spacing, useTheme } from '@/theme';
 
 export default function InboxScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['inbox', 'common']);
   const [search, setSearch] = useState('');
   const [onlyOpen, setOnlyOpen] = useState(false);
   // Full-text search in the recognized receipt text (store, products, ...).
@@ -35,11 +37,9 @@ export default function InboxScreen() {
         refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}>
         <ScreenHeader
           icon={<Ionicons name="file-tray-full" size={40} color={theme.brand} />}
-          title="Posteingang"
+          title={t('inbox.title')}
           subtitle={
-            openCount
-              ? `${openCount} ${openCount === 1 ? 'Beleg wartet' : 'Belege warten'} auf ein Gerät.`
-              : 'Alles zugeordnet. Neue Scans landen hier.'
+            openCount ? t('inbox.waiting', { count: openCount }) : t('inbox.allAssigned')
           }
         />
         <Pressable
@@ -53,17 +53,17 @@ export default function InboxScreen() {
             <Ionicons name="shield-half" size={20} color={theme.textOnBrand} />
           </View>
           <View style={styles.flex}>
-            <Text variant="bodyStrong">Zusatzversicherung anfragen</Text>
+            <Text variant="bodyStrong">{t('inbox.insurance.title')}</Text>
             <Text variant="caption" color="textSecondary">
-              Foto machen, absenden: Garantieverlängerung oder Versicherung über unseren Partner.
+              {t('inbox.insurance.subtitle')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={theme.brand} />
         </Pressable>
-        <SearchField value={search} onChangeText={setSearch} placeholder="Belege durchsuchen, z. B. Media Markt" />
+        <SearchField value={search} onChangeText={setSearch} placeholder={t('inbox.searchPlaceholder')} />
         <View style={styles.filters}>
-          <Chip label="Alle" selected={!onlyOpen} onPress={() => setOnlyOpen(false)} />
-          <Chip label={`Offen (${openCount})`} selected={onlyOpen} onPress={() => setOnlyOpen(true)} />
+          <Chip label={t('inbox.filterAll')} selected={!onlyOpen} onPress={() => setOnlyOpen(false)} />
+          <Chip label={t('inbox.filterOpen', { count: openCount })} selected={onlyOpen} onPress={() => setOnlyOpen(true)} />
         </View>
         {isLoading ? (
           <StateView kind="loading" />
@@ -72,16 +72,16 @@ export default function InboxScreen() {
         ) : data?.length ? (
           <InboxList documents={data} devices={devices ?? []} />
         ) : q ? (
-          <StateView kind="empty" icon="search-outline" title="Nichts gefunden" message={`Kein Beleg passt zu „${q}“.`} />
+          <StateView kind="empty" icon="search-outline" title={t('common:state.nothingFound')} message={t('inbox.noMatch', { query: q })} />
         ) : onlyOpen ? (
-          <StateView kind="empty" icon="checkmark-done-outline" title="Alles erledigt" message="Jeder Beleg ist einem Gerät zugeordnet." />
+          <StateView kind="empty" icon="checkmark-done-outline" title={t('inbox.allDone.title')} message={t('inbox.allDone.message')} />
         ) : (
           <StateView
             kind="empty"
             icon="file-tray-outline"
-            title="Posteingang ist leer"
-            message="Fotografiere einen Kassenbon oder Garantieschein."
-            action={<Button label="Beleg scannen" icon="camera-outline" onPress={() => router.push('/add')} />}
+            title={t('inbox.empty.title')}
+            message={t('inbox.empty.message')}
+            action={<Button label={t('inbox.empty.action')} icon="camera-outline" onPress={() => router.push('/add')} />}
           />
         )}
       </ScrollView>

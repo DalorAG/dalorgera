@@ -2,6 +2,7 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
+import i18n from '@/i18n';
 import { supabase } from '@/lib/supabase';
 
 /** Path the OAuth flow returns to; must be in Supabase → Auth → URL Configuration → Redirect URLs. */
@@ -34,7 +35,7 @@ export async function signInWithGoogle(): Promise<boolean> {
 
   const { queryParams } = Linking.parse(result.url);
   if (typeof queryParams?.error_description === 'string') throw new Error(queryParams.error_description);
-  if (typeof queryParams?.code !== 'string') throw new Error('Anmeldung fehlgeschlagen.');
+  if (typeof queryParams?.code !== 'string') throw new Error(i18n.t('components:errors.signInFailed'));
 
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(queryParams.code);
   if (exchangeError) throw exchangeError;

@@ -1,0 +1,61 @@
+{
+  "profile": {
+    "passwordTooShort": "Das Passwort muss mindestens {{min}} Zeichen haben.",
+    "saved": "Profil gespeichert.",
+    "savedSubtitle": "Deine Änderungen sind übernommen.",
+    "nameLabel": "Name",
+    "namePlaceholder": "Vor- und Nachname",
+    "emailLabel": "E-Mail",
+    "emailHint": "Die E-Mail-Adresse kann derzeit nicht geändert werden.",
+    "passwordLabel": "Neues Passwort",
+    "passwordPlaceholder": "Leer lassen, um es zu behalten"
+  },
+  "pricing": {
+    "basic": {
+      "name": "Basis",
+      "price": "Kostenlos",
+      "features": {
+        "scan": "Unbegrenzt Belege scannen",
+        "reminders": "Erinnerungen an Garantie, Gewährleistung und Wartung",
+        "vault": "Digitaler Tresor"
+      }
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "Demnächst",
+      "features": {
+        "basic": "Alles aus Basis",
+        "family": "Familienkonto für mehrere Personen",
+        "extension": "Angebote zur Garantieverlängerung"
+      }
+    },
+    "current": "Dein Tarif",
+    "comingSoon": "Premium ist noch nicht verfügbar. Wir informieren dich, sobald es losgeht."
+  },
+  "more": {
+    "title": "Mehr",
+    "editProfile": "Profil bearbeiten",
+    "inbox": "Posteingang",
+    "upcomingReminders": "Nächste Erinnerungen",
+    "noReminders": "Keine anstehenden Erinnerungen.",
+    "reminder": {
+      "maintenance": "Wartung fällig am {{date}}",
+      "vignette": "Vignette gültig bis {{date}}",
+      "burdenOfProof": "Beweislast beim Händler bis {{date}}",
+      "warranty": "Garantie endet am {{date}}",
+      "legalWarranty": "Gewährleistung endet am {{date}}",
+      "remindAt": "Erinnerung am {{date}}"
+    },
+    "legal": "Rechtliches",
+    "rights": "Garantie oder Gewährleistung?",
+    "signOut": "Abmelden",
+    "signOutFailed": "Abmelden fehlgeschlagen",
+    "deleteAccount": "Konto löschen",
+    "deleteConfirm": {
+      "title": "Konto löschen?",
+      "message": "Dein Konto, alle Geräte, Belege und Erinnerungen werden sofort und endgültig gelöscht.",
+      "action": "Endgültig löschen"
+    },
+    "deleteFailed": "Löschen fehlgeschlagen"
+  }
+}

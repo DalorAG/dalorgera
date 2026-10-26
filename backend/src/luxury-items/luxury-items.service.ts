@@ -8,6 +8,7 @@ import { WarrantyRequestMailer } from '../warranty-requests/warranty-request.mai
 import type { LuxuryCategory } from '../warranty-requests/warranty-requests.dto.js';
 import { RECEIPT_URL_TTL_SECONDS, formatPrice } from '../warranty-requests/warranty-requests.service.js';
 import type { CreateLuxuryItemDto, RequestInsuranceDto, UpdateLuxuryItemDto } from './luxury-items.dto.js';
+import { MarketValueEstimator } from './market-value-estimator.js';
 
 const SELECT =
   '*, documents(id, kind, mime_type, storage_path, created_at), warranty_requests(id, status, created_at)';
@@ -55,6 +56,7 @@ export class LuxuryItemsService {
   constructor(
     private readonly supabase: SupabaseService,
     private readonly mailer: WarrantyRequestMailer,
+    private readonly estimator: MarketValueEstimator,
   ) {}
 
   async list(user: AuthUser) {
@@ -180,6 +182,23 @@ export class LuxuryItemsService {
       photoUrls: (signed ?? []).flatMap((s) => (s.signedUrl ? [s.signedUrl] : [])),
     });
     return this.get(user, id);
+  }
+
+  async estimateMarketValue(user: AuthUser, id: string, language: string) {
+    const row = await this.load(user, id);
+    return this.estimator.estimate(
+      {
+        category: row.category,
+        brand: row.brand,
+        model: row.model,
+        referenceNumber: row.reference_number,
+        purchaseDate: row.purchase_date,
+        purchasePriceCents: row.purchase_price_cents,
+        hasBoxPapers: row.has_box_papers,
+        notes: row.notes,
+      },
+      language,
+    );
   }
 
   private async load(user: AuthUser, id: string): Promise<ItemRow> {

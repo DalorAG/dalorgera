@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -14,6 +15,7 @@ const MIN_PASSWORD = 8;
 /** Name lives in the Supabase user metadata, so no API call is needed. */
 export default function ProfileScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['account', 'common']);
   const email = useAppSelector((s) => s.auth.email);
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +28,7 @@ export default function ProfileScreen() {
 
   const save = async () => {
     if (password && password.length < MIN_PASSWORD) {
-      setMessage({ ok: false, text: `Das Passwort muss mindestens ${MIN_PASSWORD} Zeichen haben.` });
+      setMessage({ ok: false, text: t('profile.passwordTooShort', { min: MIN_PASSWORD }) });
       return;
     }
     setSaving(true);
@@ -37,7 +39,7 @@ export default function ProfileScreen() {
     setSaving(false);
     if (error) return setMessage({ ok: false, text: error.message });
     setPassword('');
-    setMessage({ ok: true, text: 'Profil gespeichert.' });
+    setMessage({ ok: true, text: t('profile.saved') });
   };
 
   return (
@@ -45,14 +47,14 @@ export default function ProfileScreen() {
       style={[styles.flex, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {message?.ok ? <InfoBanner title={message.text} subtitle="Deine Änderungen sind übernommen." /> : null}
-        <TextField label="Name" value={name} onChangeText={setName} placeholder="Vor- und Nachname" autoComplete="name" />
-        <TextField label="E-Mail" value={email ?? ''} editable={false} hint="Die E-Mail-Adresse kann derzeit nicht geändert werden." />
+        {message?.ok ? <InfoBanner title={message.text} subtitle={t('profile.savedSubtitle')} /> : null}
+        <TextField label={t('profile.nameLabel')} value={name} onChangeText={setName} placeholder={t('profile.namePlaceholder')} autoComplete="name" />
+        <TextField label={t('profile.emailLabel')} value={email ?? ''} editable={false} hint={t('profile.emailHint')} />
         <TextField
-          label="Neues Passwort"
+          label={t('profile.passwordLabel')}
           value={password}
           onChangeText={setPassword}
-          placeholder="Leer lassen, um es zu behalten"
+          placeholder={t('profile.passwordPlaceholder')}
           secureTextEntry
           autoComplete="new-password"
           textContentType="newPassword"
@@ -62,7 +64,7 @@ export default function ProfileScreen() {
             {message.text}
           </Text>
         ) : null}
-        <Button label="Speichern" icon="checkmark" onPress={save} loading={saving} />
+        <Button label={t('common:actions.save')} icon="checkmark" onPress={save} loading={saving} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

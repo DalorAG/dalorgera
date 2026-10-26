@@ -1,0 +1,32 @@
+{
+  "nameRequired": "Please tell us what you'd like to cover.",
+  "sent": {
+    "title": "Request sent",
+    "message": "Our insurance partner is reviewing your quote for “{{name}}”. We'll get back to you by email at {{email}}."
+  },
+  "banner": {
+    "title": "No warranty? We'll cover it.",
+    "subtitle": "Through our insurance partner you can get a warranty extension or insurance, even for clothes or shoes. Possible up to 4 weeks after purchase."
+  },
+  "extension": {
+    "until": "Can be taken out until {{date}} ({{days}}, 4 weeks from purchase).",
+    "expired": "The 4 weeks since purchase are over. We'll still check whether our partner has an offer."
+  },
+  "photo": {
+    "label": "Photograph receipt or product",
+    "hint": "Ideally the receipt, otherwise a photo of the product. Optional, but it helps get a quick quote."
+  },
+  "fromReceipt": "From the receipt",
+  "whichProduct": "Which product?",
+  "product": {
+    "label": "Product *",
+    "placeholder": "e.g. evening dress, winter jacket, bicycle"
+  },
+  "message": {
+    "label": "Message",
+    "placeholder": "Optional, e.g. what you'd like to cover it against"
+  },
+  "signInRequired": "So we can send you a quote, please sign in with your email address (Profile).",
+  "disclaimer": "We'll send your details and the receipt to our team and get back to you at {{email}}. Free and without obligation.",
+  "send": "Send request"
+}

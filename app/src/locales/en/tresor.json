@@ -1,0 +1,129 @@
+{
+  "list": {
+    "title": "Vault",
+    "subtitle": "Your valuables and all receipts. Safe in one place.",
+    "wealth": "Your assets",
+    "itemCount_one": "{{count}} valuable",
+    "itemCount_other": "{{count}} valuables",
+    "totalCost": "Total cost {{amount}}",
+    "add": "Add valuable",
+    "addHint": "Watch, jewellery, bag: with invoice, photos and value.",
+    "searchItems": "Search valuables",
+    "searchDocuments": "Search receipts",
+    "tabItems": "Valuables ({{n}})",
+    "tabDocuments": "All receipts ({{n}})",
+    "noItemMatch": "No valuable matches “{{query}}”.",
+    "noDocumentMatch": "No receipt matches “{{query}}”.",
+    "emptyItems": {
+      "title": "No valuables yet",
+      "message": "Add your watch, your jewellery or your bag."
+    },
+    "emptyDocuments": {
+      "title": "No receipts",
+      "message": "Scanned receipts appear here."
+    },
+    "insured": "Insurance: {{status}}",
+    "notInsured": "Not insured",
+    "currentValue": "Current value"
+  },
+  "detail": {
+    "addInvoice": "Add invoice",
+    "addAnotherInvoice": "Add another invoice",
+    "addPhoto": "Add photo",
+    "openPhoto": "Open photo",
+    "uploadFailed": "Upload failed",
+    "pdfFailed": "Couldn't create the PDF",
+    "insuranceConfirm": {
+      "title": "Request insurance?",
+      "message": "We'll send “{{title}}” with all photos and the invoice to our team and get back to you at {{email}}. Free and without obligation.",
+      "action": "Send request"
+    },
+    "requestFailed": "Request failed",
+    "deleteConfirm": {
+      "title": "Delete valuable?",
+      "message": "“{{title}}” will be permanently deleted along with its photos and invoice."
+    },
+    "deleteFailed": "Deletion failed",
+    "currentValue": "Current value",
+    "purchasePriceHint": "Purchase price, until you enter a current value.",
+    "invoice": "Invoice",
+    "openInvoice": "Open invoice",
+    "uploadedOn": "Uploaded on {{date}}",
+    "details": "Details",
+    "purchasePrice": "Purchase price",
+    "purchaseDate": "Purchase date",
+    "store": "Retailer",
+    "referenceNumber": "Reference number",
+    "serialNumber": "Serial number",
+    "boxPapers": "Box and papers",
+    "present": "Yes",
+    "no": "No",
+    "inVaultSince": "In the vault since",
+    "notes": "Note",
+    "insuranceRequested": "Insurance requested",
+    "requestStatus": "{{status}} · on {{date}}. We'll get back to you by email.",
+    "requestInsurance": "Request insurance",
+    "insuranceHint": "Our insurance partner will send you a quote covering theft, loss and damage.",
+    "signInHint": "So we can send you a quote, please sign in with your email address (Profile).",
+    "delete": "Delete valuable",
+    "market": {
+      "label": "Current market value (€)",
+      "placeholder": "e.g. 12,500",
+      "hint": "What the item would fetch on the market today. Leave empty to use the purchase price.",
+      "estimate": "Estimate market value",
+      "estimating": "Searching current market prices …",
+      "estimated": "Estimated market value today",
+      "range": "Range {{low}} – {{high}}",
+      "confidence": {
+        "low": "rough estimate",
+        "medium": "medium confidence",
+        "high": "well supported"
+      },
+      "accept": "Use this value",
+      "adjust": "Adjust",
+      "manual": "Enter it yourself",
+      "estimateFailed": "Couldn't estimate the market value: {{reason}}"
+    }
+  },
+  "form": {
+    "editTitle": "Edit valuable",
+    "banner": {
+      "title": "Your valuable, safe in the vault.",
+      "subtitle": "Invoice, photos and value in one place. Afterwards you can request insurance against theft, loss and damage with a single tap."
+    },
+    "invoice": "Invoice",
+    "anotherInvoice": "Another invoice",
+    "invoiceHint": "Photo of the invoice or receipt. Brand, model, price, retailer and date are filled in automatically.",
+    "photos": "Photos",
+    "morePhotos": "More photos",
+    "photosHint": "Item, certificate, serial number: up to {{max}} photos.",
+    "category": "What is it? *",
+    "brand": "Brand *",
+    "brandPlaceholder": "e.g. Rolex, Cartier, Hermès",
+    "model": "Model *",
+    "modelPlaceholder": "e.g. Submariner, Love Ring, Birkin 30",
+    "referenceNumber": "Reference number",
+    "referenceNumberPlaceholder": "Optional, e.g. 126610LN",
+    "serialNumber": "Serial number",
+    "serialNumberPlaceholder": "Optional, e.g. from the case or certificate",
+    "purchase": "Purchase",
+    "purchasePrice": "Purchase price (€)",
+    "purchasePricePlaceholder": "e.g. 9,800",
+    "purchaseDate": "Purchase date",
+    "datePlaceholder": "DD/MM/YYYY",
+    "store": "Retailer",
+    "storePlaceholder": "Optional, e.g. Wempe Hamburg",
+    "value": "Current value (€)",
+    "valuePlaceholder": "e.g. 12,500, otherwise the purchase price applies",
+    "boxPapers": "Box and papers included",
+    "notes": "Note",
+    "notesPlaceholder": "Optional, e.g. condition, engraving, last service",
+    "errors": {
+      "category": "Please choose what you want to add.",
+      "brandModel": "Please enter brand and model.",
+      "purchasePrice": "Please enter the purchase price as an amount, e.g. 9,800",
+      "value": "Please enter the current value as an amount, e.g. 12,500",
+      "purchaseDate": "Please enter the purchase date as DD/MM/YYYY."
+    }
+  }
+}

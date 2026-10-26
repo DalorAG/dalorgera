@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -55,6 +56,7 @@ export default function EditDeviceScreen() {
 
 function EditForm({ device }: { device: Device }) {
   const theme = useTheme();
+  const { t } = useTranslation(['device', 'common']);
   const [form, setForm] = useState(() => formFromDevice(device));
   const [errors, setErrors] = useState<Partial<Record<keyof Form | 'submit', string>>>({});
   const [updateDevice, { isLoading }] = useUpdateDeviceMutation();
@@ -67,10 +69,11 @@ function EditForm({ device }: { device: Device }) {
     const purchaseDate = isVignette ? device.purchaseDate : parseDate(form.purchaseDate);
     const priceCents = form.price.trim() ? parsePrice(form.price) : null;
     const next: typeof errors = {};
-    if (!form.name.trim()) next.name = 'Bitte gib einen Namen ein.';
-    if (!purchaseDate) next.purchaseDate = 'Format: TT.MM.JJJJ';
-    else if (!isVignette && purchaseDate > new Date().toISOString().slice(0, 10)) next.purchaseDate = 'Das Datum liegt in der Zukunft.';
-    if (form.price.trim() && priceCents === null) next.price = 'Ungültiger Betrag';
+    if (!form.name.trim()) next.name = t('form.errors.nameRequired');
+    if (!purchaseDate) next.purchaseDate = t('form.errors.dateFormat');
+    else if (!isVignette && purchaseDate > new Date().toISOString().slice(0, 10))
+      next.purchaseDate = t('form.errors.dateInFuture');
+    if (form.price.trim() && priceCents === null) next.price = t('form.errors.invalidAmount');
     if (hasDeviceCodes(kind) && imeiError(form.imei)) next.imei = imeiError(form.imei);
     setErrors(next);
     if (Object.keys(next).length) return;
@@ -106,33 +109,38 @@ function EditForm({ device }: { device: Device }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <TextField
-          label={kind === 'maintenance' ? 'Was wird gewartet? *' : isVignette ? 'Bezeichnung *' : 'Gerät *'}
+          label={kind === 'maintenance' ? t('form.maintenanceNameLabel') : isVignette ? t('form.vignetteNameLabel') : t('form.nameLabel')}
           value={form.name}
           onChangeText={(v) => set('name', v)}
           error={errors.name}
         />
         {!isVignette ? (
           <>
-            <TextField label="Kategorie" value={form.category} onChangeText={(v) => set('category', v)} placeholder="z. B. Smartphone" />
-            <TextField label="Marke" value={form.brand} onChangeText={(v) => set('brand', v)} />
             <TextField
-              label={kind === 'maintenance' ? 'Werkstatt / Firma' : 'Gekauft bei'}
+              label={t('form.category')}
+              value={form.category}
+              onChangeText={(v) => set('category', v)}
+              placeholder={t('form.categoryPlaceholder')}
+            />
+            <TextField label={t('form.brand')} value={form.brand} onChangeText={(v) => set('brand', v)} />
+            <TextField
+              label={kind === 'maintenance' ? t('form.workshop') : t('form.store')}
               value={form.store}
               onChangeText={(v) => set('store', v)}
             />
             <TextField
-              label={kind === 'maintenance' ? 'Letzte Wartung *' : 'Kaufdatum *'}
+              label={kind === 'maintenance' ? t('form.lastService') : t('form.purchaseDate')}
               value={form.purchaseDate}
               onChangeText={(v) => set('purchaseDate', v)}
-              placeholder="TT.MM.JJJJ"
+              placeholder={t('form.datePlaceholder')}
               keyboardType="numbers-and-punctuation"
               error={errors.purchaseDate}
             />
             <TextField
-              label={`Preis (${currencySymbol(device.currency)})`}
+              label={t('form.price', { currency: currencySymbol(device.currency) })}
               value={form.price}
               onChangeText={(v) => set('price', v)}
-              placeholder="0,00"
+              placeholder={t('form.pricePlaceholder')}
               keyboardType="decimal-pad"
               error={errors.price}
             />
@@ -151,7 +159,7 @@ function EditForm({ device }: { device: Device }) {
 
         {kind === 'warranty' ? (
           <View style={styles.group}>
-            <Text variant="captionStrong">Herstellergarantie</Text>
+            <Text variant="captionStrong">{t('form.manufacturerWarranty')}</Text>
             <View style={styles.chips}>
               {WARRANTY_OPTIONS.map((o) => (
                 <Chip key={o.months} label={o.label} selected={form.warrantyMonths === o.months} onPress={() => set('warrantyMonths', o.months)} />
@@ -160,7 +168,7 @@ function EditForm({ device }: { device: Device }) {
           </View>
         ) : kind === 'maintenance' ? (
           <View style={styles.group}>
-            <Text variant="captionStrong">Intervall</Text>
+            <Text variant="captionStrong">{t('form.interval')}</Text>
             <View style={styles.chips}>
               {INTERVAL_OPTIONS.map((o) => (
                 <Chip key={o.months} label={o.label} selected={form.intervalMonths === o.months} onPress={() => set('intervalMonths', o.months)} />
@@ -170,10 +178,10 @@ function EditForm({ device }: { device: Device }) {
         ) : null}
 
         <TextField
-          label="Notizen"
+          label={t('form.notes')}
           value={form.notes}
           onChangeText={(v) => set('notes', v)}
-          placeholder="Optional"
+          placeholder={t('common:state.optional')}
           multiline
           maxLength={2000}
           style={styles.notes}
@@ -184,7 +192,7 @@ function EditForm({ device }: { device: Device }) {
             {errors.submit}
           </Text>
         ) : null}
-        <Button label="Speichern" icon="checkmark" onPress={save} loading={isLoading} />
+        <Button label={t('common:actions.save')} icon="checkmark" onPress={save} loading={isLoading} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

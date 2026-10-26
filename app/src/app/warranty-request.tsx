@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -18,6 +19,7 @@ import { radius, spacing, useTheme } from '@/theme';
 /** Garantieverlängerung: asks our insurance team to cover a purchase without (enough) warranty. */
 export default function WarrantyRequestScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['warranty', 'common']);
   const { documentId, productName } = useLocalSearchParams<{ documentId?: string; productName?: string }>();
   const { data: me } = useGetMeQuery();
   // The list is cached from the Posteingang tab.
@@ -49,7 +51,7 @@ export default function WarrantyRequestScreen() {
   const extension = purchaseDate ? extensionWindow(purchaseDate) : null;
 
   const send = async () => {
-    if (!name.trim()) return setError('Bitte gib an, was abgesichert werden soll.');
+    if (!name.trim()) return setError(t('nameRequired'));
     setError(null);
     try {
       await create({ documentId: attachedId, productName: name.trim(), message: message.trim() || undefined }).unwrap();
@@ -64,12 +66,12 @@ export default function WarrantyRequestScreen() {
       <View style={[styles.flex, styles.done, { backgroundColor: theme.background }]}>
         <Ionicons name="shield-checkmark" size={56} color={theme.success} />
         <Text variant="title" style={styles.center}>
-          Anfrage gesendet
+          {t('sent.title')}
         </Text>
         <Text variant="body" color="textSecondary" style={styles.center}>
-          Unser Versicherungspartner prüft dein Angebot für „{name.trim()}“. Wir melden uns per E-Mail an {me?.email}.
+          {t('sent.message', { name: name.trim(), email: me?.email ?? '' })}
         </Text>
-        <Button label="Fertig" onPress={() => router.back()} style={styles.fullWidth} />
+        <Button label={t('common:actions.done')} onPress={() => router.back()} style={styles.fullWidth} />
       </View>
     );
   }
@@ -80,8 +82,8 @@ export default function WarrantyRequestScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <InfoBanner
-          title="Keine Garantie? Wir sichern es ab."
-          subtitle="Über unseren Versicherungspartner bekommst du eine Garantieverlängerung oder Versicherung, auch für Kleidung oder Schuhe. Möglich bis 4 Wochen nach dem Kauf."
+          title={t('banner.title')}
+          subtitle={t('banner.subtitle')}
           icon={
             <View style={[styles.icon, { backgroundColor: theme.brand }]}>
               <Ionicons name="shield-half" size={18} color={theme.textOnBrand} />
@@ -91,18 +93,18 @@ export default function WarrantyRequestScreen() {
 
         {extension ? (
           <Text variant="captionStrong" color="brand">
-            Abschluss bis {formatDate(extension.until)} möglich ({extensionDaysLabel(extension)}, 4 Wochen ab Kauf).
+            {t('extension.until', { date: formatDate(extension.until), days: extensionDaysLabel(extension) })}
           </Text>
         ) : purchaseDate ? (
           <Text variant="caption" color="warningText">
-            Die 4 Wochen ab Kauf sind vorbei. Wir prüfen trotzdem, ob unser Partner noch ein Angebot hat.
+            {t('extension.expired')}
           </Text>
         ) : null}
 
         {!documentId ? (
           <RequestPhotoField
-            label="Beleg oder Produkt fotografieren"
-            hint="Am besten den Kassenbon, sonst ein Foto vom Produkt. Optional, hilft aber bei einem schnellen Angebot."
+            label={t('photo.label')}
+            hint={t('photo.hint')}
             photo={photo}
             busy={photoBusy}
             onAdd={addPhoto}
@@ -112,7 +114,7 @@ export default function WarrantyRequestScreen() {
 
         {extracted ? (
           <View style={[styles.receipt, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text variant="captionStrong">Vom Beleg</Text>
+            <Text variant="captionStrong">{t('fromReceipt')}</Text>
             <Text variant="caption" color="textSecondary">
               {[
                 extracted.merchant,
@@ -127,7 +129,7 @@ export default function WarrantyRequestScreen() {
 
         {products.length > 1 ? (
           <View style={styles.group}>
-            <Text variant="captionStrong">Welches Produkt?</Text>
+            <Text variant="captionStrong">{t('whichProduct')}</Text>
             <View style={styles.chips}>
               {products.map((p, i) => (
                 <Chip key={`${p.name}-${i}`} label={p.name} selected={name === p.name} onPress={() => setName(p.name)} />
@@ -136,17 +138,17 @@ export default function WarrantyRequestScreen() {
           </View>
         ) : null}
         <TextField
-          label="Produkt *"
+          label={t('product.label')}
           value={name}
           onChangeText={setName}
-          placeholder="z. B. Abendkleid, Winterjacke, Fahrrad"
+          placeholder={t('product.placeholder')}
           maxLength={120}
         />
         <TextField
-          label="Nachricht"
+          label={t('message.label')}
           value={message}
           onChangeText={setMessage}
-          placeholder="Optional, z. B. wogegen du es absichern möchtest"
+          placeholder={t('message.placeholder')}
           multiline
           maxLength={1000}
           style={styles.message}
@@ -154,11 +156,11 @@ export default function WarrantyRequestScreen() {
 
         {!canBeReached ? (
           <Text variant="caption" color="warningText">
-            Damit wir dir ein Angebot schicken können, melde dich bitte mit deiner E-Mail-Adresse an (Profil).
+            {t('signInRequired')}
           </Text>
         ) : (
           <Text variant="caption" color="textSecondary">
-            Wir senden deine Angaben und den Beleg an unser Team und melden uns an {me?.email}. Unverbindlich und kostenlos.
+            {t('disclaimer', { email: me?.email ?? '' })}
           </Text>
         )}
         {error ? (
@@ -166,7 +168,7 @@ export default function WarrantyRequestScreen() {
             {error}
           </Text>
         ) : null}
-        <Button label="Anfrage senden" icon="paper-plane" onPress={send} loading={isLoading} disabled={!canBeReached || photoBusy} />
+        <Button label={t('send')} icon="paper-plane" onPress={send} loading={isLoading} disabled={!canBeReached || photoBusy} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

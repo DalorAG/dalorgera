@@ -1,0 +1,216 @@
+{
+  "document": {
+    "asOf": "As of: {{date}}",
+    "draftTitle": "Draft",
+    "draftSubtitle": "This version will be legally reviewed before the official launch."
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "bindingNotice": "This translation is provided for your convenience. Only the German version is legally binding.",
+    "sections": [
+      {
+        "title": "1. Subject matter",
+        "body": "Dalor Gawa helps you store receipts and warranty cards digitally and get reminded of warranty and statutory warranty periods."
+      },
+      {
+        "title": "2. Account",
+        "body": "An account is required to use the app. You are responsible for keeping your login details secret. One account per person is intended."
+      },
+      {
+        "title": "3. Your content",
+        "body": "The photos and details you upload remain your content. You only grant us the rights needed to store, process and display them to you."
+      },
+      {
+        "title": "4. Automatic recognition",
+        "body": "Photos of receipts may be sent to an AI service provider to automatically recognise the retailer, date and products. You can find details in the Privacy Policy. Recognised details may be wrong; please check them before saving."
+      },
+      {
+        "title": "5. Deadlines and reminders",
+        "body": "Deadlines are calculated from the details you provide. They do not replace legal advice. You are responsible yourself for the accuracy of the deadlines and for asserting claims in time."
+      },
+      {
+        "title": "6. Availability and liability",
+        "body": "We strive for high availability but cannot guarantee it. We are liable without limitation for intent and gross negligence, and otherwise in accordance with the statutory provisions."
+      },
+      {
+        "title": "7. Termination",
+        "body": "You can delete your account at any time in the app under “More”. This deletes your devices, receipts and reminders."
+      },
+      {
+        "title": "8. Changes",
+        "body": "If these terms change, we will ask for your consent again in the app."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "bindingNotice": "This translation is provided for your convenience. Only the German version is legally binding.",
+    "sections": [
+      {
+        "title": "1. Controller",
+        "body": [
+          "The controller responsible for processing your data in Dalor Gawa is:",
+          "[Name or company]\n[Street, number]\n[Postcode, city]\nEmail: [contact email]",
+          "If you have questions about data protection, you can reach us at [data protection email]."
+        ]
+      },
+      {
+        "title": "2. What data we process",
+        "body": [
+          "• Account data: email address and password (stored only in encrypted form). When you sign in with Google, additionally the name, email address and Google ID that Google sends us. Optionally your name, if you enter it in your profile.",
+          "• Devices and maintenance: name, category, brand, retailer or workshop, purchase date or date of the last maintenance, maintenance interval, price and notes that you enter.",
+          "• Receipts: photos of receipts, invoices and warranty cards. They may contain further details, e.g. your name, the store branch or parts of a card number.",
+          "• Recognised details: retailer, purchase date, products and prices, as well as the full text of the receipt read from a photo, so you can search your receipts.",
+          "• When you export a receipt as a PDF, the file is created only temporarily on your phone and is not stored by us.",
+          "• Your device's push token, to send you reminders.",
+          "• Your consent to the Terms of Use (version and time).",
+          "• Technical data when our servers are accessed (e.g. IP address, time, error messages)."
+        ]
+      },
+      {
+        "title": "3. Purposes and legal bases",
+        "body": [
+          "• Providing the app, your account, the storage of your receipts and the deadline calculation: to perform the user agreement (Art. 6(1)(b) GDPR).",
+          "• Reminders via push notification: likewise to perform the contract (Art. 6(1)(b) GDPR). You can turn off notifications at any time in your phone's settings.",
+          "• Automatic recognition of receipts when you take or select a photo: to perform the contract (Art. 6(1)(b) GDPR).",
+          "• Proof of your consent to the Terms of Use, as well as security and troubleshooting: on the basis of our legitimate interest (Art. 6(1)(f) GDPR).",
+          "We do not sell your data and do not use it for advertising."
+        ]
+      },
+      {
+        "title": "4. Recipients and service providers",
+        "body": [
+          "We use the following service providers, who process your data on our behalf:",
+          "• Supabase Inc. (USA): sign-in, database and storage of photos. The data is located on servers in London (United Kingdom).",
+          "• OpenAI, L.L.C. (USA): automatic recognition of receipts. For this, the photo of the receipt is sent to OpenAI via a time-limited link and analysed there.",
+          "• Expo / 650 Industries, Inc. (USA): delivery of push notifications, together with Apple (iOS) or Google (Android).",
+          "• Google Ireland Ltd.: only if you sign in with Google. Google's privacy policy applies to signing in with Google.",
+          "[Enter here which service providers a data processing agreement (Art. 28 GDPR) has been concluded with.]"
+        ]
+      },
+      {
+        "title": "5. Transfers to third countries",
+        "body": [
+          "For the United Kingdom, there is an adequacy decision of the EU Commission.",
+          "For service providers in the USA, data is transferred on the basis of the EU-US Data Privacy Framework where the service provider is certified, and otherwise on the basis of EU standard contractual clauses (Art. 46(2)(c) GDPR).",
+          "[Before publication, check and enter which basis applies for each service provider.]"
+        ]
+      },
+      {
+        "title": "6. Storage period",
+        "body": [
+          "We store devices, receipts, recognised details and reminders until you delete them or delete your account.",
+          "When you delete your account in the app under “More”, your account, all devices, photos, reminders and push tokens are deleted immediately.",
+          "Server logs are deleted after [number] days. Statutory retention obligations remain unaffected."
+        ]
+      },
+      {
+        "title": "7. Your rights",
+        "body": [
+          "You have the right of access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction of processing (Art. 18), data portability (Art. 20) and to object to processing based on legitimate interests (Art. 21 GDPR).",
+          "To do so, contact [data protection email]. You can delete your account yourself in the app at any time.",
+          "You also have the right to lodge a complaint with a data protection supervisory authority, e.g. the authority where you live or [competent supervisory authority]."
+        ]
+      },
+      {
+        "title": "8. Obligation to provide data",
+        "body": "We need your email address for an account. All other details and photos are voluntary; without them, however, we cannot calculate deadlines or store receipts for you."
+      },
+      {
+        "title": "9. No automated decisions",
+        "body": "We do not make decisions based solely on automated processing that produce legal effects concerning you (Art. 22 GDPR). The automatic recognition only makes suggestions that you check before saving."
+      },
+      {
+        "title": "10. Camera, photos and notifications",
+        "body": "The app only accesses the camera and photos when you take or select a receipt yourself, and only after you have allowed access. We only send notifications with your permission."
+      },
+      {
+        "title": "11. Changes",
+        "body": "We update this Privacy Policy when the app or the legal situation changes. You can find the current version in the app at any time."
+      }
+    ]
+  },
+  "rights": {
+    "title": "Warranty or statutory warranty?",
+    "intro": "The TV flickers, the phone stops charging, and right away the word “warranty” comes up. But often the statutory warranty (Gewährleistung) is what's meant. The difference decides whom you turn to and what rights you have.",
+    "summary": {
+      "title": "In short",
+      "text": "The statutory warranty is set by law and applies against the retailer. The warranty is a voluntary extra, usually from the manufacturer. Both apply side by side."
+    },
+    "comparison": {
+      "statutory": "Statutory warranty",
+      "warranty": "Warranty",
+      "rows": {
+        "basis": { "label": "Basis", "statutory": "Law (VGG, § 933 ABGB)", "warranty": "Voluntary promise" },
+        "party": { "label": "Against", "statutory": "Retailer", "warranty": "Usually manufacturer" },
+        "duration": { "label": "Duration", "statutory": "2 years from handover", "warranty": "As per warranty card" },
+        "covers": { "label": "Covers", "statutory": "Defects that already existed at purchase", "warranty": "Whatever the warrantor specifies" },
+        "exclusion": { "label": "Exclusion", "statutory": "Not possible when buying from a business", "warranty": "Terms freely chosen" }
+      }
+    },
+    "statutory": {
+      "title": "Statutory warranty: your legal right",
+      "facts": {
+        "period": "The defect must appear within 2 years of handover.",
+        "burdenOfProof": "In the first year, the retailer must prove that the defect did not exist at purchase. After that, you have to prove it.",
+        "lawsuit": "After the 2 years have expired, you still have 3 months to assert your rights in court.",
+        "scope": "Applies when a business sells to consumers. For private sales between individuals, it is not mandatory."
+      }
+    },
+    "remedies": {
+      "title": "How a defect is remedied",
+      "step": "Step {{number}}",
+      "repair": {
+        "title": "Repair or replacement",
+        "text": "You choose whichever you prefer, free of charge and within a reasonable time. Only if one option is impossible or disproportionately expensive may the retailer offer the other."
+      },
+      "refund": {
+        "title": "Price reduction or money back",
+        "text": "If the repair fails, is refused or takes too long. You can only rescind the contract if the defect is more than minor."
+      }
+    },
+    "warranty": {
+      "title": "Warranty: a voluntary extra",
+      "facts": {
+        "voluntary": "A voluntary extra, usually from the manufacturer, sometimes from the retailer. No one is obliged to offer it.",
+        "conditions": "The warrantor decides the duration, covered damage and procedure.",
+        "difference": "It can last longer than the statutory warranty, but may also cover less.",
+        "noReplacement": "It never replaces the statutory warranty. The warranty statement must point this out."
+      }
+    },
+    "tips": {
+      "title": "Practical tips",
+      "facts": {
+        "keepInvoice": "Keep the invoice: without proof of purchase it gets difficult. That's what your Vault is for.",
+        "retailerFirst": "In the first 2 years, go to the retailer first, especially in the first year while they bear the burden of proof.",
+        "warrantyLater": "Use the warranty afterwards: it matters most once the statutory warranty has expired.",
+        "reportQuickly": "Report defects promptly and keep an eye on the deadlines. We'll remind you in time."
+      }
+    },
+    "terms": {
+      "title": "Key terms explained",
+      "defect": {
+        "term": "Defect",
+        "definition": "The goods are not as agreed or as usual, e.g. faulty, incomplete or wrongly described."
+      },
+      "handover": {
+        "term": "Handover",
+        "definition": "The moment you receive the goods. The 2 years start from here."
+      },
+      "burdenOfProof": {
+        "term": "Burden of proof",
+        "definition": "Who has to prove that the defect already existed at purchase. In the first year the retailer, after that you."
+      },
+      "rescission": {
+        "term": "Rescission",
+        "definition": "You return the goods and get the purchase price refunded."
+      }
+    },
+    "help": {
+      "title": "Help if in doubt",
+      "ak": "Chamber of Labour (Arbeiterkammer, AK)",
+      "vki": "Consumer Information Association (VKI)"
+    },
+    "disclaimer": "General information for Austria; does not replace legal advice. Sources: RIS (§ 933 ABGB), WKO (Verbrauchergewährleistungsgesetz – Consumer Warranty Act), GTAI (warranty law in Austria)."
+  }
+}

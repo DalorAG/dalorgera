@@ -1,0 +1,60 @@
+{
+  "home": {
+    "title": "Warranty Wallet",
+    "subtitle": "Your devices. Your peace of mind.",
+    "expiring_one": "{{count}} warranty expires soon",
+    "expiring_other": "{{count}} warranties expire soon",
+    "watching": "We keep an eye on your warranties.",
+    "bannerSubtitle": "Simple, secure and automatic.",
+    "spentIn": "Spent in {{month}}",
+    "purchases_one": "{{count}} purchase",
+    "purchases_other": "{{count}} purchases",
+    "devices": "Devices",
+    "allReceipts": "All receipts",
+    "filterAll": "All",
+    "empty": {
+      "title": "No devices yet",
+      "message": "Scan your first receipt or warranty card. We'll remind you before your cover ends."
+    },
+    "emptyCategory": {
+      "title": "Nothing in this category",
+      "message": "Add something with the +."
+    }
+  },
+  "gawa": {
+    "subtitle": "Warranty and statutory warranty for your devices.",
+    "bannerTitle": "Warranty and statutory warranty periods are calculated automatically.",
+    "bannerSubtitle": "No need to worry about a thing.",
+    "devicesCount": "Devices ({{count}})",
+    "searchPlaceholder": "Search devices",
+    "noMatch": "No device matches “{{query}}”.",
+    "empty": {
+      "title": "No devices",
+      "message": "Add your first device with the +."
+    },
+    "archive": "Archive: {{count}} expired"
+  },
+  "add": {
+    "question": "What would you like to keep track of?",
+    "luxury": {
+      "title": "Add invoice",
+      "description": "Put a watch, jewellery or bag with its invoice and value into the vault."
+    }
+  },
+  "receipt": {
+    "notFound": {
+      "title": "Receipt not found",
+      "message": "It may have been deleted."
+    },
+    "openFailed": "Can't open receipt",
+    "openA11y": "Open receipt",
+    "merchant": "Merchant",
+    "purchaseDate": "Purchase date",
+    "total": "Total",
+    "uploadedAt": "Uploaded on",
+    "items": "Items",
+    "device": "Device",
+    "unassigned": "Not assigned to a device.",
+    "createDevice": "Create device"
+  }
+}

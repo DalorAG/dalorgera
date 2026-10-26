@@ -10,6 +10,7 @@ import type {
   DocumentMimeType,
   LuxuryItem,
   LuxuryItemInput,
+  MarketValueEstimate,
   Me,
   ReceiptExtraction,
   Reminder,
@@ -137,6 +138,10 @@ export const api = createApi({
       invalidatesTags: (_r, _e, { id }) => [{ type: 'LuxuryItem', id }, { type: 'LuxuryItem', id: 'LIST' }, 'WarrantyRequest'],
     }),
 
+    estimateMarketValue: build.mutation<MarketValueEstimate, { id: string; language: string }>({
+      query: ({ id, ...body }) => ({ url: `luxury-items/${id}/market-value`, method: 'POST', body }),
+    }),
+
     getReminders: build.query<Reminder[], void>({
       query: () => 'reminders',
       providesTags: ['Reminder'],
@@ -174,6 +179,7 @@ export const {
   useUpdateLuxuryItemMutation,
   useDeleteLuxuryItemMutation,
   useRequestLuxuryInsuranceMutation,
+  useEstimateMarketValueMutation,
   useGetRemindersQuery,
   useRegisterPushTokenMutation,
   useUnregisterPushTokenMutation,

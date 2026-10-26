@@ -1,0 +1,61 @@
+{
+  "profile": {
+    "passwordTooShort": "The password must be at least {{min}} characters long.",
+    "saved": "Profile saved.",
+    "savedSubtitle": "Your changes have been applied.",
+    "nameLabel": "Name",
+    "namePlaceholder": "First and last name",
+    "emailLabel": "Email",
+    "emailHint": "The email address can't be changed at the moment.",
+    "passwordLabel": "New password",
+    "passwordPlaceholder": "Leave empty to keep it"
+  },
+  "pricing": {
+    "basic": {
+      "name": "Basic",
+      "price": "Free",
+      "features": {
+        "scan": "Scan unlimited receipts",
+        "reminders": "Reminders for warranty, statutory warranty and maintenance",
+        "vault": "Digital vault"
+      }
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "Coming soon",
+      "features": {
+        "basic": "Everything in Basic",
+        "family": "Family account for several people",
+        "extension": "Warranty extension offers"
+      }
+    },
+    "current": "Your plan",
+    "comingSoon": "Premium isn't available yet. We'll let you know as soon as it launches."
+  },
+  "more": {
+    "title": "More",
+    "editProfile": "Edit profile",
+    "inbox": "Inbox",
+    "upcomingReminders": "Upcoming reminders",
+    "noReminders": "No upcoming reminders.",
+    "reminder": {
+      "maintenance": "Maintenance due on {{date}}",
+      "vignette": "Vignette valid until {{date}}",
+      "burdenOfProof": "Burden of proof on the seller until {{date}}",
+      "warranty": "Warranty ends on {{date}}",
+      "legalWarranty": "Statutory warranty ends on {{date}}",
+      "remindAt": "Reminder on {{date}}"
+    },
+    "legal": "Legal",
+    "rights": "Warranty or statutory warranty?",
+    "signOut": "Sign out",
+    "signOutFailed": "Sign-out failed",
+    "deleteAccount": "Delete account",
+    "deleteConfirm": {
+      "title": "Delete account?",
+      "message": "Your account and all devices, receipts and reminders will be deleted immediately and permanently.",
+      "action": "Delete permanently"
+    },
+    "deleteFailed": "Deletion failed"
+  }
+}

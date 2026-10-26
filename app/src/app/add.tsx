@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
@@ -16,6 +17,7 @@ import { radius, spacing, useTheme } from '@/theme';
  */
 export default function AddScreen() {
   const theme = useTheme();
+  const { t } = useTranslation('overview');
   const dispatch = useAppDispatch();
 
   const pick = (kind: DeviceKind) => {
@@ -30,7 +32,7 @@ export default function AddScreen() {
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
       <Text variant="body" color="textSecondary">
-        Was möchtest du im Blick behalten?
+        {t('add.question')}
       </Text>
       {DEVICE_KIND_OPTIONS.map((o) => (
         <Card key={o.kind} onPress={() => pick(o.kind)} style={styles.row}>
@@ -51,9 +53,9 @@ export default function AddScreen() {
           <Ionicons name="lock-closed-outline" size={26} color={theme.brand} />
         </View>
         <View style={styles.flex}>
-          <Text variant="headline">Rechnung hinzufügen</Text>
+          <Text variant="headline">{t('add.luxury.title')}</Text>
           <Text variant="caption" color="textSecondary">
-            Uhr, Schmuck oder Tasche mit Rechnung und Wert in den Tresor legen.
+            {t('add.luxury.description')}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />

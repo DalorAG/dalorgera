@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,23 +16,19 @@ import { Text } from '@/components/text';
 import type { DeviceKind } from '@/lib/api-types';
 import { DEVICE_KIND_OPTIONS, isReceipt } from '@/lib/device-ui';
 import { formatPrice, spentInMonth } from '@/lib/format';
-import { isPreviewable } from '@/components/device-thumb';
+import { useDevicePhotos } from '@/features/use-device-photos';
+import { formatLocale } from '@/i18n';
 import { useGetDevicesQuery, useGetDocumentsQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
 export default function OverviewScreen() {
   const theme = useTheme();
+  const { t } = useTranslation(['overview', 'common']);
   const [filter, setFilter] = useState<DeviceKind | 'all'>('all');
   const { data: devices, isLoading, isFetching, error, refetch } = useGetDevicesQuery();
 
   const { data: documents } = useGetDocumentsQuery();
-  // Per device: its Produktfoto, otherwise the newest receipt photo (documents come newest first).
-  const photos = new Map<string, NonNullable<typeof documents>[number]>();
-  for (const doc of documents ?? []) {
-    if (!doc.deviceId || !isPreviewable(doc)) continue;
-    const shown = photos.get(doc.deviceId);
-    if (!shown || (doc.kind === 'product_photo' && shown.kind !== 'product_photo')) photos.set(doc.deviceId, doc);
-  }
+  const photos = useDevicePhotos();
 
   // Sorted by deadline on the server; expired devices live in the Tresor,
   // an overdue Wartung stays here because it still needs doing.
@@ -53,20 +50,16 @@ export default function OverviewScreen() {
               <Ionicons name="shield-checkmark" size={34} color={theme.brand} />
             </View>
           }
-          title="Garantie Wallet"
-          subtitle="Deine Geräte. Deine Sicherheit."
+          title={t('home.title')}
+          subtitle={t('home.subtitle')}
           actions={
             <Ionicons name="person-outline" size={24} color={theme.text} onPress={() => router.push('/mehr')} />
           }
         />
 
         <InfoBanner
-          title={
-            expiring > 0
-              ? `${expiring} ${expiring === 1 ? 'Garantie läuft' : 'Garantien laufen'} bald ab`
-              : 'Wir behalten deine Garantien im Blick.'
-          }
-          subtitle="Einfach, sicher und automatisch."
+          title={expiring > 0 ? t('home.expiring', { count: expiring }) : t('home.watching')}
+          subtitle={t('home.bannerSubtitle')}
         />
 
         {devices?.length ? (
@@ -74,12 +67,12 @@ export default function OverviewScreen() {
             <Ionicons name="wallet-outline" size={26} color={theme.brandIcon} />
             <View style={styles.flex}>
               <Text variant="caption" color="textSecondary">
-                Im {now.toLocaleDateString('de-DE', { month: 'long' })} ausgegeben
+                {t('home.spentIn', { month: now.toLocaleDateString(formatLocale(), { month: 'long' }) })}
               </Text>
               <Text variant="headline">{formatPrice(spent.cents)}</Text>
             </View>
             <Text variant="caption" color="textSecondary">
-              {spent.count} {spent.count === 1 ? 'Kauf' : 'Käufe'}
+              {t('home.purchases', { count: spent.count })}
             </Text>
           </Card>
         ) : null}
@@ -90,7 +83,7 @@ export default function OverviewScreen() {
               <Ionicons name="cube-outline" size={22} color={theme.brandIcon} />
               <View style={styles.flex}>
                 <Text variant="caption" color="textSecondary">
-                  Geräte
+                  {t('home.devices')}
                 </Text>
                 <Text variant="headline">{devices.length}</Text>
               </View>
@@ -100,7 +93,7 @@ export default function OverviewScreen() {
               <Ionicons name="document-text-outline" size={22} color={theme.brandIcon} />
               <View style={styles.flex}>
                 <Text variant="caption" color="textSecondary">
-                  Alle Belege
+                  {t('home.allReceipts')}
                 </Text>
                 <Text variant="headline">{receiptsCount}</Text>
               </View>
@@ -110,12 +103,13 @@ export default function OverviewScreen() {
         ) : null}
 
         {current.length > 0 ? (
-          <View style={styles.chips}>
-            <Chip label="Alle" selected={filter === 'all'} onPress={() => setFilter('all')} />
+          // One row; longer labels (en, ru) scroll sideways, edge to edge.
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chips}>
+            <Chip label={t('home.filterAll')} selected={filter === 'all'} onPress={() => setFilter('all')} />
             {DEVICE_KIND_OPTIONS.map((o) => (
               <Chip key={o.kind} label={o.label} selected={filter === o.kind} onPress={() => setFilter(o.kind)} />
             ))}
-          </View>
+          </ScrollView>
         ) : null}
 
         {isLoading ? (
@@ -126,16 +120,16 @@ export default function OverviewScreen() {
           <StateView
             kind="empty"
             icon="receipt-outline"
-            title="Noch keine Geräte"
-            message="Scanne deinen ersten Kassenbon oder Garantieschein. Wir erinnern dich, bevor der Schutz endet."
+            title={t('home.empty.title')}
+            message={t('home.empty.message')}
           />
         ) : shown.length === 0 ? (
-          <StateView kind="empty" icon="file-tray-outline" title="Nichts in dieser Kategorie" message="Füge etwas mit dem + hinzu." />
+          <StateView kind="empty" icon="file-tray-outline" title={t('home.emptyCategory.title')} message={t('home.emptyCategory.message')} />
         ) : (
           shown.map((d) => <WarrantyCard key={d.id} device={d} photo={photos.get(d.id)} />)
         )}
 
-        <Button label="Hinzufügen" icon="add" onPress={() => router.push('/add')} />
+        <Button label={t('common:actions.add')} icon="add" onPress={() => router.push('/add')} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -144,7 +138,8 @@ export default function OverviewScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chipsRow: { flexGrow: 0, marginHorizontal: -spacing.xl },
+  chips: { gap: spacing.sm, paddingHorizontal: spacing.xl },
   spent: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   tiles: { flexDirection: 'row', gap: spacing.md },
   tile: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

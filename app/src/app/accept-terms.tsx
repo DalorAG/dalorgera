@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,6 +20,7 @@ import { radius, spacing, useTheme } from '@/theme';
  */
 export default function AcceptTermsScreen() {
   const theme = useTheme();
+  const { t } = useTranslation('auth');
   const { data: me } = useGetMeQuery();
   const [acceptTerms, { isLoading, error }] = useAcceptTermsMutation();
   const [checked, setChecked] = useState(false);
@@ -53,27 +55,26 @@ export default function AcceptTermsScreen() {
         <View style={[styles.icon, { backgroundColor: theme.brandSoft }]}>
           <Ionicons name="document-text-outline" size={36} color={theme.brand} />
         </View>
-        <Text variant="display">Fast geschafft</Text>
+        <Text variant="display">{t('acceptTerms.title')}</Text>
         <Text variant="body" color="textSecondary">
-          Bevor du Dalor Gawa nutzen kannst, bestätige bitte unsere Nutzungsbedingungen.
+          {t('acceptTerms.intro')}
         </Text>
 
         <Checkbox checked={checked} onChange={(v) => { setChecked(v); setShowError(false); }} error={showError}>
           <Text variant="body">
-            Ich akzeptiere die{' '}
-            <Link href="/terms" style={{ color: theme.brand, fontWeight: '600' }}>
-              Nutzungsbedingungen
-            </Link>
-            . Die{' '}
-            <Link href="/privacy" style={{ color: theme.brand, fontWeight: '600' }}>
-              Datenschutzerklärung
-            </Link>{' '}
-            habe ich zur Kenntnis genommen.
+            <Trans
+              t={t}
+              i18nKey="terms.consent"
+              components={{
+                terms: <Link href="/terms" style={{ color: theme.brand, fontWeight: '600' }} />,
+                privacy: <Link href="/privacy" style={{ color: theme.brand, fontWeight: '600' }} />,
+              }}
+            />
           </Text>
         </Checkbox>
         {showError ? (
           <Text variant="caption" color="danger">
-            Bitte bestätige die Nutzungsbedingungen.
+            {t('acceptTerms.required')}
           </Text>
         ) : null}
         {error ? (
@@ -82,8 +83,8 @@ export default function AcceptTermsScreen() {
           </Text>
         ) : null}
 
-        <Button label="Zustimmen und fortfahren" onPress={submit} loading={isLoading} />
-        <Button label="Abmelden" variant="secondary" onPress={() => supabase.auth.signOut()} />
+        <Button label={t('acceptTerms.submit')} onPress={submit} loading={isLoading} />
+        <Button label={t('acceptTerms.signOut')} variant="secondary" onPress={() => supabase.auth.signOut()} />
       </ScrollView>
     </SafeAreaView>
   );

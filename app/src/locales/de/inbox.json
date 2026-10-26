@@ -1,0 +1,60 @@
+{
+  "inbox": {
+    "title": "Posteingang",
+    "waiting_one": "{{count}} Beleg wartet auf ein Gerät.",
+    "waiting_other": "{{count}} Belege warten auf ein Gerät.",
+    "allAssigned": "Alles zugeordnet. Neue Scans landen hier.",
+    "insurance": {
+      "title": "Zusatzversicherung anfragen",
+      "subtitle": "Foto machen, absenden: Garantieverlängerung oder Versicherung über unseren Partner."
+    },
+    "searchPlaceholder": "Belege durchsuchen, z. B. Media Markt",
+    "filterAll": "Alle",
+    "filterOpen": "Offen ({{count}})",
+    "noMatch": "Kein Beleg passt zu „{{query}}“.",
+    "allDone": {
+      "title": "Alles erledigt",
+      "message": "Jeder Beleg ist einem Gerät zugeordnet."
+    },
+    "empty": {
+      "title": "Posteingang ist leer",
+      "message": "Fotografiere einen Kassenbon oder Garantieschein.",
+      "action": "Beleg scannen"
+    }
+  },
+  "archive": {
+    "intro": "Abgelaufene Geräte. Belege und Angaben bleiben erhalten, z. B. für die Steuer oder einen Weiterverkauf.",
+    "searchPlaceholder": "Archiv durchsuchen",
+    "noMatch": "Kein Gerät passt zu „{{query}}“.",
+    "empty": {
+      "title": "Archiv ist leer",
+      "message": "Abgelaufene Geräte landen automatisch hier."
+    }
+  },
+  "list": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "thisWeek": "Diese Woche",
+    "unassignedA11y": "{{sender}}, noch nicht zugeordnet",
+    "assignDevice": "Gerät zuordnen",
+    "device": "Gerät",
+    "extensionRequested": "Garantieverlängerung angefragt",
+    "extendA11y": "Garantie verlängern, {{days}} möglich",
+    "extend": "Garantie verlängern · {{days}}"
+  },
+  "documents": {
+    "valuable": "Wertsache",
+    "device": "Gerät",
+    "pdfFailed": "PDF konnte nicht erstellt werden",
+    "deleteConfirm": {
+      "title": "{{kind}} löschen?",
+      "fromDevice": "Der Beleg wird von „{{owner}}“ entfernt. Das Gerät bleibt erhalten.",
+      "fromValuable": "Der Beleg wird von „{{owner}}“ entfernt. Die Wertsache bleibt erhalten.",
+      "permanent": "Der Beleg wird endgültig gelöscht."
+    },
+    "deleteFailed": "Beleg konnte nicht gelöscht werden",
+    "uploadedAt": "Hochgeladen am {{date}}",
+    "unassigned": "Keinem Gerät zugeordnet",
+    "delete": "Beleg löschen"
+  }
+}
