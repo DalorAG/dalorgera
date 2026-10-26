@@ -61,7 +61,8 @@ export const api = createApi({
     }),
     createDevice: build.mutation<Device, DeviceInput>({
       query: (body) => ({ url: 'devices', method: 'POST', body }),
-      invalidatesTags: [{ type: 'Device', id: 'LIST' }, 'Reminder'],
+      // Me carries the device count of the plan.
+      invalidatesTags: [{ type: 'Device', id: 'LIST' }, 'Reminder', 'Me'],
     }),
     updateDevice: build.mutation<Device, { id: string } & Partial<DeviceInput>>({
       query: ({ id, ...body }) => ({ url: `devices/${id}`, method: 'PATCH', body }),
@@ -69,7 +70,7 @@ export const api = createApi({
     }),
     deleteDevice: build.mutation<void, string>({
       query: (id) => ({ url: `devices/${id}`, method: 'DELETE' }),
-      invalidatesTags: [{ type: 'Device', id: 'LIST' }, 'Document', 'Reminder'],
+      invalidatesTags: [{ type: 'Device', id: 'LIST' }, 'Document', 'Reminder', 'Me'],
     }),
 
     getDocuments: build.query<DocumentItem[], { deviceId?: string; q?: string } | void>({

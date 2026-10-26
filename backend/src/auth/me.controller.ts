@@ -34,19 +34,24 @@ export class MeController {
 
   @Get()
   async me(@CurrentUser() user: AuthUser) {
-    const { data, error } = await this.supabase
-      .forUser(user.accessToken)
-      .from('terms_acceptances')
-      .select('accepted_at')
-      .eq('version', CURRENT_TERMS_VERSION)
-      .maybeSingle();
+    const db = this.supabase.forUser(user.accessToken);
+    const [{ data, error }, plan] = await Promise.all([
+      db.from('terms_acceptances').select('accepted_at').eq('version', CURRENT_TERMS_VERSION).maybeSingle(),
+      db.rpc('my_plan').maybeSingle(),
+    ]);
     if (error) throw toHttpError(error);
+    if (plan.error) throw toHttpError(plan.error);
 
     return {
       id: user.id,
       email: user.email,
       isAnonymous: user.isAnonymous,
       terms: { currentVersion: CURRENT_TERMS_VERSION, accepted: !!data, acceptedAt: data?.accepted_at ?? null },
+      plan: {
+        id: plan.data?.plan ?? 'trial',
+        deviceLimit: plan.data?.device_limit ?? 50,
+        devicesUsed: plan.data?.devices_used ?? 0,
+      },
     };
   }
 

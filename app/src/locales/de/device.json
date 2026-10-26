@@ -70,7 +70,8 @@
     "warrantyHint": "Die gesetzliche Gewährleistung von 2 Jahren wird automatisch berücksichtigt (beim Kauf von einem Unternehmen).",
     "maintenanceHint": "Wir erinnern dich 30 und 7 Tage vor der nächsten Wartung.",
     "statutoryHint": "Gesetzliche Gewährleistung: 2 Jahre ab Kaufdatum, im ersten Jahr trägt der Händler die Beweislast. Gilt beim Kauf von einem Unternehmen, nicht von Privat an Privat.",
-    "saveAndNext": "Speichern & weiter ({{left}} übrig)"
+    "saveAndNext": "Speichern & weiter ({{left}} übrig)",
+    "seePlans": "Tarife ansehen"
   },
   "rightsLink": "Garantie oder Gewährleistung? Mehr erfahren",
   "detail": {

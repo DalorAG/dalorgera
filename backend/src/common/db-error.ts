@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   ConflictException,
   ForbiddenException,
   InternalServerErrorException,
@@ -13,6 +15,13 @@ const logger = new Logger('Database');
 
 /** Maps PostgREST / Postgres errors to HTTP errors without leaking internals. */
 export function toHttpError(error: DbError): Error {
+  // Raised by the devices trigger when the plan's device limit is used up.
+  if (error.code === 'P0001' && error.message === 'device_limit_reached') {
+    return new HttpException(
+      { statusCode: HttpStatus.PAYMENT_REQUIRED, code: 'DEVICE_LIMIT_REACHED', message: 'Device limit of the plan reached' },
+      HttpStatus.PAYMENT_REQUIRED,
+    );
+  }
   switch (error.code) {
     case 'PGRST116':
       return new NotFoundException();

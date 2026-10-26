@@ -17,26 +17,34 @@
     }
   },
   "pricing": {
-    "basic": {
-      "name": "Basis",
-      "price": "Kostenlos",
-      "features": {
-        "scan": "Unbegrenzt Belege scannen",
-        "reminders": "Erinnerungen an Garantie, Gewährleistung und Wartung",
-        "vault": "Digitaler Tresor"
+    "usage": "Deine Geräte",
+    "usageCount": "{{used}} von {{limit}} Geräten",
+    "limitReached": "Limit erreicht. Wähle einen größeren Tarif, um weitere Geräte hinzuzufügen.",
+    "plans": {
+      "trial": {
+        "name": "Trial",
+        "price": "Kostenlos"
+      },
+      "plus": {
+        "name": "Plus",
+        "price": "1,99 € / Monat"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9,99 € / Monat"
       }
     },
-    "premium": {
-      "name": "Premium",
-      "price": "Demnächst",
-      "features": {
-        "basic": "Alles aus Basis",
-        "family": "Familienkonto für mehrere Personen",
-        "extension": "Angebote zur Garantieverlängerung"
-      }
+    "devices_one": "Bis zu {{count}} Gerät",
+    "devices_other": "Bis zu {{count}} Geräte",
+    "features": {
+      "reminders": "Erinnerungen an Garantie, Gewährleistung und Wartung",
+      "tresor": "Tresor für Wertsachen und alle Belege"
     },
     "current": "Dein Tarif",
-    "comingSoon": "Premium ist noch nicht verfügbar. Wir informieren dich, sobald es losgeht."
+    "choose": "{{name}} wählen",
+    "notYetTitle": "Bald verfügbar",
+    "notYet": "Der Kauf in der App kommt in Kürze. Wir sagen dir Bescheid, sobald du upgraden kannst.",
+    "footnote": "Wertsachen im Tresor zählen nicht zum Geräte-Limit. Abos verlängern sich monatlich und sind jederzeit kündbar."
   },
   "more": {
     "title": "Mehr",
@@ -64,7 +72,8 @@
     },
     "deleteFailed": "Löschen fehlgeschlagen",
     "reminderTiming": "Wann erinnern?",
-    "reminderTimingHint": "{{days}} Tage vorher · {{time}} Uhr"
+    "reminderTimingHint": "{{days}} Tage vorher · {{time}} Uhr",
+    "planHint": "{{name}} · {{used}}/{{limit}} Geräte"
   },
   "reminderSettings": {
     "daysTitle": "Wie viele Tage vor Fristende?",

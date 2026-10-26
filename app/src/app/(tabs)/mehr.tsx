@@ -16,7 +16,7 @@ import i18n from '@/i18n';
 import { apiErrorMessage, formatDate } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import { useAppSelector } from '@/store';
-import { useDeleteAccountMutation, useGetReminderSettingsQuery, useGetRemindersQuery } from '@/store/api';
+import { useDeleteAccountMutation, useGetMeQuery, useGetReminderSettingsQuery, useGetRemindersQuery } from '@/store/api';
 import { spacing, useTheme } from '@/theme';
 
 function notify(title: string, message: string) {
@@ -42,6 +42,7 @@ export default function MoreScreen() {
   const name = useAppSelector((s) => s.auth.name);
   const { data: reminders } = useGetRemindersQuery();
   const { data: reminderSettings } = useGetReminderSettingsQuery();
+  const { data: me } = useGetMeQuery();
   const [deleteAccount, { isLoading: deleting }] = useDeleteAccountMutation();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -86,7 +87,20 @@ export default function MoreScreen() {
         </Card>
 
         <Card style={styles.links}>
-          <LinkRow icon="pricetags-outline" label={t('nav:pricing')} onPress={() => router.push('/pricing')} />
+          <LinkRow
+            icon="pricetags-outline"
+            label={t('nav:pricing')}
+            hint={
+              me
+                ? t('more.planHint', {
+                    name: t(`pricing.plans.${me.plan.id}.name`),
+                    used: me.plan.devicesUsed,
+                    limit: me.plan.deviceLimit,
+                  })
+                : undefined
+            }
+            onPress={() => router.push('/pricing')}
+          />
         </Card>
 
         <Card style={styles.links}>

@@ -70,7 +70,8 @@
     "warrantyHint": "The 2-year statutory warranty is included automatically (when buying from a business).",
     "maintenanceHint": "We'll remind you 30 and 7 days before the next service.",
     "statutoryHint": "Statutory warranty: 2 years from the purchase date; in the first year the seller bears the burden of proof. Applies when buying from a business, not between private individuals.",
-    "saveAndNext": "Save & next ({{left}} left)"
+    "saveAndNext": "Save & next ({{left}} left)",
+    "seePlans": "See plans"
   },
   "rightsLink": "Warranty or statutory warranty? Learn more",
   "detail": {

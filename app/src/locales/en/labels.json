@@ -117,6 +117,7 @@
   },
   "apiError": {
     "network": "Server unreachable. Check your connection.",
-    "generic": "Something went wrong."
+    "generic": "Something went wrong.",
+    "deviceLimit": "You reached the device limit of your plan. Choose a bigger plan under Plans."
   }
 }

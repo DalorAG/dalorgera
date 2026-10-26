@@ -117,6 +117,7 @@
   },
   "apiError": {
     "network": "Server nicht erreichbar. Prüfe deine Verbindung.",
-    "generic": "Etwas ist schiefgelaufen."
+    "generic": "Etwas ist schiefgelaufen.",
+    "deviceLimit": "Du hast das Geräte-Limit deines Tarifs erreicht. Wähle unter Tarife einen größeren Tarif."
   }
 }

@@ -17,26 +17,34 @@
     }
   },
   "pricing": {
-    "basic": {
-      "name": "Basic",
-      "price": "Free",
-      "features": {
-        "scan": "Scan unlimited receipts",
-        "reminders": "Reminders for warranty, statutory warranty and maintenance",
-        "vault": "Digital vault"
+    "usage": "Your devices",
+    "usageCount": "{{used}} of {{limit}} devices",
+    "limitReached": "Limit reached. Choose a bigger plan to add more devices.",
+    "plans": {
+      "trial": {
+        "name": "Trial",
+        "price": "Free"
+      },
+      "plus": {
+        "name": "Plus",
+        "price": "€1.99 / month"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "€9.99 / month"
       }
     },
-    "premium": {
-      "name": "Premium",
-      "price": "Coming soon",
-      "features": {
-        "basic": "Everything in Basic",
-        "family": "Family account for several people",
-        "extension": "Warranty extension offers"
-      }
+    "devices_one": "Up to {{count}} device",
+    "devices_other": "Up to {{count}} devices",
+    "features": {
+      "reminders": "Reminders for warranty, statutory warranty and maintenance",
+      "tresor": "Tresor for valuables and all receipts"
     },
     "current": "Your plan",
-    "comingSoon": "Premium isn't available yet. We'll let you know as soon as it launches."
+    "choose": "Choose {{name}}",
+    "notYetTitle": "Coming soon",
+    "notYet": "In-app purchase is coming soon. We will let you know as soon as you can upgrade.",
+    "footnote": "Valuables in the Tresor do not count towards the device limit. Subscriptions renew monthly and can be cancelled at any time."
   },
   "more": {
     "title": "More",
@@ -64,7 +72,8 @@
     },
     "deleteFailed": "Deletion failed",
     "reminderTiming": "When to remind?",
-    "reminderTimingHint": "{{days}} days before · {{time}}"
+    "reminderTimingHint": "{{days}} days before · {{time}}",
+    "planHint": "{{name}} · {{used}}/{{limit}} devices"
   },
   "reminderSettings": {
     "daysTitle": "How many days before the deadline?",

@@ -12,7 +12,7 @@ import { TextField } from '@/components/text-field';
 import { DeviceCodeFields, eanError, imeiError } from '@/components/device-code-fields';
 import type { DeviceKind, ReceiptExtraction } from '@/lib/api-types';
 import { hasDeviceCodes, INTERVAL_OPTIONS, WARRANTY_OPTIONS } from '@/lib/device-ui';
-import { apiErrorMessage, currencySymbol, formatDate, parseDate, parsePrice } from '@/lib/format';
+import { apiErrorMessage, currencySymbol, formatDate, isDeviceLimitError, parseDate, parsePrice } from '@/lib/format';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   currentVignetteYear,
@@ -84,6 +84,7 @@ export default function NewDeviceScreen() {
   const vignetteStart = vignetteType === 'year' ? null : parseDate(form.purchaseDate);
   const vignette =
     vignetteType === 'year' || vignetteStart ? vignettePeriod(vignetteType, vignetteStart ?? '', vignetteYear) : null;
+  const [limitReached, setLimitReached] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof Form | 'submit', string>>>({});
   const [createDevice, { isLoading: creating }] = useCreateDeviceMutation();
   const [updateDocument, { isLoading: linking }] = useUpdateDocumentMutation();
@@ -171,6 +172,7 @@ export default function NewDeviceScreen() {
       setLastSaved(device.name);
       pickProduct(next, false);
     } catch (err) {
+      setLimitReached(isDeviceLimitError(err));
       setErrors({ submit: apiErrorMessage(err) });
     }
   };
@@ -430,6 +432,9 @@ export default function NewDeviceScreen() {
           <Text variant="body" color="danger">
             {errors.submit}
           </Text>
+        ) : null}
+        {limitReached ? (
+          <Button label={t('new.seePlans')} variant="secondary" icon="pricetags-outline" onPress={() => router.push('/pricing')} />
         ) : null}
         <Button
           label={remaining.length > 1 ? t('new.saveAndNext', { left: remaining.length - 1 }) : t('common:actions.save')}

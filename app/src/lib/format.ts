@@ -58,9 +58,16 @@ export function remainingLabel(daysLeft: number): string {
   return i18n.t('labels:remaining.months', { count: Math.round(daysLeft / 30.44) });
 }
 
+/** The plan's device limit is used up (HTTP 402 from the API). */
+export function isDeviceLimitError(err: unknown): boolean {
+  const e = err as { status?: number | string; data?: { code?: string } };
+  return e?.status === 402 && e.data?.code === 'DEVICE_LIMIT_REACHED';
+}
+
 export function apiErrorMessage(err: unknown): string {
   const e = err as { status?: number | string; data?: { message?: string | string[] }; message?: string };
   if (e?.status === 'FETCH_ERROR') return i18n.t('labels:apiError.network');
+  if (isDeviceLimitError(err)) return i18n.t('labels:apiError.deviceLimit');
   const msg = e?.data?.message ?? e?.message;
   return Array.isArray(msg) ? msg.join('\n') : (msg ?? i18n.t('labels:apiError.generic'));
 }

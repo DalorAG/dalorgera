@@ -8,6 +8,7 @@ import { Text } from '@/components/text';
 import type { DeviceKind } from '@/lib/api-types';
 import { DEVICE_KIND_OPTIONS } from '@/lib/device-ui';
 import { useAppDispatch } from '@/store';
+import { useGetMeQuery } from '@/store/api';
 import { scanCleared } from '@/store/scan-slice';
 import { radius, spacing, useTheme } from '@/theme';
 
@@ -17,10 +18,14 @@ import { radius, spacing, useTheme } from '@/theme';
  */
 export default function AddScreen() {
   const theme = useTheme();
-  const { t } = useTranslation('overview');
+  const { t } = useTranslation(['overview', 'account', 'labels']);
   const dispatch = useAppDispatch();
+  const { data: me } = useGetMeQuery();
+  // Wertsachen do not count, so only devices are held back.
+  const full = !!me && me.plan.devicesUsed >= me.plan.deviceLimit;
 
   const pick = (kind: DeviceKind) => {
+    if (full) return router.push('/pricing');
     if (kind === 'vignette') {
       dispatch(scanCleared());
       router.replace({ pathname: '/device/new', params: { kind } });
@@ -32,8 +37,17 @@ export default function AddScreen() {
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
       <Text variant="body" color="textSecondary">
-        {t('add.question')}
+        {t('overview:add.question')}
       </Text>
+      {full ? (
+        <Card onPress={() => router.push('/pricing')} style={[styles.row, { borderColor: theme.danger, borderWidth: 1 }]}>
+          <Ionicons name="alert-circle-outline" size={24} color={theme.danger} />
+          <Text variant="body" color="danger" style={styles.flex}>
+            {t('labels:apiError.deviceLimit')}
+          </Text>
+          <Ionicons name="chevron-forward" size={20} color={theme.danger} />
+        </Card>
+      ) : null}
       {DEVICE_KIND_OPTIONS.map((o) => (
         <Card key={o.kind} onPress={() => pick(o.kind)} style={styles.row}>
           <View style={[styles.icon, { backgroundColor: theme.brandSoft }]}>
@@ -53,9 +67,9 @@ export default function AddScreen() {
           <Ionicons name="lock-closed-outline" size={26} color={theme.brand} />
         </View>
         <View style={styles.flex}>
-          <Text variant="headline">{t('add.luxury.title')}</Text>
+          <Text variant="headline">{t('overview:add.luxury.title')}</Text>
           <Text variant="caption" color="textSecondary">
-            {t('add.luxury.description')}
+            {t('overview:add.luxury.description')}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />

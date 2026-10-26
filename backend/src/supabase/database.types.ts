@@ -239,6 +239,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_plans: {
+        Row: {
+          plan: string
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          plan: string
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          plan?: string
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       reminder_settings: {
         Row: {
           days_before: number[]
@@ -412,6 +433,14 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["reminder_kind"]
           user_id: string
+        }[]
+      }
+      my_plan: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          devices_used: number
+          device_limit: number
+          plan: string
         }[]
       }
     }
