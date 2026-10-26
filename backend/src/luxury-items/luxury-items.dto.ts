@@ -91,7 +91,14 @@ export class CreateLuxuryItemDto {
 }
 
 /** documentIds are added to the existing photos; photos are removed with DELETE /documents/:id. */
-export class UpdateLuxuryItemDto extends PartialType(CreateLuxuryItemDto) {}
+export class UpdateLuxuryItemDto extends PartialType(CreateLuxuryItemDto) {
+  @ApiPropertyOptional({ type: [String], description: 'Photo ids in display order; the first one is the cover' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAX_LUXURY_PHOTOS)
+  @IsUUID('all', { each: true })
+  photoOrder?: string[];
+}
 
 export class RequestInsuranceDto {
   @ApiPropertyOptional({ example: 'Bitte auch gegen Verlust auf Reisen.' })

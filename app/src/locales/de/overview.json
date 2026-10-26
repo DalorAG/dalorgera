@@ -19,6 +19,19 @@
     "emptyCategory": {
       "title": "Nichts in dieser Kategorie",
       "message": "Füge etwas mit dem + hinzu."
+    },
+    "actions": {
+      "title": "Aktionen",
+      "add": "Rechnung hinzufügen",
+      "extend": "Garantie verlängern",
+      "luxury": "Versicherung anfragen",
+      "inbox": "Posteingang"
+    },
+    "poweredBy": "Powered by Dalor AG",
+    "drafts": {
+      "title_one": "{{count}} Entwurf",
+      "title_other": "{{count}} Entwürfe",
+      "message": "Gescannt, aber noch nicht gespeichert. Jetzt fertigstellen."
     }
   },
   "gawa": {

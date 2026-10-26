@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,6 +38,8 @@ export default function OverviewScreen() {
   const now = new Date();
   const spent = spentInMonth(devices ?? [], now);
   const receiptsCount = documents?.filter(isReceipt).length ?? 0;
+  // Scanned receipts not yet saved as a device or Wertsache.
+  const draftsCount = documents?.filter((d) => isReceipt(d) && !d.deviceId && !d.luxuryItemId).length ?? 0;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
@@ -76,6 +78,31 @@ export default function OverviewScreen() {
             </Text>
           </Card>
         ) : null}
+
+        {draftsCount > 0 ? (
+          <Card
+            onPress={() => router.push({ pathname: '/posteingang', params: { open: '1' } })}
+            style={[styles.tile, { borderColor: theme.warningSoftBorder, backgroundColor: theme.warningSoft }]}>
+            <Ionicons name="create-outline" size={22} color={theme.warningText} />
+            <View style={styles.flex}>
+              <Text variant="bodyStrong" color="warningText">
+                {t('home.drafts.title', { count: draftsCount })}
+              </Text>
+              <Text variant="caption" color="warningText">
+                {t('home.drafts.message')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.warningText} />
+          </Card>
+        ) : null}
+
+        <Text variant="title">{t('home.actions.title')}</Text>
+        <View style={styles.actions}>
+          <Action icon="receipt-outline" label={t('home.actions.add')} onPress={() => router.push('/add')} />
+          <Action icon="shield-half-outline" label={t('home.actions.extend')} onPress={() => router.push('/warranty-request')} />
+          <Action icon="diamond-outline" label={t('home.actions.luxury')} onPress={() => router.push('/luxury-request')} />
+          <Action icon="file-tray-outline" label={t('home.actions.inbox')} onPress={() => router.push('/posteingang')} />
+        </View>
 
         {devices?.length ? (
           <View style={styles.tiles}>
@@ -130,8 +157,26 @@ export default function OverviewScreen() {
         )}
 
         <Button label={t('common:actions.add')} icon="add" onPress={() => router.push('/add')} />
+
+        <Text variant="micro" color="textTertiary" style={styles.poweredBy}>
+          {t('home.poweredBy')}
+        </Text>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function Action({ icon, label, onPress }: { icon: ComponentProps<typeof Ionicons>['name']; label: string; onPress: () => void }) {
+  const theme = useTheme();
+  return (
+    <Card onPress={onPress} style={styles.action}>
+      <View style={[styles.actionIcon, { backgroundColor: theme.brandSoft }]}>
+        <Ionicons name={icon} size={22} color={theme.brand} />
+      </View>
+      <Text variant="captionStrong" numberOfLines={2} style={styles.actionLabel}>
+        {label}
+      </Text>
+    </Card>
   );
 }
 
@@ -143,6 +188,12 @@ const styles = StyleSheet.create({
   spent: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   tiles: { flexDirection: 'row', gap: spacing.md },
   tile: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  // Two per row.
+  action: { flexBasis: '45%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  actionIcon: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  actionLabel: { flex: 1 },
+  poweredBy: { textAlign: 'center' },
   logo: {
     width: 60,
     height: 60,

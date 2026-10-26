@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
@@ -20,7 +20,9 @@ export default function InboxScreen() {
   const theme = useTheme();
   const { t } = useTranslation(['inbox', 'common']);
   const [search, setSearch] = useState('');
-  const [onlyOpen, setOnlyOpen] = useState(false);
+  // ?open=1 from the Entwürfe card on the Übersicht.
+  const params = useLocalSearchParams<{ open?: string }>();
+  const [onlyOpen, setOnlyOpen] = useState(params.open === '1');
   // Full-text search in the recognized receipt text (store, products, ...).
   const q = useDebouncedValue(search.trim());
   const { data: documents, isLoading, isFetching, error, refetch } = useGetDocumentsQuery(q ? { q } : undefined);

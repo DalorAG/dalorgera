@@ -21,7 +21,12 @@ import type { LuxuryCategory, LuxuryItem } from '@/lib/api-types';
 import type { CodeTarget } from '@/lib/device-codes';
 import { apiErrorMessage, formatDate, parseDate, parsePrice } from '@/lib/format';
 import { LUXURY_CATEGORIES } from '@/lib/luxury';
-import { useCreateLuxuryItemMutation, useGetLuxuryItemQuery, useUpdateLuxuryItemMutation } from '@/store/api';
+import {
+  useCreateLuxuryItemMutation,
+  useGetLuxuryItemQuery,
+  useIdentifyDocumentMutation,
+  useUpdateLuxuryItemMutation,
+} from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
 const MAX_PHOTOS = 10;
@@ -61,6 +66,23 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
   const [error, setError] = useState<string | null>(null);
   const [create, { isLoading: creating }] = useCreateLuxuryItemMutation();
   const [update, { isLoading: updating }] = useUpdateLuxuryItemMutation();
+  const [identifyDocument, { isLoading: identifying }] = useIdentifyDocumentMutation();
+  // Set when the category came from the photo, so the user knows to check it.
+  const [detected, setDetected] = useState(false);
+
+  /** The first photo picks the category (and brand and model if still empty); the user can change it. */
+  const identify = async (added: RequestPhoto[]) => {
+    if (category || !added[0]) return;
+    const found = await identifyDocument(added[0].id).unwrap().catch(() => null);
+    if (!found) return;
+    setCategory((c) => {
+      if (c) return c;
+      setDetected(true);
+      return found.category;
+    });
+    if (found.brand) setBrand((b) => b.trim() || found.brand!);
+    if (found.model) setModel((m) => m.trim() || found.model!);
+  };
 
   /** A Rechnung or Kaufbeleg fills in what is still empty; a photo of the item itself has nothing to read. */
   const prefill = (added: RequestPhoto[]) => {
@@ -81,7 +103,10 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
     setError(null);
     try {
       const added = await invoice.add(source);
-      if (added) prefill([added]);
+      if (added) {
+        prefill([added]);
+        await identify([added]);
+      }
     } catch (err) {
       setError(apiErrorMessage(err));
     }
@@ -90,7 +115,9 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
   const addPhotos = async (source: PhotoSource) => {
     setError(null);
     try {
-      prefill(await attachPhotos(source));
+      const added = await attachPhotos(source);
+      prefill(added);
+      await identify(added);
     } catch (err) {
       setError(apiErrorMessage(err));
     }
@@ -134,7 +161,7 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
     }
   };
 
-  const busy = photosBusy || invoice.busy;
+  const busy = photosBusy || invoice.busy || identifying;
 
   return (
     <KeyboardAvoidingView
@@ -177,9 +204,26 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
           <Text variant="captionStrong">{t('form.category')}</Text>
           <View style={styles.chips}>
             {LUXURY_CATEGORIES.map((c) => (
-              <Chip key={c.value} label={c.label} selected={category === c.value} onPress={() => setCategory(c.value)} />
+              <Chip
+                key={c.value}
+                label={c.label}
+                selected={category === c.value}
+                onPress={() => {
+                  setDetected(false);
+                  setCategory(c.value);
+                }}
+              />
             ))}
           </View>
+          {identifying ? (
+            <Text variant="caption" color="textSecondary">
+              {t('form.identifying')}
+            </Text>
+          ) : detected ? (
+            <Text variant="caption" color="brand">
+              {t('form.categoryDetected')}
+            </Text>
+          ) : null}
         </View>
         <TextField
           label={t('form.brand')}

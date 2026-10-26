@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { InfoBanner } from '@/components/info-banner';
+import { ProfileAvatar } from '@/components/profile-avatar';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
 import { supabase } from '@/lib/supabase';
@@ -47,6 +48,9 @@ export default function ProfileScreen() {
       style={[styles.flex, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.avatar}>
+          <ProfileAvatar size={96} />
+        </View>
         {message?.ok ? <InfoBanner title={message.text} subtitle={t('profile.savedSubtitle')} /> : null}
         <TextField label={t('profile.nameLabel')} value={name} onChangeText={setName} placeholder={t('profile.namePlaceholder')} autoComplete="name" />
         <TextField label={t('profile.emailLabel')} value={email ?? ''} editable={false} hint={t('profile.emailHint')} />
@@ -73,4 +77,5 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg },
+  avatar: { alignItems: 'center' },
 });

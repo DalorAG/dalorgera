@@ -108,7 +108,8 @@
       "store": "Gekauft bei",
       "price": "Preis",
       "serialNumber": "Seriennummer",
-      "imei": "IMEI"
+      "imei": "IMEI",
+      "ean": "EAN"
     },
     "markServiced": "Wartung erledigt",
     "extension": {

@@ -21,6 +21,7 @@ const row = (overrides: Partial<Tables<'devices'>> = {}): Tables<'devices'> => (
   notes: null,
   serial_number: null,
   imei: null,
+  ean: null,
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
   ...overrides,

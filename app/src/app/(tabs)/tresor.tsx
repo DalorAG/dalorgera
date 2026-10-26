@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/card';
@@ -12,9 +12,12 @@ import { ScreenHeader } from '@/components/screen-header';
 import { SearchField } from '@/components/search-field';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
+import { useHiddenAmounts } from '@/features/use-hidden-amounts';
+import { rankByPhoto, usePhotoSearch, type PhotoQuery } from '@/features/use-photo-search';
+import type { PhotoSource } from '@/features/use-product-photo';
 import type { Device, DocumentItem, LuxuryItem } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
-import { formatPrice } from '@/lib/format';
+import { apiErrorMessage, formatPrice } from '@/lib/format';
 import { LUXURY_CATEGORIES, REQUEST_STATUS_LABELS, currentValue, itemTitle, totals, valueChange } from '@/lib/luxury';
 import { useGetDevicesQuery, useGetDocumentUrlQuery, useGetDocumentsQuery, useGetLuxuryItemsQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
@@ -23,27 +26,24 @@ type Segment = 'items' | 'documents';
 
 const words = (query: string) => query.split(/\s+/).filter(Boolean);
 
-function itemMatches(item: LuxuryItem, query: string): boolean {
+function itemText(item: LuxuryItem): string {
   const category = LUXURY_CATEGORIES.find((c) => c.value === item.category)?.label;
-  const text = [item.brand, item.model, category, item.store, item.referenceNumber, item.serialNumber, item.notes]
+  return [item.brand, item.model, category, item.store, item.referenceNumber, item.serialNumber, item.notes]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
-  return words(query).every((w) => text.includes(w));
 }
 
-function documentMatches(doc: DocumentItem, owner: string | undefined, query: string): boolean {
-  const text = [DOCUMENT_KIND_LABELS[doc.kind], doc.extracted?.merchant, owner, doc.rawText]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-  return words(query).every((w) => text.includes(w));
+function documentText(doc: DocumentItem, owner: string | undefined): string {
+  return [DOCUMENT_KIND_LABELS[doc.kind], doc.extracted?.merchant, owner, doc.rawText].filter(Boolean).join(' ').toLowerCase();
 }
+
+const matchesAll = (text: string, query: string) => words(query).every((w) => text.includes(w));
 
 /** Tresor: Wertsachen with what they are worth today, and every Beleg in the app. */
 export default function TresorScreen() {
   const theme = useTheme();
-  const { t } = useTranslation(['tresor', 'common']);
+  const { t } = useTranslation(['tresor', 'common', 'components']);
   const params = useLocalSearchParams<{ segment?: Segment }>();
   const [segment, setSegment] = useState<Segment>(params.segment === 'documents' ? 'documents' : 'items');
   const [search, setSearch] = useState('');
@@ -54,12 +54,35 @@ export default function TresorScreen() {
   const query = search.trim().toLowerCase();
 
   const owners = ownerNames(devices ?? [], items.data ?? []);
-  const shownItems = (items.data ?? []).filter((i) => !query || itemMatches(i, query));
-  const shownDocuments = (documents.data ?? []).filter(
-    (d) => !query || documentMatches(d, owners.get(d.deviceId ?? d.luxuryItemId ?? ''), query),
-  );
+  const [photoQuery, setPhotoQuery] = useState<PhotoQuery | null>(null);
+  const photoSearch = usePhotoSearch();
+  const ownerOf = (d: DocumentItem) => owners.get(d.deviceId ?? d.luxuryItemId ?? '');
+  const allItems = items.data ?? [];
+  const allDocuments = documents.data ?? [];
+  const shownItems = photoQuery
+    ? rankByPhoto(allItems, itemText, photoQuery)
+    : allItems.filter((i) => !query || matchesAll(itemText(i), query));
+  const shownDocuments = photoQuery
+    ? rankByPhoto(allDocuments, (d) => documentText(d, ownerOf(d)), photoQuery)
+    : allDocuments.filter((d) => !query || matchesAll(documentText(d, ownerOf(d)), query));
+  const searched = photoQuery?.label ?? search.trim();
+
+  const searchByPhoto = async (source: PhotoSource) => {
+    try {
+      const found = await photoSearch.search(source);
+      if (found) {
+        setSearch('');
+        setPhotoQuery(found);
+      }
+    } catch (err) {
+      const message = apiErrorMessage(err);
+      if (Platform.OS === 'web') window.alert(message);
+      else Alert.alert(t('components:search.photoFailed'), message);
+    }
+  };
   const sum = totals(items.data ?? []);
   const currency = items.data?.[0]?.currency ?? 'EUR';
+  const { hidden, toggle, mask } = useHiddenAmounts();
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
@@ -74,18 +97,27 @@ export default function TresorScreen() {
         />
 
         <Card style={[styles.wealth, { backgroundColor: theme.brand }]}>
-          <Text variant="caption" color="textOnBrand">
-            {t('list.wealth')}
-          </Text>
+          <View style={styles.wealthRow}>
+            <Text variant="caption" color="textOnBrand">
+              {t('list.wealth')}
+            </Text>
+            <Pressable
+              onPress={toggle}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={hidden ? t('list.showAmounts') : t('list.hideAmounts')}>
+              <Ionicons name={hidden ? 'eye-off-outline' : 'eye-outline'} size={20} color={theme.textOnBrand} />
+            </Pressable>
+          </View>
           <Text variant="display" color="textOnBrand">
-            {formatPrice(sum.value, currency)}
+            {mask(formatPrice(sum.value, currency))}
           </Text>
           <View style={styles.wealthRow}>
             <Text variant="caption" color="textOnBrand">
               {t('list.itemCount', { count: items.data?.length ?? 0 })}
             </Text>
             <Text variant="caption" color="textOnBrand">
-              {t('list.totalCost', { amount: formatPrice(sum.cost, currency) })}
+              {t('list.totalCost', { amount: mask(formatPrice(sum.cost, currency)) })}
             </Text>
           </View>
         </Card>
@@ -111,8 +143,15 @@ export default function TresorScreen() {
 
         <SearchField
           value={search}
-          onChangeText={setSearch}
+          onChangeText={(v) => {
+            setPhotoQuery(null);
+            setSearch(v);
+          }}
           placeholder={segment === 'items' ? t('list.searchItems') : t('list.searchDocuments')}
+          onPhoto={searchByPhoto}
+          photoBusy={photoSearch.busy}
+          photoQuery={photoQuery}
+          onClearPhoto={() => setPhotoQuery(null)}
         />
 
         <View style={[styles.segments, { borderBottomColor: theme.border }]}>
@@ -149,10 +188,13 @@ export default function TresorScreen() {
                 <ItemRow key={item.id} item={item} />
               ))}
             </View>
-          ) : query ? (
-            <StateView kind="empty" icon="search-outline" title={t('common:state.nothingFound')}
-              message={t('list.noItemMatch', { query: search.trim() })}
-             />
+          ) : query || photoQuery ? (
+            <StateView
+              kind="empty"
+              icon="search-outline"
+              title={t('common:state.nothingFound')}
+              message={t('list.noItemMatch', { query: searched })}
+            />
           ) : (
             <StateView
               kind="empty"
@@ -163,10 +205,13 @@ export default function TresorScreen() {
           )
         ) : shownDocuments.length ? (
           <DocumentsList documents={shownDocuments} devices={devices ?? []} luxuryItems={items.data ?? []} />
-        ) : query ? (
-          <StateView kind="empty" icon="search-outline" title={t('common:state.nothingFound')}
-            message={t('list.noDocumentMatch', { query: search.trim() })}
-           />
+        ) : query || photoQuery ? (
+          <StateView
+            kind="empty"
+            icon="search-outline"
+            title={t('common:state.nothingFound')}
+            message={t('list.noDocumentMatch', { query: searched })}
+          />
         ) : (
           <StateView kind="empty" icon="receipt-outline" title={t('list.emptyDocuments.title')}
             message={t('list.emptyDocuments.message')}
@@ -188,8 +233,9 @@ function ItemRow({ item }: { item: LuxuryItem }) {
   const category = LUXURY_CATEGORIES.find((c) => c.value === item.category);
   const cover = item.photos[0];
   const { data: coverUrl } = useGetDocumentUrlQuery(cover?.id ?? '', { skip: !cover });
+  const { hidden, mask } = useHiddenAmounts();
   const value = currentValue(item);
-  const change = valueChange(item);
+  const change = hidden ? null : valueChange(item);
   const status = item.request
     ? t('list.insured', { status: REQUEST_STATUS_LABELS[item.request.status] })
     : t('list.notInsured');
@@ -215,7 +261,7 @@ function ItemRow({ item }: { item: LuxuryItem }) {
         <Text variant="micro" color="textSecondary">
           {t('list.currentValue')}
         </Text>
-        <Text variant="bodyStrong">{value != null ? formatPrice(value, item.currency) : '–'}</Text>
+        <Text variant="bodyStrong">{value != null ? mask(formatPrice(value, item.currency)) : '–'}</Text>
         {change ? (
           <Text variant="micro" color={change.startsWith('−') ? 'danger' : 'success'}>
             {change}
@@ -230,7 +276,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl },
   wealth: { gap: spacing.xs },
-  wealthRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  wealthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   cta: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1 },
   ctaIcon: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   segments: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },

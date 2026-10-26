@@ -8,12 +8,14 @@ import type {
   DocumentItem,
   DocumentKind,
   DocumentMimeType,
+  ItemIdentification,
   LuxuryItem,
   LuxuryItemInput,
   MarketValueEstimate,
   Me,
   ReceiptExtraction,
   Reminder,
+  ReminderSettings,
   UploadUrl,
   WarrantyRequest,
 } from '@/lib/api-types';
@@ -32,7 +34,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Me', 'Device', 'Document', 'Reminder', 'WarrantyRequest', 'LuxuryItem'],
+  tagTypes: ['Me', 'Device', 'Document', 'Reminder', 'ReminderSettings', 'WarrantyRequest', 'LuxuryItem'],
   endpoints: (build) => ({
     getMe: build.query<Me, void>({
       query: () => 'me',
@@ -86,10 +88,17 @@ export const api = createApi({
     }),
     updateDocument: build.mutation<DocumentItem, { id: string; kind?: DocumentKind; deviceId?: string | null }>({
       query: ({ id, ...body }) => ({ url: `documents/${id}`, method: 'PATCH', body }),
-      invalidatesTags: ['Document', { type: 'Device', id: 'LIST' }],
+      invalidatesTags: ['Document', { type: 'Device', id: 'LIST' }, { type: 'LuxuryItem', id: 'LIST' }],
     }),
     recognizeDocument: build.mutation<ReceiptExtraction, string>({
       query: (id) => ({ url: `documents/${id}/recognize`, method: 'POST' }),
+    }),
+    identifyDocument: build.mutation<ItemIdentification, string>({
+      query: (id) => ({ url: `documents/${id}/identify`, method: 'POST' }),
+    }),
+    /** Suche per Foto: the photo at storagePath is deleted by the server afterwards. */
+    describePhoto: build.mutation<ItemIdentification, { storagePath: string }>({
+      query: (body) => ({ url: 'documents/describe-photo', method: 'POST', body }),
     }),
     getDocumentUrl: build.query<{ url: string; expiresIn: number }, string>({
       query: (id) => `documents/${id}/url`,
@@ -98,7 +107,17 @@ export const api = createApi({
     }),
     deleteDocument: build.mutation<void, string>({
       query: (id) => ({ url: `documents/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['Document', { type: 'Device', id: 'LIST' }],
+      invalidatesTags: ['Document', { type: 'Device', id: 'LIST' }, { type: 'LuxuryItem', id: 'LIST' }],
+    }),
+
+    getReminderSettings: build.query<ReminderSettings, void>({
+      query: () => 'reminders/settings',
+      providesTags: ['ReminderSettings'],
+    }),
+    updateReminderSettings: build.mutation<ReminderSettings, ReminderSettings>({
+      query: (body) => ({ url: 'reminders/settings', method: 'PUT', body }),
+      // The server rebuilds the pending reminders.
+      invalidatesTags: ['ReminderSettings', 'Reminder'],
     }),
 
     getWarrantyRequests: build.query<WarrantyRequest[], void>({
@@ -125,7 +144,7 @@ export const api = createApi({
       query: (body) => ({ url: 'luxury-items', method: 'POST', body }),
       invalidatesTags: [{ type: 'LuxuryItem', id: 'LIST' }, 'Document'],
     }),
-    updateLuxuryItem: build.mutation<LuxuryItem, { id: string } & Partial<LuxuryItemInput>>({
+    updateLuxuryItem: build.mutation<LuxuryItem, { id: string; photoOrder?: string[] } & Partial<LuxuryItemInput>>({
       query: ({ id, ...body }) => ({ url: `luxury-items/${id}`, method: 'PATCH', body }),
       invalidatesTags: (_r, _e, { id }) => [{ type: 'LuxuryItem', id }, { type: 'LuxuryItem', id: 'LIST' }, 'Document'],
     }),
@@ -169,8 +188,12 @@ export const {
   useCreateDocumentMutation,
   useUpdateDocumentMutation,
   useRecognizeDocumentMutation,
+  useIdentifyDocumentMutation,
+  useDescribePhotoMutation,
   useGetDocumentUrlQuery,
   useDeleteDocumentMutation,
+  useGetReminderSettingsQuery,
+  useUpdateReminderSettingsMutation,
   useGetWarrantyRequestsQuery,
   useCreateWarrantyRequestMutation,
   useGetLuxuryItemsQuery,

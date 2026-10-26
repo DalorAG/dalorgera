@@ -8,7 +8,13 @@
     "emailLabel": "Email",
     "emailHint": "The email address can't be changed at the moment.",
     "passwordLabel": "New password",
-    "passwordPlaceholder": "Leave empty to keep it"
+    "passwordPlaceholder": "Leave empty to keep it",
+    "photo": {
+      "title": "Profile photo",
+      "add": "Add profile photo",
+      "change": "Change profile photo",
+      "failed": "Profile photo could not be saved"
+    }
   },
   "pricing": {
     "basic": {
@@ -56,6 +62,19 @@
       "message": "Your account and all devices, receipts and reminders will be deleted immediately and permanently.",
       "action": "Delete permanently"
     },
-    "deleteFailed": "Deletion failed"
+    "deleteFailed": "Deletion failed",
+    "reminderTiming": "When to remind?",
+    "reminderTimingHint": "{{days}} days before · {{time}}"
+  },
+  "reminderSettings": {
+    "daysTitle": "How many days before the deadline?",
+    "daysHint": "You can pick several.",
+    "daysBefore_one": "{{count}} day",
+    "daysBefore_other": "{{count}} days",
+    "hourTitle": "Time",
+    "burdenOfProof": "The burden-of-proof reminder always comes 30 days before the first year ends.",
+    "pickOne": "Pick at least one.",
+    "saved": "Saved",
+    "savedHint": "All upcoming reminders were updated."
   }
 }

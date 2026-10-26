@@ -38,11 +38,12 @@
     "yesterday": "Вчера",
     "thisWeek": "На этой неделе",
     "unassignedA11y": "{{sender}}, ещё не привязан",
-    "assignDevice": "Привязать к устройству",
     "device": "Устройство",
     "extensionRequested": "Продление гарантии запрошено",
     "extendA11y": "Продлить гарантию, {{days}}",
-    "extend": "Продлить гарантию · {{days}}"
+    "extend": "Продлить гарантию · {{days}}",
+    "draft": "Черновик · продолжить",
+    "savedInGawa": "Сохранено в Ga-Wa · {{name}}"
   },
   "documents": {
     "valuable": "Ценность",
@@ -56,7 +57,9 @@
     },
     "deleteFailed": "Не удалось удалить чек",
     "uploadedAt": "Загружено {{date}}",
-    "unassigned": "Не привязан к устройству",
-    "delete": "Удалить чек"
+    "delete": "Удалить чек",
+    "draft": "Черновик, ещё не сохранён",
+    "savedInGawa": "Сохранено в Ga-Wa · {{name}}",
+    "savedInTresor": "Сохранено в Tresor · {{name}}"
   }
 }

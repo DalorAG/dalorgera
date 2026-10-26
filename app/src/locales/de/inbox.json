@@ -36,11 +36,12 @@
     "yesterday": "Gestern",
     "thisWeek": "Diese Woche",
     "unassignedA11y": "{{sender}}, noch nicht zugeordnet",
-    "assignDevice": "Gerät zuordnen",
     "device": "Gerät",
     "extensionRequested": "Garantieverlängerung angefragt",
     "extendA11y": "Garantie verlängern, {{days}} möglich",
-    "extend": "Garantie verlängern · {{days}}"
+    "extend": "Garantie verlängern · {{days}}",
+    "draft": "Entwurf · weiter bearbeiten",
+    "savedInGawa": "In Ga-Wa gespeichert · {{name}}"
   },
   "documents": {
     "valuable": "Wertsache",
@@ -54,7 +55,9 @@
     },
     "deleteFailed": "Beleg konnte nicht gelöscht werden",
     "uploadedAt": "Hochgeladen am {{date}}",
-    "unassigned": "Keinem Gerät zugeordnet",
-    "delete": "Beleg löschen"
+    "delete": "Beleg löschen",
+    "draft": "Entwurf, noch nicht gespeichert",
+    "savedInGawa": "In Ga-Wa gespeichert · {{name}}",
+    "savedInTresor": "Im Tresor gespeichert · {{name}}"
   }
 }

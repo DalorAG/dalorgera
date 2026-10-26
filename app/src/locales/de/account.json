@@ -8,7 +8,13 @@
     "emailLabel": "E-Mail",
     "emailHint": "Die E-Mail-Adresse kann derzeit nicht geändert werden.",
     "passwordLabel": "Neues Passwort",
-    "passwordPlaceholder": "Leer lassen, um es zu behalten"
+    "passwordPlaceholder": "Leer lassen, um es zu behalten",
+    "photo": {
+      "title": "Profilfoto",
+      "add": "Profilfoto hinzufügen",
+      "change": "Profilfoto ändern",
+      "failed": "Profilfoto konnte nicht gespeichert werden"
+    }
   },
   "pricing": {
     "basic": {
@@ -56,6 +62,19 @@
       "message": "Dein Konto, alle Geräte, Belege und Erinnerungen werden sofort und endgültig gelöscht.",
       "action": "Endgültig löschen"
     },
-    "deleteFailed": "Löschen fehlgeschlagen"
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "reminderTiming": "Wann erinnern?",
+    "reminderTimingHint": "{{days}} Tage vorher · {{time}} Uhr"
+  },
+  "reminderSettings": {
+    "daysTitle": "Wie viele Tage vor Fristende?",
+    "daysHint": "Du kannst mehrere Zeitpunkte wählen.",
+    "daysBefore_one": "{{count}} Tag",
+    "daysBefore_other": "{{count}} Tage",
+    "hourTitle": "Uhrzeit",
+    "burdenOfProof": "Die Erinnerung zur Beweislastumkehr kommt immer 30 Tage vor Ende des ersten Jahres.",
+    "pickOne": "Wähle mindestens einen Zeitpunkt.",
+    "saved": "Gespeichert",
+    "savedHint": "Alle anstehenden Erinnerungen wurden angepasst."
   }
 }

@@ -23,6 +23,21 @@
     "emptyCategory": {
       "title": "В этой категории пусто",
       "message": "Добавь что-нибудь через +."
+    },
+    "actions": {
+      "title": "Действия",
+      "add": "Добавить чек",
+      "extend": "Продлить гарантию",
+      "luxury": "Запросить страховку",
+      "inbox": "Входящие"
+    },
+    "poweredBy": "Powered by Dalor AG",
+    "drafts": {
+      "title_one": "{{count}} черновик",
+      "title_few": "{{count}} черновика",
+      "title_many": "{{count}} черновиков",
+      "title_other": "{{count}} черновика",
+      "message": "Отсканировано, но ещё не сохранено. Заверши сейчас."
     }
   },
   "gawa": {

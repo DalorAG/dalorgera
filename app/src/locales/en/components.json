@@ -24,7 +24,12 @@
     },
     "torch": "Flash",
     "permission": "Allow camera access to scan barcodes.",
-    "allowCamera": "Allow camera"
+    "allowCamera": "Allow camera",
+    "ean": {
+      "title": "Scan EAN",
+      "hint": "Hold the barcode on the packaging inside the frame.",
+      "ignored": "That is not an EAN barcode. Look for the 13-digit code on the packaging."
+    }
   },
   "deviceCodes": {
     "serialNumber": "Serial number",
@@ -32,7 +37,11 @@
     "imei": "IMEI",
     "imeiPlaceholder": "15 digits, tip: dial *#06#",
     "imeiInvalid": "Invalid IMEI (15 digits, check digit doesn't match).",
-    "scan": "Scan {{label}}"
+    "scan": "Scan {{label}}",
+    "ean": "EAN (barcode)",
+    "eanPlaceholder": "e.g. 4006381333931",
+    "eanHint": "Printed under the barcode on the packaging. Lets you find the device later by scanning it.",
+    "eanInvalid": "This EAN is not valid, please check it."
   },
   "photo": {
     "remove": "Remove photo",
@@ -50,6 +59,24 @@
     "uploadFailed": "Upload failed ({{status}})"
   },
   "push": {
-    "channelName": "Warranty reminders"
+    "channelName": "Warranty reminders",
+    "setting": {
+      "title": "Push reminders",
+      "on": "On: we remind you 30 and 7 days before every deadline.",
+      "off": "Off: tap to allow reminders.",
+      "denied": "Turned off in the settings. Tap to turn them on there.",
+      "unsupported": "Only available in the app on a real device.",
+      "failed": "Couldn't turn on: {{reason}}"
+    }
+  },
+  "search": {
+    "scan": "Scan EAN and search",
+    "photo": "Search by photo",
+    "photoTitle": "Search by photo",
+    "photoHint": "Take a photo of the item and we look for it in your list.",
+    "photoSearching": "Recognising what is in the photo …",
+    "photoQuery": "Photo: {{label}}",
+    "photoClear": "Clear photo search",
+    "photoFailed": "Photo search failed"
   }
 }

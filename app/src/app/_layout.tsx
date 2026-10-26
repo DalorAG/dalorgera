@@ -83,6 +83,7 @@ function RootNavigator() {
           />
           <Stack.Screen name="profile" options={{ headerShown: true, title: t('profile') }} />
           <Stack.Screen name="pricing" options={{ headerShown: true, title: t('pricing') }} />
+          <Stack.Screen name="reminder-settings" options={{ headerShown: true, title: t('reminderSettings') }} />
           <Stack.Screen name="posteingang" options={{ headerShown: true, title: '' }} />
           <Stack.Screen name="archiv" options={{ headerShown: true, title: t('archive') }} />
           <Stack.Screen

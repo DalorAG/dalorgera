@@ -11,6 +11,7 @@ import { MarketValueCard } from '@/components/market-value-card';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
 import { shareDocumentAsPdf } from '@/features/export-pdf';
+import { useHiddenAmounts } from '@/features/use-hidden-amounts';
 import i18n from '@/i18n';
 import type { PhotoSource } from '@/features/use-product-photo';
 import { pickImages, useUploadPhoto } from '@/features/use-request-photo';
@@ -20,6 +21,7 @@ import { LUXURY_CATEGORIES, REQUEST_STATUS_LABELS, itemTitle } from '@/lib/luxur
 import { useAppDispatch } from '@/store';
 import {
   api,
+  useDeleteDocumentMutation,
   useDeleteLuxuryItemMutation,
   useGetDocumentUrlQuery,
   useGetLuxuryItemQuery,
@@ -60,6 +62,7 @@ function chooseSource(title: string, onPick: (source: PhotoSource) => void) {
 export default function LuxuryItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
+  const { mask } = useHiddenAmounts();
   const { t } = useTranslation(['tresor', 'common']);
   const dispatch = useAppDispatch();
   const { data: item, isLoading, error, refetch } = useGetLuxuryItemQuery(id);
@@ -71,6 +74,8 @@ export default function LuxuryItemScreen() {
   const uploadInvoice = useUploadPhoto('invoice');
   const [adding, setAdding] = useState<DocumentKind | null>(null);
   const [exportingId, setExportingId] = useState<string | null>(null);
+  const [deleteDocument] = useDeleteDocumentMutation();
+  const [busyPhoto, setBusyPhoto] = useState<string | null>(null);
 
   if (isLoading) return <StateView kind="loading" />;
   if (error || !item) return <StateView kind="error" error={error} onRetry={refetch} />;
@@ -97,6 +102,38 @@ export default function LuxuryItemScreen() {
         notify(t('detail.uploadFailed'), apiErrorMessage(err));
       } finally {
         setAdding(null);
+      }
+    });
+
+  /** The first photo is the cover in the Tresor. */
+  const arrange = async (ids: string[], busyId: string) => {
+    setBusyPhoto(busyId);
+    try {
+      await updateItem({ id: item.id, photoOrder: ids }).unwrap();
+    } catch (err) {
+      notify(t('detail.photoOrderFailed'), apiErrorMessage(err));
+    } finally {
+      setBusyPhoto(null);
+    }
+  };
+
+  const movePhoto = (from: number, to: number) => {
+    const ids = item.photos.map((p) => p.id);
+    const [moved] = ids.splice(from, 1);
+    ids.splice(to, 0, moved);
+    arrange(ids, moved);
+  };
+
+  const removePhoto = (photoId: string) =>
+    confirm(t('detail.removePhoto.title'), t('detail.removePhoto.message'), t('common:actions.delete'), true, async () => {
+      setBusyPhoto(photoId);
+      try {
+        await deleteDocument(photoId).unwrap();
+        await refetch();
+      } catch (err) {
+        notify(t('detail.removePhoto.failed'), apiErrorMessage(err));
+      } finally {
+        setBusyPhoto(null);
       }
     });
 
@@ -178,8 +215,18 @@ export default function LuxuryItemScreen() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photos}>
-        {item.photos.map((p) => (
-          <Photo key={p.id} id={p.id} />
+        {item.photos.map((p, i) => (
+          <Photo
+            key={p.id}
+            id={p.id}
+            cover={i === 0}
+            busy={busyPhoto === p.id}
+            disabled={busyPhoto !== null}
+            onCover={() => movePhoto(i, 0)}
+            onLeft={i > 0 ? () => movePhoto(i, i - 1) : undefined}
+            onRight={i < item.photos.length - 1 ? () => movePhoto(i, i + 1) : undefined}
+            onRemove={() => removePhoto(p.id)}
+          />
         ))}
         {item.photos.length < MAX_PHOTOS ? (
           <Pressable
@@ -247,7 +294,7 @@ export default function LuxuryItemScreen() {
       <View style={styles.group}>
         <Text variant="title">{t('detail.details')}</Text>
         <Card style={styles.rows}>
-          <Row label={t('detail.purchasePrice')} value={item.purchasePriceCents != null ? formatPrice(item.purchasePriceCents, item.currency) : '–'} />
+          <Row label={t('detail.purchasePrice')} value={item.purchasePriceCents != null ? mask(formatPrice(item.purchasePriceCents, item.currency)) : '–'} />
           <Row label={t('detail.purchaseDate')} value={formatDate(item.purchaseDate)} />
           <Row label={t('detail.store')} value={item.store ?? '–'} />
           <Row label={t('detail.referenceNumber')} value={item.referenceNumber ?? '–'} />
@@ -301,7 +348,19 @@ export default function LuxuryItemScreen() {
 }
 
 /** Thumbnail through a short-lived signed URL; opens the full-screen viewer. */
-function Photo({ id }: { id: string }) {
+type PhotoProps = {
+  id: string;
+  cover: boolean;
+  busy: boolean;
+  disabled: boolean;
+  onCover: () => void;
+  onLeft?: () => void;
+  onRight?: () => void;
+  onRemove: () => void;
+};
+
+/** A photo with its controls: cover star, move left/right, remove. */
+function Photo({ id, cover, busy, disabled, onCover, onLeft, onRight, onRemove }: PhotoProps) {
   const theme = useTheme();
   const { t } = useTranslation(['tresor', 'common']);
   const { data } = useGetDocumentUrlQuery(id);
@@ -316,6 +375,56 @@ function Photo({ id }: { id: string }) {
       ) : (
         <ActivityIndicator color={theme.brand} />
       )}
+      {busy ? (
+        <View style={[StyleSheet.absoluteFill, styles.photoBusy]}>
+          <ActivityIndicator color="#fff" />
+        </View>
+      ) : null}
+
+      <View style={styles.photoTop}>
+        {cover ? (
+          <View style={[styles.coverBadge, { backgroundColor: theme.brand }]}>
+            <Ionicons name="star" size={12} color={theme.textOnBrand} />
+            <Text variant="micro" color="textOnBrand">
+              {t('detail.cover')}
+            </Text>
+          </View>
+        ) : (
+          <PhotoControl icon="star-outline" label={t('detail.makeCover')} onPress={onCover} disabled={disabled} />
+        )}
+        <PhotoControl icon="close" label={t('detail.removePhoto.title')} onPress={onRemove} disabled={disabled} />
+      </View>
+
+      {onLeft || onRight ? (
+        <View style={styles.photoBottom}>
+          {onLeft ? <PhotoControl icon="chevron-back" label={t('detail.moveLeft')} onPress={onLeft} disabled={disabled} /> : <View />}
+          {onRight ? <PhotoControl icon="chevron-forward" label={t('detail.moveRight')} onPress={onRight} disabled={disabled} /> : null}
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
+
+function PhotoControl({
+  icon,
+  label,
+  onPress,
+  disabled,
+}: {
+  icon: 'close' | 'star-outline' | 'chevron-back' | 'chevron-forward';
+  label: string;
+  onPress: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={6}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.photoControl, { opacity: disabled ? 0.5 : pressed ? 0.7 : 1 }]}>
+      <Ionicons name={icon} size={16} color="#fff" />
     </Pressable>
   );
 }
@@ -358,6 +467,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addPhoto: { borderWidth: 1, borderStyle: 'dashed', gap: spacing.xs },
+  photoBusy: { backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
+  photoTop: { position: 'absolute', top: spacing.xs, left: spacing.xs, right: spacing.xs, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  photoBottom: { position: 'absolute', bottom: spacing.xs, left: spacing.xs, right: spacing.xs, flexDirection: 'row', justifyContent: 'space-between' },
+  photoControl: { width: 28, height: 28, borderRadius: radius.pill, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
+  coverBadge: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill },
   group: { gap: spacing.sm },
   invoice: { gap: spacing.md },
   invoiceOpen: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

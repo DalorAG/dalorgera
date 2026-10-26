@@ -1,7 +1,7 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
-import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { AppState, Linking, Platform } from 'react-native';
 
 import i18n from '@/i18n';
 import { useAppSelector } from '@/store';
@@ -25,37 +25,87 @@ Notifications?.setNotificationHandler({
   }),
 });
 
+/** unsupported: web, simulator or no EAS project id; denied: only the system settings can turn it on. */
+export type PushStatus = 'unsupported' | 'undetermined' | 'granted' | 'denied';
+
+const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
+const available = !!Notifications && Device.isDevice && !!projectId;
+
+type Register = ReturnType<typeof useRegisterPushTokenMutation>[0];
+
+async function readStatus(): Promise<PushStatus> {
+  if (!available) return 'unsupported';
+  const { status, canAskAgain } = await Notifications!.getPermissionsAsync();
+  if (status === 'granted') return 'granted';
+  return status === 'denied' && !canAskAgain ? 'denied' : 'undetermined';
+}
+
+/** Asks for permission if it may still be asked, then hands the Expo push token to our backend. */
+async function enablePush(register: Register, ask: boolean): Promise<PushStatus> {
+  if (!available) return 'unsupported';
+  if (Platform.OS === 'android') {
+    // Android 13+ only shows the permission dialog once a channel exists.
+    await Notifications!.setNotificationChannelAsync('reminders', {
+      name: i18n.t('components:push.channelName'),
+      importance: Notifications!.AndroidImportance.DEFAULT,
+    });
+  }
+  let status = await readStatus();
+  if (status === 'undetermined' && ask) {
+    await Notifications!.requestPermissionsAsync();
+    status = await readStatus();
+  }
+  if (status !== 'granted') return status;
+  const { data: token } = await Notifications!.getExpoPushTokenAsync({ projectId });
+  await register({ token, platform: Platform.OS as 'ios' | 'android' }).unwrap();
+  return status;
+}
+
 /**
- * Registers the Expo push token for warranty reminders.
- * Needs a physical device and an EAS project id (`eas init`); otherwise it is skipped silently.
+ * Registers the Expo push token for warranty reminders. Asks once after sign-in, and registers again
+ * whenever the app comes back to the front, e.g. after notifications were allowed in the settings.
  */
 export function usePushRegistration() {
   const signedIn = useAppSelector((s) => s.auth.status === 'signedIn');
   const [register] = useRegisterPushTokenMutation();
 
   useEffect(() => {
-    if (!signedIn || !Notifications || !Device.isDevice) return;
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
-    if (!projectId) {
-      console.info('Push notifications disabled: no EAS projectId (run `eas init`).');
-      return;
-    }
-
-    (async () => {
-      try {
-        if (Platform.OS === 'android') {
-          await Notifications.setNotificationChannelAsync('reminders', {
-            name: i18n.t('components:push.channelName'),
-            importance: Notifications.AndroidImportance.DEFAULT,
-          });
-        }
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status !== 'granted') return;
-        const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-        await register({ token, platform: Platform.OS as 'ios' | 'android' }).unwrap();
-      } catch (err) {
-        console.info('Push registration skipped:', (err as Error).message);
-      }
-    })();
+    if (!signedIn || !available) return;
+    const run = (ask: boolean) =>
+      enablePush(register, ask).catch((err) => console.info('Push registration skipped:', (err as Error).message));
+    run(true);
+    const sub = AppState.addEventListener('change', (state) => state === 'active' && run(false));
+    return () => sub.remove();
   }, [signedIn, register]);
+}
+
+/** Permission state for the settings switch, kept fresh when the user returns from the system settings. */
+export function usePushPermission() {
+  const [register] = useRegisterPushTokenMutation();
+  const [status, setStatus] = useState<PushStatus | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(() => {
+    readStatus().then(setStatus, () => setStatus('unsupported'));
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    const sub = AppState.addEventListener('change', (state) => state === 'active' && refresh());
+    return () => sub.remove();
+  }, [refresh]);
+
+  /** Turning reminders off, or on after they were denied, is only possible in the system settings. */
+  const toggle = useCallback(async () => {
+    setError(null);
+    if (status === 'granted' || status === 'denied') return Linking.openSettings();
+    try {
+      setStatus(await enablePush(register, true));
+    } catch (err) {
+      setError((err as Error).message);
+      refresh();
+    }
+  }, [status, register, refresh]);
+
+  return { status, error, toggle };
 }

@@ -36,11 +36,12 @@
     "yesterday": "Yesterday",
     "thisWeek": "This week",
     "unassignedA11y": "{{sender}}, not assigned yet",
-    "assignDevice": "Assign device",
     "device": "Device",
     "extensionRequested": "Warranty extension requested",
     "extendA11y": "Extend warranty, {{days}}",
-    "extend": "Extend warranty · {{days}}"
+    "extend": "Extend warranty · {{days}}",
+    "draft": "Draft · continue",
+    "savedInGawa": "Saved in Ga-Wa · {{name}}"
   },
   "documents": {
     "valuable": "Valuable",
@@ -54,7 +55,9 @@
     },
     "deleteFailed": "Couldn't delete receipt",
     "uploadedAt": "Uploaded on {{date}}",
-    "unassigned": "Not assigned to a device",
-    "delete": "Delete receipt"
+    "delete": "Delete receipt",
+    "draft": "Draft, not saved yet",
+    "savedInGawa": "Saved in Ga-Wa · {{name}}",
+    "savedInTresor": "Saved in Tresor · {{name}}"
   }
 }

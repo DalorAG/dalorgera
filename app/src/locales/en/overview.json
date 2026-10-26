@@ -19,6 +19,19 @@
     "emptyCategory": {
       "title": "Nothing in this category",
       "message": "Add something with the +."
+    },
+    "actions": {
+      "title": "Actions",
+      "add": "Add invoice",
+      "extend": "Extend warranty",
+      "luxury": "Request insurance",
+      "inbox": "Inbox"
+    },
+    "poweredBy": "Powered by Dalor AG",
+    "drafts": {
+      "title_one": "{{count}} draft",
+      "title_other": "{{count}} drafts",
+      "message": "Scanned but not saved yet. Finish them now."
     }
   },
   "gawa": {

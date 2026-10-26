@@ -37,6 +37,8 @@ export type Device = {
   notes: string | null;
   serialNumber: string | null;
   imei: string | null;
+  /** EAN/GTIN from the barcode on the box */
+  ean: string | null;
   documentsCount: number;
   createdAt: string;
   updatedAt: string;
@@ -58,6 +60,7 @@ export type DeviceInput = {
   notes?: string | null;
   serialNumber?: string | null;
   imei?: string | null;
+  ean?: string | null;
 };
 
 export type ReceiptExtraction = {
@@ -99,6 +102,18 @@ export type Reminder = {
   dueDate: string;
   remindAt: string;
 };
+
+/** What a photo shows, from POST documents/:id/identify and documents/describe-photo. */
+export type ItemIdentification = {
+  category: LuxuryCategory;
+  brand: string | null;
+  model: string | null;
+  /** Search words in German and English, e.g. Kaffeemaschine, coffee machine */
+  keywords: string[];
+};
+
+/** Days before a deadline and hour of day (Europe/Berlin) at which reminders go out. */
+export type ReminderSettings = { daysBefore: number[]; hour: number };
 
 export type UploadUrl = { storagePath: string; signedUrl: string; token: string };
 

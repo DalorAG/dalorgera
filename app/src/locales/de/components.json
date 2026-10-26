@@ -24,7 +24,12 @@
     },
     "torch": "Blitz",
     "permission": "Erlaube den Kamerazugriff, um Barcodes zu scannen.",
-    "allowCamera": "Kamera erlauben"
+    "allowCamera": "Kamera erlauben",
+    "ean": {
+      "title": "EAN scannen",
+      "hint": "Halte den Strichcode auf der Verpackung in den Rahmen.",
+      "ignored": "Das ist kein EAN-Strichcode. Suche den Code mit 13 Ziffern auf der Verpackung."
+    }
   },
   "deviceCodes": {
     "serialNumber": "Seriennummer",
@@ -32,7 +37,11 @@
     "imei": "IMEI",
     "imeiPlaceholder": "15 Ziffern, Tipp: *#06# wählen",
     "imeiInvalid": "Ungültige IMEI (15 Ziffern, Prüfziffer stimmt nicht).",
-    "scan": "{{label}} scannen"
+    "scan": "{{label}} scannen",
+    "ean": "EAN (Strichcode)",
+    "eanPlaceholder": "z. B. 4006381333931",
+    "eanHint": "Steht unter dem Strichcode auf der Verpackung. Damit findest du das Gerät später per Scan.",
+    "eanInvalid": "Diese EAN ist ungültig, bitte prüfen."
   },
   "photo": {
     "remove": "Foto entfernen",
@@ -50,6 +59,24 @@
     "uploadFailed": "Upload fehlgeschlagen ({{status}})"
   },
   "push": {
-    "channelName": "Garantie-Erinnerungen"
+    "channelName": "Garantie-Erinnerungen",
+    "setting": {
+      "title": "Erinnerungen per Push",
+      "on": "An: wir erinnern dich 30 und 7 Tage vor jeder Frist.",
+      "off": "Aus: tippe, um Erinnerungen zu erlauben.",
+      "denied": "In den Einstellungen deaktiviert. Tippe, um sie dort einzuschalten.",
+      "unsupported": "Nur in der App auf einem echten Gerät verfügbar.",
+      "failed": "Konnte nicht aktiviert werden: {{reason}}"
+    }
+  },
+  "search": {
+    "scan": "EAN scannen und suchen",
+    "photo": "Per Foto suchen",
+    "photoTitle": "Per Foto suchen",
+    "photoHint": "Fotografiere den Gegenstand, wir suchen ihn in deiner Liste.",
+    "photoSearching": "Erkenne, was auf dem Foto ist …",
+    "photoQuery": "Foto: {{label}}",
+    "photoClear": "Fotosuche beenden",
+    "photoFailed": "Fotosuche fehlgeschlagen"
   }
 }

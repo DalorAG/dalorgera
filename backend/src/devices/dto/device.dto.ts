@@ -111,6 +111,11 @@ export class CreateDeviceDto {
   @IsOptional()
   @Matches(/^\d{15}$/)
   imei?: string | null;
+
+  @ApiPropertyOptional({ example: '4006381333931', description: 'EAN/GTIN, 8 to 14 digits, null clears it' })
+  @IsOptional()
+  @Matches(/^\d{8,14}$/)
+  ean?: string | null;
 }
 
 export class UpdateDeviceDto extends PartialType(CreateDeviceDto) {}

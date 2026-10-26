@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { StatusBadge } from '@/components/badge';
 import { Card } from '@/components/card';
 import { DeviceThumb } from '@/components/device-thumb';
+import { ExtensionPill } from '@/components/devices/extension-pill';
 import { Text } from '@/components/text';
 import type { Device, DocumentItem } from '@/lib/api-types';
 import { badgeLabel, deadlineLabel, iconForDevice, startDateLabel, toneForStatus } from '@/lib/device-ui';
@@ -62,6 +63,7 @@ export function VaultRow({ device, photo }: { device: Device; photo?: DocumentIt
           </View>
           <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
         </View>
+        <ExtensionPill device={device} />
       </View>
     </Card>
   );

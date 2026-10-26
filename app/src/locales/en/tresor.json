@@ -24,7 +24,9 @@
     },
     "insured": "Insurance: {{status}}",
     "notInsured": "Not insured",
-    "currentValue": "Current value"
+    "currentValue": "Current value",
+    "showAmounts": "Show amounts",
+    "hideAmounts": "Hide amounts"
   },
   "detail": {
     "addInvoice": "Add invoice",
@@ -83,6 +85,16 @@
       "adjust": "Adjust",
       "manual": "Enter it yourself",
       "estimateFailed": "Couldn't estimate the market value: {{reason}}"
+    },
+    "cover": "Cover",
+    "makeCover": "Use as cover",
+    "moveLeft": "Move left",
+    "moveRight": "Move right",
+    "photoOrderFailed": "Couldn't save the order",
+    "removePhoto": {
+      "title": "Remove photo",
+      "message": "The photo will be deleted permanently.",
+      "failed": "Couldn't delete the photo"
     }
   },
   "form": {
@@ -124,6 +136,8 @@
       "purchasePrice": "Please enter the purchase price as an amount, e.g. 9,800",
       "value": "Please enter the current value as an amount, e.g. 12,500",
       "purchaseDate": "Please enter the purchase date as DD/MM/YYYY."
-    }
+    },
+    "identifying": "Recognising what is in the photo …",
+    "categoryDetected": "Detected automatically, please check."
   }
 }

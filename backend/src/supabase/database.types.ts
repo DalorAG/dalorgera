@@ -23,6 +23,7 @@ export type Database = {
           category: string | null
           created_at: string
           currency: string
+          ean: string | null
           id: string
           imei: string | null
           kind: Database["public"]["Enums"]["device_kind"]
@@ -46,6 +47,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           currency?: string
+          ean?: string | null
           id?: string
           imei?: string | null
           kind?: Database["public"]["Enums"]["device_kind"]
@@ -69,6 +71,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           currency?: string
+          ean?: string | null
           id?: string
           imei?: string | null
           kind?: Database["public"]["Enums"]["device_kind"]
@@ -159,6 +162,7 @@ export type Database = {
           created_at: string
           currency: string
           has_box_papers: boolean
+          photo_order: string[]
           id: string
           model: string
           notes: string | null
@@ -177,6 +181,7 @@ export type Database = {
           created_at?: string
           currency?: string
           has_box_papers?: boolean
+          photo_order?: string[]
           id?: string
           model: string
           notes?: string | null
@@ -195,6 +200,7 @@ export type Database = {
           created_at?: string
           currency?: string
           has_box_papers?: boolean
+          photo_order?: string[]
           id?: string
           model?: string
           notes?: string | null
@@ -228,6 +234,27 @@ export type Database = {
           created_at?: string
           platform?: string
           token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminder_settings: {
+        Row: {
+          days_before: number[]
+          hour: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          days_before?: number[]
+          hour?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          days_before?: number[]
+          hour?: number
           updated_at?: string
           user_id?: string
         }

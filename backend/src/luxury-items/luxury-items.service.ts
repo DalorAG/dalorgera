@@ -22,6 +22,15 @@ const byCreatedAt = (a: { created_at: string }, b: { created_at: string }) => a.
 
 const toDocument = (d: ItemRow['documents'][number]) => ({ id: d.id, kind: d.kind, mimeType: d.mime_type, createdAt: d.created_at });
 
+/** Arranged photos first, in the owner's order; the rest (new uploads) by upload time. */
+function inPhotoOrder<T extends { id: string }>(photos: T[], order: string[] | null | undefined): T[] {
+  const rank = new Map((order ?? []).map((id, i) => [id, i]));
+  return photos
+    .map((p, i) => ({ p, key: rank.get(p.id) ?? rank.size + i }))
+    .sort((a, b) => a.key - b.key)
+    .map(({ p }) => p);
+}
+
 function toResponse(row: ItemRow) {
   // The latest request decides what the detail screen offers.
   const request = [...row.warranty_requests].sort(byCreatedAt).at(-1);
@@ -40,7 +49,10 @@ function toResponse(row: ItemRow) {
     currency: row.currency,
     serialNumber: row.serial_number,
     notes: row.notes,
-    photos: documents.filter((d) => d.kind !== 'invoice').map(toDocument),
+    photos: inPhotoOrder(
+      documents.filter((d) => d.kind !== 'invoice'),
+      row.photo_order,
+    ).map(toDocument),
     invoices: documents.filter((d) => d.kind === 'invoice').map(toDocument),
     request: request ? { id: request.id, status: request.status, createdAt: request.created_at } : null,
     createdAt: row.created_at,
@@ -114,6 +126,7 @@ export class LuxuryItemsService {
       ...(dto.hasBoxPapers !== undefined && { has_box_papers: dto.hasBoxPapers }),
       ...(dto.serialNumber !== undefined && { serial_number: trimmed(dto.serialNumber) }),
       ...(dto.notes !== undefined && { notes: trimmed(dto.notes) }),
+      ...(dto.photoOrder !== undefined && { photo_order: dto.photoOrder }),
     };
     if (Object.keys(patch).length) unwrap(await db.from('luxury_items').update(patch).eq('id', id).select('id').single());
     if (dto.documentIds?.length) await this.attach(user, id, dto.documentIds);

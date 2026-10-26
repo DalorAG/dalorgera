@@ -25,6 +25,13 @@ export class CreateUploadUrlDto {
   mimeType: DocumentMimeType;
 }
 
+export class DescribePhotoDto {
+  @ApiProperty({ description: 'Path returned by POST /documents/upload-url' })
+  @IsString()
+  @MaxLength(200)
+  storagePath: string;
+}
+
 export class CreateDocumentDto {
   @ApiProperty({ description: 'Path returned by POST /documents/upload-url' })
   @IsString()

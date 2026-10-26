@@ -35,6 +35,7 @@ import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
 import {
   api,
   useDeleteDeviceMutation,
+  useDeleteDocumentMutation,
   useGetDeviceQuery,
   useGetDocumentsQuery,
   useUpdateDeviceMutation,
@@ -61,13 +62,15 @@ function confirm(title: string, message: string, onConfirm: () => void) {
 export default function DeviceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
-  const { t } = useTranslation(['device', 'common']);
+  const { t } = useTranslation(['device', 'common', 'inbox']);
   const dispatch = useAppDispatch();
   const { data: device, isLoading, error, refetch } = useGetDeviceQuery(id);
   const { data: documents } = useGetDocumentsQuery({ deviceId: id });
   const [deleteDevice, { isLoading: deleting }] = useDeleteDeviceMutation();
   const [updateDevice, { isLoading: servicing }] = useUpdateDeviceMutation();
   const [downloading, setDownloading] = useState(false);
+  const [deleteDocument] = useDeleteDocumentMutation();
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const receipts = documents?.filter(isReceipt) ?? [];
   // Newest first, so this is the latest Produktfoto.
   const productPhoto = documents?.find((d) => d.kind === 'product_photo');
@@ -88,6 +91,22 @@ export default function DeviceScreen() {
       notify(t('detail.errors.openReceipt'), apiErrorMessage(err));
     }
   };
+
+  const removeReceipt = (doc: DocumentItem) =>
+    confirm(
+      t('inbox:documents.deleteConfirm.title', { kind: DOCUMENT_KIND_LABELS[doc.kind] }),
+      t('inbox:documents.deleteConfirm.fromDevice', { owner: device.name }),
+      async () => {
+        setRemovingId(doc.id);
+        try {
+          await deleteDocument(doc.id).unwrap();
+        } catch (err) {
+          notify(t('inbox:documents.deleteFailed'), apiErrorMessage(err));
+        } finally {
+          setRemovingId(null);
+        }
+      },
+    );
 
   const saveProductPhoto = async (source: PhotoSource) => {
     try {
@@ -253,6 +272,7 @@ export default function DeviceScreen() {
         {device.store ? <Row label={t('detail.rows.store')} value={device.store} /> : null}
         {device.priceCents != null ? <Row label={t('detail.rows.price')} value={formatPrice(device.priceCents, device.currency)} /> : null}
         {device.serialNumber ? <Row label={t('detail.rows.serialNumber')} value={device.serialNumber} selectable /> : null}
+        {device.ean ? <Row label={t('detail.rows.ean')} value={device.ean} selectable /> : null}
         {device.imei ? <Row label={t('detail.rows.imei')} value={device.imei} selectable /> : null}
       </Card>
 
@@ -301,6 +321,17 @@ export default function DeviceScreen() {
                   </Text>
                 </View>
               </Pressable>
+              {removingId === doc.id ? (
+                <ActivityIndicator color={theme.brand} />
+              ) : (
+                <Pressable
+                  onPress={() => removeReceipt(doc)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('inbox:documents.delete')}>
+                  <Ionicons name="trash-outline" size={20} color={theme.danger} />
+                </Pressable>
+              )}
             </View>
           ))}
         </Card>

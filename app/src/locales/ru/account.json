@@ -8,7 +8,13 @@
     "emailLabel": "E-mail",
     "emailHint": "Адрес e-mail сейчас изменить нельзя.",
     "passwordLabel": "Новый пароль",
-    "passwordPlaceholder": "Оставь пустым, чтобы не менять"
+    "passwordPlaceholder": "Оставь пустым, чтобы не менять",
+    "photo": {
+      "title": "Фото профиля",
+      "add": "Добавить фото профиля",
+      "change": "Изменить фото профиля",
+      "failed": "Не удалось сохранить фото профиля"
+    }
   },
   "pricing": {
     "basic": {
@@ -56,6 +62,21 @@
       "message": "Твой аккаунт, все устройства, чеки и напоминания будут удалены сразу и безвозвратно.",
       "action": "Удалить навсегда"
     },
-    "deleteFailed": "Не удалось удалить"
+    "deleteFailed": "Не удалось удалить",
+    "reminderTiming": "Когда напоминать?",
+    "reminderTimingHint": "за {{days}} дн. · {{time}}"
+  },
+  "reminderSettings": {
+    "daysTitle": "За сколько дней до окончания срока?",
+    "daysHint": "Можно выбрать несколько.",
+    "daysBefore_one": "{{count}} день",
+    "daysBefore_few": "{{count}} дня",
+    "daysBefore_many": "{{count}} дней",
+    "daysBefore_other": "{{count}} дня",
+    "hourTitle": "Время",
+    "burdenOfProof": "Напоминание о бремени доказывания всегда приходит за 30 дней до конца первого года.",
+    "pickOne": "Выбери хотя бы один вариант.",
+    "saved": "Сохранено",
+    "savedHint": "Все предстоящие напоминания обновлены."
   }
 }

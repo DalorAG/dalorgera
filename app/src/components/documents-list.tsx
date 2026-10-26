@@ -100,8 +100,10 @@ export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
                 .filter(Boolean)
                 .join(' · ') || t('documents.uploadedAt', { date: formatDate(doc.createdAt) })}
             </Text>
-            <Text variant="caption" color={owner(doc) ? 'textSecondary' : 'warningText'}>
-              {owner(doc) ?? t('documents.unassigned')}
+            <Text variant="caption" color={owner(doc) ? 'textSecondary' : 'warningText'} numberOfLines={1}>
+              {owner(doc)
+                ? t(doc.luxuryItemId ? 'documents.savedInTresor' : 'documents.savedInGawa', { name: owner(doc) })
+                : t('documents.draft')}
             </Text>
           </View>
           {busyId === doc.id ? (

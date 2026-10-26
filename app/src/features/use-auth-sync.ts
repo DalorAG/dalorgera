@@ -12,7 +12,11 @@ export function useAuthSync() {
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        dispatch(signedIn({ userId: session.user.id, email: session.user.email ?? null }));
+        // Also fires after the profile name or photo changed (USER_UPDATED).
+        const meta = session.user.user_metadata ?? {};
+        const name = (meta.full_name as string | undefined)?.trim() || null;
+        const avatarPath = (meta.avatar_path as string | undefined) || null;
+        dispatch(signedIn({ userId: session.user.id, email: session.user.email ?? null, name, avatarPath }));
       } else {
         dispatch(api.util.resetApiState());
         dispatch(signedOut());

@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
-import { DeviceCodeFields, imeiError } from '@/components/device-code-fields';
+import { DeviceCodeFields, eanError, imeiError } from '@/components/device-code-fields';
 import { StateView } from '@/components/state-view';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
@@ -26,6 +26,7 @@ type Form = {
   intervalMonths: number;
   serialNumber: string;
   imei: string;
+  ean: string;
   notes: string;
 };
 
@@ -41,6 +42,7 @@ function formFromDevice(device: Device): Form {
     intervalMonths: device.maintenanceIntervalMonths ?? 12,
     serialNumber: device.serialNumber ?? '',
     imei: device.imei ?? '',
+    ean: device.ean ?? '',
     notes: device.notes ?? '',
   };
 }
@@ -75,6 +77,7 @@ function EditForm({ device }: { device: Device }) {
       next.purchaseDate = t('form.errors.dateInFuture');
     if (form.price.trim() && priceCents === null) next.price = t('form.errors.invalidAmount');
     if (hasDeviceCodes(kind) && imeiError(form.imei)) next.imei = imeiError(form.imei);
+    if (hasDeviceCodes(kind) && eanError(form.ean)) next.ean = eanError(form.ean);
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -93,6 +96,7 @@ function EditForm({ device }: { device: Device }) {
     if (hasDeviceCodes(kind)) {
       changes.serialNumber = form.serialNumber.trim() || null;
       changes.imei = form.imei || null;
+      changes.ean = form.ean || null;
     }
 
     try {
@@ -151,9 +155,10 @@ function EditForm({ device }: { device: Device }) {
           <DeviceCodeFields
             serialNumber={form.serialNumber}
             imei={form.imei}
+            ean={form.ean}
             showImei
-            onChange={(target, value) => set(target === 'imei' ? 'imei' : 'serialNumber', value)}
-            errors={{ imei: errors.imei }}
+            onChange={(target, value) => set(target === 'imei' ? 'imei' : target === 'ean' ? 'ean' : 'serialNumber', value)}
+            errors={{ imei: errors.imei, ean: errors.ean }}
           />
         ) : null}
 

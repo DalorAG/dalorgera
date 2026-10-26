@@ -9,7 +9,7 @@ import { Chip } from '@/components/chip';
 import { InfoBanner } from '@/components/info-banner';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
-import { DeviceCodeFields, imeiError } from '@/components/device-code-fields';
+import { DeviceCodeFields, eanError, imeiError } from '@/components/device-code-fields';
 import type { DeviceKind, ReceiptExtraction } from '@/lib/api-types';
 import { hasDeviceCodes, INTERVAL_OPTIONS, WARRANTY_OPTIONS } from '@/lib/device-ui';
 import { apiErrorMessage, currencySymbol, formatDate, parseDate, parsePrice } from '@/lib/format';
@@ -38,6 +38,7 @@ type Form = {
   intervalMonths: number;
   serialNumber: string;
   imei: string;
+  ean: string;
 };
 
 function formFromExtraction(extraction: ReceiptExtraction | null, productIndex = 0): Form {
@@ -54,6 +55,7 @@ function formFromExtraction(extraction: ReceiptExtraction | null, productIndex =
     intervalMonths: 12,
     serialNumber: '',
     imei: '',
+    ean: '',
   };
 }
 
@@ -128,8 +130,12 @@ export default function NewDeviceScreen() {
     else if (kind !== 'vignette' && purchaseDate > new Date().toISOString().slice(0, 10))
       next.purchaseDate = t('form.errors.dateInFuture');
     if (priceCents === null) next.price = t('form.errors.invalidAmount');
-    if (hasDeviceCodes(kind)) next.imei = imeiError(form.imei);
+    if (hasDeviceCodes(kind)) {
+      next.imei = imeiError(form.imei);
+      next.ean = eanError(form.ean);
+    }
     if (!next.imei) delete next.imei;
+    if (!next.ean) delete next.ean;
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -148,6 +154,7 @@ export default function NewDeviceScreen() {
         validUntil: kind === 'vignette' ? vignette?.validUntil : undefined,
         serialNumber: hasDeviceCodes(kind) ? form.serialNumber.trim() || undefined : undefined,
         imei: hasDeviceCodes(kind) ? form.imei || undefined : undefined,
+        ean: hasDeviceCodes(kind) ? form.ean || undefined : undefined,
       }).unwrap();
       if (scan.documentId && !firstDeviceId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
 
@@ -378,9 +385,10 @@ export default function NewDeviceScreen() {
           <DeviceCodeFields
             serialNumber={form.serialNumber}
             imei={form.imei}
+            ean={form.ean}
             showImei
-            onChange={(target, value) => set(target === 'imei' ? 'imei' : 'serialNumber', value)}
-            errors={{ imei: errors.imei }}
+            onChange={(target, value) => set(target === 'imei' ? 'imei' : target === 'ean' ? 'ean' : 'serialNumber', value)}
+            errors={{ imei: errors.imei, ean: errors.ean }}
           />
         ) : null}
 

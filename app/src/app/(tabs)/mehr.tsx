@@ -8,13 +8,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { LanguagePicker } from '@/components/language-picker';
+import { ProfileAvatar } from '@/components/profile-avatar';
+import { PushSetting } from '@/components/push-setting';
 import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import i18n from '@/i18n';
 import { apiErrorMessage, formatDate } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import { useAppSelector } from '@/store';
-import { useDeleteAccountMutation, useGetRemindersQuery } from '@/store/api';
+import { useDeleteAccountMutation, useGetReminderSettingsQuery, useGetRemindersQuery } from '@/store/api';
 import { spacing, useTheme } from '@/theme';
 
 function notify(title: string, message: string) {
@@ -37,7 +39,9 @@ export default function MoreScreen() {
   const theme = useTheme();
   const { t } = useTranslation(['account', 'nav']);
   const email = useAppSelector((s) => s.auth.email);
+  const name = useAppSelector((s) => s.auth.name);
   const { data: reminders } = useGetRemindersQuery();
+  const { data: reminderSettings } = useGetReminderSettingsQuery();
   const [deleteAccount, { isLoading: deleting }] = useDeleteAccountMutation();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -68,8 +72,8 @@ export default function MoreScreen() {
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <ScreenHeader
-          icon={<Ionicons name="person-circle-outline" size={44} color={theme.brand} />}
-          title={t('more.title')}
+          icon={<ProfileAvatar size={56} />}
+          title={name ?? t('more.title')}
           subtitle={email ?? ''}
         />
 
@@ -83,6 +87,24 @@ export default function MoreScreen() {
 
         <Card style={styles.links}>
           <LinkRow icon="pricetags-outline" label={t('nav:pricing')} onPress={() => router.push('/pricing')} />
+        </Card>
+
+        <Card style={styles.links}>
+          <PushSetting />
+          <View style={[styles.separator, { backgroundColor: theme.border }]} />
+          <LinkRow
+            icon="time-outline"
+            label={t('more.reminderTiming')}
+            hint={
+              reminderSettings
+                ? t('more.reminderTimingHint', {
+                    days: reminderSettings.daysBefore.join(', '),
+                    time: `${String(reminderSettings.hour).padStart(2, '0')}:00`,
+                  })
+                : undefined
+            }
+            onPress={() => router.push('/reminder-settings')}
+          />
         </Card>
 
         <Card>
@@ -138,14 +160,29 @@ export default function MoreScreen() {
   );
 }
 
-function LinkRow({ icon, label, onPress }: { icon: ComponentProps<typeof Ionicons>['name']; label: string; onPress: () => void }) {
+function LinkRow({
+  icon,
+  label,
+  hint,
+  onPress,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  hint?: string;
+  onPress: () => void;
+}) {
   const theme = useTheme();
   return (
     <Pressable onPress={onPress} accessibilityRole="link" style={styles.linkRow}>
       <Ionicons name={icon} size={20} color={theme.brandIcon} />
-      <Text variant="body" style={styles.flex}>
-        {label}
-      </Text>
+      <View style={styles.flex}>
+        <Text variant="body">{label}</Text>
+        {hint ? (
+          <Text variant="caption" color="textSecondary">
+            {hint}
+          </Text>
+        ) : null}
+      </View>
       <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
     </Pressable>
   );

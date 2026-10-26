@@ -24,7 +24,9 @@
     },
     "insured": "Versicherung: {{status}}",
     "notInsured": "Nicht versichert",
-    "currentValue": "Aktueller Wert"
+    "currentValue": "Aktueller Wert",
+    "showAmounts": "Beträge anzeigen",
+    "hideAmounts": "Beträge ausblenden"
   },
   "detail": {
     "addInvoice": "Rechnung hinzufügen",
@@ -83,6 +85,16 @@
       "adjust": "Anpassen",
       "manual": "Selbst eingeben",
       "estimateFailed": "Marktwert konnte nicht ermittelt werden: {{reason}}"
+    },
+    "cover": "Titelbild",
+    "makeCover": "Als Titelbild verwenden",
+    "moveLeft": "Nach links",
+    "moveRight": "Nach rechts",
+    "photoOrderFailed": "Reihenfolge konnte nicht gespeichert werden",
+    "removePhoto": {
+      "title": "Foto entfernen",
+      "message": "Das Foto wird dauerhaft gelöscht.",
+      "failed": "Foto konnte nicht gelöscht werden"
     }
   },
   "form": {
@@ -124,6 +136,8 @@
       "purchasePrice": "Bitte gib den Kaufpreis als Betrag an, z. B. 9.800",
       "value": "Bitte gib den aktuellen Wert als Betrag an, z. B. 12.500",
       "purchaseDate": "Bitte gib das Kaufdatum als TT.MM.JJJJ an."
-    }
+    },
+    "identifying": "Erkenne, was auf dem Foto ist …",
+    "categoryDetected": "Automatisch erkannt, bitte prüfen."
   }
 }

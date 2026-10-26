@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { DeviceThumb } from '@/components/device-thumb';
+import { ExtensionPill } from '@/components/devices/extension-pill';
 import { ProgressBar, ProgressRing } from '@/components/progress';
 import { Text } from '@/components/text';
 import type { Device, DocumentItem } from '@/lib/api-types';
@@ -53,6 +54,7 @@ export function WarrantyCard({ device, photo }: { device: Device; photo?: Docume
           <ProgressBar progress={device.progress} color={accent} />
         </View>
       </View>
+      <ExtensionPill device={device} />
     </Card>
   );
 }

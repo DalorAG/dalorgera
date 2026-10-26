@@ -15,7 +15,11 @@ export function groupByCategory(devices: Device[]): [string, Device[]][] {
   );
 }
 
+/** Every word of the query appears in the name, brand, store or one of the codes (a scanned EAN finds it). */
 export function matches(device: Device, query: string): boolean {
-  const text = [device.name, device.brand, device.category, device.store].filter(Boolean).join(' ').toLowerCase();
+  const text = [device.name, device.brand, device.category, device.store, device.serialNumber, device.imei, device.ean]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
   return query.split(/\s+/).every((word) => text.includes(word));
 }

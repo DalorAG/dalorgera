@@ -49,6 +49,11 @@ async function uploadNative(uri: string, storagePath: string, token: string, mim
   return file.size ?? 0;
 }
 
+/** Puts a local file at a path signed by POST /documents/upload-url; returns its size in bytes. */
+export function uploadSigned(uri: string, storagePath: string, token: string, mimeType: string): Promise<number> {
+  return (Platform.OS === 'web' ? uploadWeb : uploadNative)(uri, storagePath, token, mimeType);
+}
+
 /**
  * Uploads a photo straight to Supabase Storage (the API only signs the upload)
  * and registers it as a document.
@@ -60,8 +65,7 @@ export function useUploadDocument() {
   return useCallback(
     async (photo: { uri: string; mimeType: DocumentMimeType; kind: DocumentKind; deviceId?: string }): Promise<DocumentItem> => {
       const { storagePath, token } = await createUploadUrl({ mimeType: photo.mimeType }).unwrap();
-      const upload = Platform.OS === 'web' ? uploadWeb : uploadNative;
-      const sizeBytes = await upload(photo.uri, storagePath, token, photo.mimeType);
+      const sizeBytes = await uploadSigned(photo.uri, storagePath, token, photo.mimeType);
 
       return createDocument({
         storagePath,

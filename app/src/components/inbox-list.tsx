@@ -106,14 +106,14 @@ export function InboxList({ documents, devices }: Props) {
                         <View style={[styles.pill, { backgroundColor: theme.warningSoft, borderColor: theme.warningSoftBorder }]}>
                           <Ionicons name="add-circle-outline" size={14} color={theme.warningText} />
                           <Text variant="micro" color="warningText" style={styles.pillLabel}>
-                            {t('list.assignDevice')}
+                            {t('list.draft')}
                           </Text>
                         </View>
                       ) : (
                         <View style={styles.line}>
                           <Ionicons name="checkmark-circle" size={14} color={theme.success} />
                           <Text variant="caption" color="textSecondary" numberOfLines={1} style={styles.sender}>
-                            {device?.name ?? t('list.device')}
+                            {t('list.savedInGawa', { name: device?.name ?? t('list.device') })}
                           </Text>
                         </View>
                       )}

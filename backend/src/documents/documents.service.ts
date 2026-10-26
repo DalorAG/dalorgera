@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 
 import type { AuthUser } from '../auth/auth.types.js';
 import { toHttpError, unwrap } from '../common/db-error.js';
-import { OpenAiRecognizer } from '../recognition/openai-recognizer.js';
+import { OpenAiRecognizer, type ItemIdentification } from '../recognition/openai-recognizer.js';
 import type { ReceiptExtraction } from '../recognition/receipt-extraction.js';
 import type { Json, Tables } from '../supabase/database.types.js';
 import { DOCUMENTS_BUCKET, SupabaseService } from '../supabase/supabase.service.js';
@@ -139,6 +139,35 @@ export class DocumentsService {
       .eq('id', id);
     if (saveError) this.logger.warn(`Could not cache recognition for ${id}: ${saveError.message}`);
     return extracted;
+  }
+
+  /** Category, brand and model of a Wertsache from its photo or invoice. */
+  async identify(user: AuthUser, id: string): Promise<ItemIdentification> {
+    const db = this.supabase.forUser(user.accessToken);
+    const doc = unwrap(await db.from('documents').select('storage_path, mime_type').eq('id', id).single());
+    if (!RECOGNIZABLE_TYPES.has(doc.mime_type)) throw new BadRequestException('Only JPEG, PNG and WebP photos can be recognized');
+    const { data, error } = await db.storage
+      .from(DOCUMENTS_BUCKET)
+      .createSignedUrl(doc.storage_path, RECOGNITION_URL_TTL_SECONDS);
+    if (error) throw toHttpError({ message: error.message });
+    return this.recognizer.identify(data.signedUrl);
+  }
+
+  /**
+   * Suche per Foto: what a photo just uploaded to the user's folder shows. The photo is only a
+   * search query, so it is deleted again right away and never becomes a document.
+   */
+  async describePhoto(user: AuthUser, storagePath: string): Promise<ItemIdentification> {
+    if (!storagePath.startsWith(`${user.id}/`) || storagePath.includes('..')) throw new BadRequestException('Invalid storage path');
+    const bucket = this.supabase.forUser(user.accessToken).storage.from(DOCUMENTS_BUCKET);
+    try {
+      const { data, error } = await bucket.createSignedUrl(storagePath, RECOGNITION_URL_TTL_SECONDS);
+      if (error) throw toHttpError({ message: error.message });
+      return await this.recognizer.identify(data.signedUrl);
+    } finally {
+      const { error } = await bucket.remove([storagePath]);
+      if (error) this.logger.warn(`Orphaned search photo ${storagePath}: ${error.message}`);
+    }
   }
 
   /** Short-lived URL to show or download the photo. */

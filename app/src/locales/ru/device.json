@@ -110,7 +110,8 @@
       "store": "Где куплено",
       "price": "Цена",
       "serialNumber": "Серийный номер",
-      "imei": "IMEI"
+      "imei": "IMEI",
+      "ean": "EAN"
     },
     "markServiced": "Обслуживание выполнено",
     "extension": {

@@ -4,7 +4,13 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { AuthUser } from '../auth/auth.types.js';
 import { CurrentUser } from '../auth/decorators.js';
 import { DocumentsService } from './documents.service.js';
-import { CreateDocumentDto, CreateUploadUrlDto, ListDocumentsQuery, UpdateDocumentDto } from './dto/document.dto.js';
+import {
+  CreateDocumentDto,
+  CreateUploadUrlDto,
+  DescribePhotoDto,
+  ListDocumentsQuery,
+  UpdateDocumentDto,
+} from './dto/document.dto.js';
 
 @ApiTags('documents')
 @ApiBearerAuth()
@@ -38,6 +44,20 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Read merchant, date, products and prices from the photo (OpenAI)' })
   recognize(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.documents.recognize(user, id);
+  }
+
+  @Post('describe-photo')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Search words for a photo uploaded only to search; the file is deleted afterwards' })
+  describePhoto(@CurrentUser() user: AuthUser, @Body() dto: DescribePhotoDto) {
+    return this.documents.describePhoto(user, dto.storagePath);
+  }
+
+  @Post(':id/identify')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Say whether the photo shows a watch, jewellery, a bag or something else (OpenAI)' })
+  identify(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.documents.identify(user, id);
   }
 
   @Get(':id/url')

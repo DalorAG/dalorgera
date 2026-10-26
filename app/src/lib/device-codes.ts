@@ -1,7 +1,20 @@
 import type { BarcodeType } from 'expo-camera';
 
-/** reference: the Referenznummer of a Wertsache, e.g. 126610LN on a watch's certificate. */
-export type CodeTarget = 'imei' | 'serial' | 'reference';
+/**
+ * reference: the Referenznummer of a Wertsache, e.g. 126610LN on a watch's certificate.
+ * ean: the product barcode (EAN/GTIN/UPC) on the box.
+ */
+export type CodeTarget = 'imei' | 'serial' | 'reference' | 'ean';
+
+/** 8, 12, 13 or 14 digits with a valid GS1 check digit, e.g. 4006381333931. */
+export function isValidEan(value: string): boolean {
+  if (!/^(\d{8}|\d{12,14})$/.test(value)) return false;
+  const digits = [...value].map(Number);
+  const check = digits.pop()!;
+  // Weights 3,1,3,1,... from the right, check digit excluded.
+  const sum = digits.reverse().reduce((acc, n, i) => acc + n * (i % 2 === 0 ? 3 : 1), 0);
+  return (10 - (sum % 10)) % 10 === check;
+}
 
 /** 15 digits with a valid Luhn check digit, e.g. 356938035643809. */
 export function isValidImei(value: string): boolean {
@@ -23,6 +36,10 @@ const PRODUCT_CODE_TYPES = new Set<string>(['ean13', 'ean8', 'upc_a', 'upc_e', '
  */
 export function readScannedCode(target: CodeTarget, data: string, type: BarcodeType | string): string | null {
   const raw = data.trim();
+  if (target === 'ean') {
+    const digits = raw.replace(/\s/g, '');
+    return PRODUCT_CODE_TYPES.has(type) || /^\d+$/.test(digits) ? (isValidEan(digits) ? digits : null) : null;
+  }
   if (target === 'imei') {
     // "IMEI 35-693803-564380-9" or "35693803564380 9"
     const digits = raw.replace(/^IMEI\s*:?\s*/i, '').replace(/[\s-]/g, '');
@@ -35,4 +52,16 @@ export function readScannedCode(target: CodeTarget, data: string, type: BarcodeT
   return /^[A-Za-z0-9\-/.]{4,64}$/.test(serial) ? serial.toUpperCase() : null;
 }
 
-export const CODE_BARCODE_TYPES: BarcodeType[] = ['code128', 'code39', 'code93', 'datamatrix', 'qr', 'pdf417', 'ean13', 'upc_a'];
+export const CODE_BARCODE_TYPES: BarcodeType[] = [
+  'code128',
+  'code39',
+  'code93',
+  'datamatrix',
+  'qr',
+  'pdf417',
+  'ean13',
+  'ean8',
+  'upc_a',
+  'upc_e',
+  'itf14',
+];
