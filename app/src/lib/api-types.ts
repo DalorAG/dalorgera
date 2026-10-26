@@ -66,6 +66,10 @@ export type DeviceInput = {
   serialNumber?: string | null;
   imei?: string | null;
   ean?: string | null;
+  /** Create only: identical devices from one Beleg line, named "Laptop (1/20)" ... */
+  quantity?: number;
+  /** Create only: the Beleg shared by several devices bought together */
+  sourceDocumentId?: string;
 };
 
 export type ReceiptExtraction = {
@@ -82,6 +86,8 @@ export type ReceiptExtraction = {
     category: string | null;
     priceCents: number | null;
     warrantyMonths: number | null;
+    /** Units bought, e.g. 20 for "20 x Laptop"; missing on older results (= 1) */
+    quantity?: number;
   }[];
 };
 

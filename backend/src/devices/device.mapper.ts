@@ -6,10 +6,15 @@ export const EXPIRING_WITHIN_DAYS = 30;
 
 const DAY_MS = 86_400_000;
 
-type DeviceRow = Tables<'devices'> & { documents?: { count: number }[] };
+type DeviceRow = Tables<'devices'> & {
+  documents?: { count: number }[];
+  /** The shared Beleg, see source_document_id */
+  source?: { device_id: string | null } | null;
+};
 
 export function toDeviceInsert(dto: CreateDeviceDto | UpdateDeviceDto): Partial<TablesInsert<'devices'>> {
   const row: Partial<TablesInsert<'devices'>> = {
+    source_document_id: 'sourceDocumentId' in dto ? dto.sourceDocumentId : undefined,
     kind: dto.kind,
     name: dto.name,
     category: dto.category,
@@ -68,7 +73,8 @@ export function toDeviceResponse(row: DeviceRow, now = new Date()) {
     serialNumber: row.serial_number,
     imei: row.imei,
     ean: row.ean,
-    documentsCount: row.documents?.[0]?.count ?? 0,
+    // The shared Beleg counts too, unless it is already attached to this very device.
+    documentsCount: (row.documents?.[0]?.count ?? 0) + (row.source && row.source.device_id !== row.id ? 1 : 0),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

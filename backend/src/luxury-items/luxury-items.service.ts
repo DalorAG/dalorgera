@@ -1,12 +1,13 @@
 import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 
 import type { AuthUser } from '../auth/auth.types.js';
+import { consumeAiQuota } from '../common/ai-quota.js';
 import { toHttpError, unwrap } from '../common/db-error.js';
 import type { Tables } from '../supabase/database.types.js';
 import { DOCUMENTS_BUCKET, SupabaseService } from '../supabase/supabase.service.js';
 import { WarrantyRequestMailer } from '../warranty-requests/warranty-request.mailer.js';
 import type { LuxuryCategory } from '../warranty-requests/warranty-requests.dto.js';
-import { RECEIPT_URL_TTL_SECONDS, formatPrice } from '../warranty-requests/warranty-requests.service.js';
+import { formatPrice, loadAttachments } from '../warranty-requests/warranty-requests.service.js';
 import type { CreateLuxuryItemDto, RequestInsuranceDto, UpdateLuxuryItemDto } from './luxury-items.dto.js';
 import { MarketValueEstimator } from './market-value-estimator.js';
 
@@ -174,9 +175,10 @@ export class LuxuryItemsService {
     );
 
     const photos = [...item.documents].sort(byCreatedAt);
-    const signed = photos.length
-      ? (await db.storage.from(DOCUMENTS_BUCKET).createSignedUrls(photos.map((d) => d.storage_path), RECEIPT_URL_TTL_SECONDS)).data
-      : null;
+    const files = await loadAttachments(
+      db,
+      photos.map((d, i) => ({ storagePath: d.storage_path, name: `${d.kind === 'product_photo' ? 'Foto' : 'Beleg'}-${i + 1}` })),
+    );
     await this.mailer.send({
       id: request.id,
       kind: 'luxury',
@@ -192,13 +194,16 @@ export class LuxuryItemsService {
       purchaseDate: item.purchase_date,
       price: formatPrice(item.purchase_price_cents, item.currency),
       message: dto.message?.trim() || null,
-      photoUrls: (signed ?? []).flatMap((s) => (s.signedUrl ? [s.signedUrl] : [])),
+      attachments: files.attachments,
+      skippedAttachments: files.skipped,
     });
     return this.get(user, id);
   }
 
   async estimateMarketValue(user: AuthUser, id: string, language: string) {
     const row = await this.load(user, id);
+    // Web search plus a large model: the most expensive call in the app.
+    await consumeAiQuota(this.supabase.forUser(user.accessToken), 'market_value');
     return this.estimator.estimate(
       {
         category: row.category,

@@ -118,6 +118,7 @@
   "apiError": {
     "network": "Server nicht erreichbar. Prüfe deine Verbindung.",
     "generic": "Etwas ist schiefgelaufen.",
-    "deviceLimit": "Du hast das Geräte-Limit deines Tarifs erreicht. Wähle unter Tarife einen größeren Tarif."
+    "deviceLimit": "Du hast das Geräte-Limit deines Tarifs erreicht. Wähle unter Tarife einen größeren Tarif.",
+    "aiQuota": "Für heute ist das Limit dieser Funktion erreicht. Morgen geht es wieder."
   }
 }

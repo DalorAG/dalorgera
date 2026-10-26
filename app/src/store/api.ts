@@ -77,7 +77,7 @@ export const api = createApi({
       query: (params) => ({ url: 'documents', params: params ?? undefined }),
       providesTags: ['Document'],
     }),
-    createUploadUrl: build.mutation<UploadUrl, { mimeType: DocumentMimeType }>({
+    createUploadUrl: build.mutation<UploadUrl, { mimeType: DocumentMimeType; purpose?: 'search' }>({
       query: (body) => ({ url: 'documents/upload-url', method: 'POST', body }),
     }),
     createDocument: build.mutation<

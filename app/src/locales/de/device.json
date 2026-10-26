@@ -24,7 +24,12 @@
       "dateFormat": "Format: TT.MM.JJJJ",
       "dateInFuture": "Das Datum liegt in der Zukunft.",
       "invalidAmount": "Ungültiger Betrag"
-    }
+    },
+    "quantity": "Anzahl",
+    "quantityLess": "Eins weniger",
+    "quantityMore": "Eins mehr",
+    "quantityHint_one": "{{count}} Gerät",
+    "quantityHint_other": "Es werden {{count}} einzelne Geräte angelegt, jedes mit eigener Garantie. Der Beleg ist bei allen hinterlegt, Seriennummern trägst du danach pro Gerät ein."
   },
   "new": {
     "title": {

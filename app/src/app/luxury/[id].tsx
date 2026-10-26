@@ -110,6 +110,9 @@ export default function LuxuryItemScreen() {
     setBusyPhoto(busyId);
     try {
       await updateItem({ id: item.id, photoOrder: ids }).unwrap();
+      // Keep the controls locked until the new order is on screen, else a quick second tap
+      // would compute from the old order and undo the first move.
+      await refetch();
     } catch (err) {
       notify(t('detail.photoOrderFailed'), apiErrorMessage(err));
     } finally {

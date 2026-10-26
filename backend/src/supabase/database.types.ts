@@ -34,6 +34,7 @@ export type Database = {
           protected_until: string | null
           purchase_date: string
           serial_number: string | null
+          source_document_id: string | null
           statutory_until: string | null
           store: string | null
           updated_at: string
@@ -58,6 +59,7 @@ export type Database = {
           protected_until?: string | null
           purchase_date: string
           serial_number?: string | null
+          source_document_id?: string | null
           statutory_until?: string | null
           store?: string | null
           updated_at?: string
@@ -82,6 +84,7 @@ export type Database = {
           protected_until?: string | null
           purchase_date?: string
           serial_number?: string | null
+          source_document_id?: string | null
           statutory_until?: string | null
           store?: string | null
           updated_at?: string
@@ -90,7 +93,15 @@ export type Database = {
           warranty_months?: number
           warranty_until?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "devices_source_document_fkey"
+            columns: ["source_document_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "user_id"]
+          },
+        ]
       }
       documents: {
         Row: {
@@ -235,6 +246,27 @@ export type Database = {
           platform?: string
           token?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage: {
+        Row: {
+          calls: number
+          day: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          calls?: number
+          day?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          calls?: number
+          day?: string
+          kind?: string
           user_id?: string
         }
         Relationships: []
@@ -434,6 +466,10 @@ export type Database = {
           kind: Database["public"]["Enums"]["reminder_kind"]
           user_id: string
         }[]
+      }
+      consume_ai_quota: {
+        Args: { call_kind: string }
+        Returns: boolean
       }
       my_plan: {
         Args: Record<PropertyKey, never>

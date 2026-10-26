@@ -2,11 +2,12 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 
 import type { AuthUser } from '../auth/auth.types.js';
+import { consumeAiQuota } from '../common/ai-quota.js';
 import { toHttpError, unwrap } from '../common/db-error.js';
 import { OpenAiRecognizer, type ItemIdentification } from '../recognition/openai-recognizer.js';
 import type { ReceiptExtraction } from '../recognition/receipt-extraction.js';
 import type { Json, Tables } from '../supabase/database.types.js';
-import { DOCUMENTS_BUCKET, SupabaseService } from '../supabase/supabase.service.js';
+import { DOCUMENTS_BUCKET, SupabaseService, type Db } from '../supabase/supabase.service.js';
 import {
   MIME_EXTENSIONS,
   type CreateDocumentDto,
@@ -19,9 +20,21 @@ const DOWNLOAD_URL_TTL_SECONDS = 10 * 60;
 /** Everything except the generated full-text column. */
 const DOCUMENT_COLUMNS =
   'id, user_id, device_id, luxury_item_id, kind, storage_path, mime_type, size_bytes, extracted, raw_text, extracted_at, created_at';
-const RECOGNITION_URL_TTL_SECONDS = 5 * 60;
 /** Image types the vision model accepts. The app converts camera photos to JPEG. */
 const RECOGNIZABLE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+/** Suche per Foto uploads: {user_id}/search-{uuid}.{jpg|png|webp}, never registered as documents. */
+const SEARCH_PHOTO = /^[0-9a-f-]{36}\/search-[0-9a-f-]{36}\.(jpg|png|webp)$/;
+const SEARCH_MIME: Record<string, string> = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+
+/**
+ * The photo itself goes to OpenAI inline, so no link to a Beleg ever leaves our servers
+ * (a signed URL would sit in OpenAI's request logs and work for anyone who has it).
+ */
+async function imageDataUrl(db: Db, storagePath: string, mimeType: string): Promise<string> {
+  const { data, error } = await db.storage.from(DOCUMENTS_BUCKET).download(storagePath);
+  if (error) throw toHttpError({ message: error.message });
+  return `data:${mimeType};base64,${Buffer.from(await data.arrayBuffer()).toString('base64')}`;
+}
 
 function toDocumentResponse(row: Omit<Tables<'documents'>, 'search'>) {
   return {
@@ -52,7 +65,8 @@ export class DocumentsService {
   ) {}
 
   async createUploadUrl(user: AuthUser, dto: CreateUploadUrlDto) {
-    const path = `${user.id}/${randomUUID()}.${MIME_EXTENSIONS[dto.mimeType]}`;
+    const name = `${dto.purpose === 'search' ? 'search-' : ''}${randomUUID()}.${MIME_EXTENSIONS[dto.mimeType]}`;
+    const path = `${user.id}/${name}`;
     const { data, error } = await this.supabase
       .forUser(user.accessToken)
       .storage.from(DOCUMENTS_BUCKET)
@@ -62,7 +76,8 @@ export class DocumentsService {
   }
 
   async create(user: AuthUser, dto: CreateDocumentDto) {
-    if (!dto.storagePath.startsWith(`${user.id}/`)) throw new BadRequestException('Invalid storage path');
+    if (!dto.storagePath.startsWith(`${user.id}/`) || SEARCH_PHOTO.test(dto.storagePath))
+      throw new BadRequestException('Invalid storage path');
 
     const db = this.supabase.forUser(user.accessToken);
     const { data: exists } = await db.storage.from(DOCUMENTS_BUCKET).exists(dto.storagePath);
@@ -92,7 +107,18 @@ export class DocumentsService {
       .select(DOCUMENT_COLUMNS)
       .order('created_at', { ascending: false })
       .range(query.offset, query.offset + query.limit - 1);
-    if (query.deviceId) q = q.eq('device_id', query.deviceId);
+    if (query.deviceId) {
+      // Its own documents plus the Beleg it shares with other devices from the same purchase.
+      const { data: device } = await this.supabase
+        .forUser(user.accessToken)
+        .from('devices')
+        .select('source_document_id')
+        .eq('id', query.deviceId)
+        .maybeSingle();
+      q = device?.source_document_id
+        ? q.or(`device_id.eq.${query.deviceId},id.eq.${device.source_document_id}`)
+        : q.eq('device_id', query.deviceId);
+    }
     if (query.kind) q = q.eq('kind', query.kind);
     if (query.q) q = q.textSearch('search', query.q, { config: 'german', type: 'websearch' });
     return unwrap(await q).map(toDocumentResponse);
@@ -126,12 +152,8 @@ export class DocumentsService {
     if (doc.extracted) return { ...(doc.extracted as Omit<ReceiptExtraction, 'rawText'>), rawText: doc.raw_text ?? '' };
     if (!RECOGNIZABLE_TYPES.has(doc.mime_type)) throw new BadRequestException('Only JPEG, PNG and WebP photos can be recognized');
 
-    const { data, error } = await db.storage
-      .from(DOCUMENTS_BUCKET)
-      .createSignedUrl(doc.storage_path, RECOGNITION_URL_TTL_SECONDS);
-    if (error) throw toHttpError({ message: error.message });
-
-    const extracted = await this.recognizer.extract(data.signedUrl);
+    await consumeAiQuota(db, 'recognize');
+    const extracted = await this.recognizer.extract(await imageDataUrl(db, doc.storage_path, doc.mime_type));
     const { rawText, ...fields } = extracted;
     const { error: saveError } = await db
       .from('documents')
@@ -146,24 +168,23 @@ export class DocumentsService {
     const db = this.supabase.forUser(user.accessToken);
     const doc = unwrap(await db.from('documents').select('storage_path, mime_type').eq('id', id).single());
     if (!RECOGNIZABLE_TYPES.has(doc.mime_type)) throw new BadRequestException('Only JPEG, PNG and WebP photos can be recognized');
-    const { data, error } = await db.storage
-      .from(DOCUMENTS_BUCKET)
-      .createSignedUrl(doc.storage_path, RECOGNITION_URL_TTL_SECONDS);
-    if (error) throw toHttpError({ message: error.message });
-    return this.recognizer.identify(data.signedUrl);
+    await consumeAiQuota(db, 'identify');
+    return this.recognizer.identify(await imageDataUrl(db, doc.storage_path, doc.mime_type));
   }
 
   /**
-   * Suche per Foto: what a photo just uploaded to the user's folder shows. The photo is only a
-   * search query, so it is deleted again right away and never becomes a document.
+   * Suche per Foto: what a photo just uploaded with purpose "search" shows. It is only a search
+   * query, so it is deleted again right away. Only such search uploads are accepted (and deleted),
+   * never the file of a Beleg.
    */
   async describePhoto(user: AuthUser, storagePath: string): Promise<ItemIdentification> {
-    if (!storagePath.startsWith(`${user.id}/`) || storagePath.includes('..')) throw new BadRequestException('Invalid storage path');
-    const bucket = this.supabase.forUser(user.accessToken).storage.from(DOCUMENTS_BUCKET);
+    const match = SEARCH_PHOTO.exec(storagePath);
+    if (!match || !storagePath.startsWith(`${user.id}/`)) throw new BadRequestException('Invalid storage path');
+    const db = this.supabase.forUser(user.accessToken);
+    const bucket = db.storage.from(DOCUMENTS_BUCKET);
     try {
-      const { data, error } = await bucket.createSignedUrl(storagePath, RECOGNITION_URL_TTL_SECONDS);
-      if (error) throw toHttpError({ message: error.message });
-      return await this.recognizer.identify(data.signedUrl);
+      await consumeAiQuota(db, 'identify');
+      return await this.recognizer.identify(await imageDataUrl(db, storagePath, SEARCH_MIME[match[1]]));
     } finally {
       const { error } = await bucket.remove([storagePath]);
       if (error) this.logger.warn(`Orphaned search photo ${storagePath}: ${error.message}`);

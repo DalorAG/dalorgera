@@ -24,7 +24,12 @@
       "dateFormat": "Format: DD/MM/YYYY",
       "dateInFuture": "The date is in the future.",
       "invalidAmount": "Invalid amount"
-    }
+    },
+    "quantity": "Quantity",
+    "quantityLess": "One less",
+    "quantityMore": "One more",
+    "quantityHint_one": "{{count}} device",
+    "quantityHint_other": "{{count}} separate devices will be created, each with its own warranty. The receipt is attached to all of them; add serial numbers per device afterwards."
   },
   "new": {
     "title": {

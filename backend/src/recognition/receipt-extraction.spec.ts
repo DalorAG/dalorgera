@@ -1,4 +1,4 @@
-import { correctPurchaseDate, datesInText, mergeWarrantyExtensions, sanitizeExtraction } from './receipt-extraction.js';
+import { correctPurchaseDate, datesInText, mergeWarrantyExtensions, sanitizeExtraction, type ReceiptExtraction } from './receipt-extraction.js';
 
 describe('sanitizeExtraction', () => {
   it('keeps valid values and drops malformed ones', () => {
@@ -21,7 +21,7 @@ describe('sanitizeExtraction', () => {
       purchaseDate: null,
       totalCents: 97899,
       currency: null,
-      products: [{ name: 'iPhone 15 128 GB', brand: 'Apple', category: 'Smartphone', priceCents: 94900, warrantyMonths: null }],
+      products: [{ name: 'iPhone 15 128 GB', brand: 'Apple', category: 'Smartphone', priceCents: 94900, warrantyMonths: null, quantity: 1 }],
     });
   });
 
@@ -102,5 +102,28 @@ describe('purchase dates', () => {
         today,
       ).purchaseDate,
     ).toBe('2026-10-22');
+  });
+});
+
+describe('product quantity', () => {
+  const raw = (quantity: number | null) =>
+    ({
+      rawText: '',
+      documentType: 'invoice',
+      merchant: null,
+      purchaseDate: null,
+      totalCents: null,
+      currency: null,
+      products: [{ name: 'Laptop ThinkPad T14', brand: null, category: null, priceCents: 99900, warrantyMonths: null, quantity }],
+    }) as unknown as ReceiptExtraction;
+
+  it('keeps the number of units bought', () => {
+    expect(sanitizeExtraction(raw(20)).products[0].quantity).toBe(20);
+  });
+
+  it('falls back to one unit and caps absurd values', () => {
+    expect(sanitizeExtraction(raw(null)).products[0].quantity).toBe(1);
+    expect(sanitizeExtraction(raw(0)).products[0].quantity).toBe(1);
+    expect(sanitizeExtraction(raw(5000)).products[0].quantity).toBe(1);
   });
 });

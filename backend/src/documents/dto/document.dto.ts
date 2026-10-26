@@ -23,6 +23,11 @@ export class CreateUploadUrlDto {
   @ApiProperty({ enum: MIME_TYPES, example: 'image/jpeg' })
   @IsIn(MIME_TYPES)
   mimeType: DocumentMimeType;
+
+  @ApiPropertyOptional({ enum: ['search'], description: 'search: a photo for POST /documents/describe-photo, deleted after use' })
+  @IsOptional()
+  @IsIn(['search'])
+  purpose?: 'search';
 }
 
 export class DescribePhotoDto {

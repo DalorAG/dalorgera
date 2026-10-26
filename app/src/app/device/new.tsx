@@ -39,6 +39,8 @@ type Form = {
   serialNumber: string;
   imei: string;
   ean: string;
+  /** Identical units on the Beleg, one device each */
+  quantity: number;
 };
 
 function formFromExtraction(extraction: ReceiptExtraction | null, productIndex = 0): Form {
@@ -56,6 +58,7 @@ function formFromExtraction(extraction: ReceiptExtraction | null, productIndex =
     serialNumber: '',
     imei: '',
     ean: '',
+    quantity: product?.quantity ?? 1,
   };
 }
 
@@ -140,6 +143,7 @@ export default function NewDeviceScreen() {
     setErrors(next);
     if (Object.keys(next).length) return;
 
+    const quantity = hasDeviceCodes(kind) ? form.quantity : 1;
     try {
       const device = await createDevice({
         kind,
@@ -153,9 +157,12 @@ export default function NewDeviceScreen() {
         warrantyMonths: kind === 'warranty' ? form.warrantyMonths : undefined,
         maintenanceIntervalMonths: kind === 'maintenance' ? form.intervalMonths : undefined,
         validUntil: kind === 'vignette' ? vignette?.validUntil : undefined,
-        serialNumber: hasDeviceCodes(kind) ? form.serialNumber.trim() || undefined : undefined,
-        imei: hasDeviceCodes(kind) ? form.imei || undefined : undefined,
+        serialNumber: hasDeviceCodes(kind) && quantity === 1 ? form.serialNumber.trim() || undefined : undefined,
+        imei: hasDeviceCodes(kind) && quantity === 1 ? form.imei || undefined : undefined,
         ean: hasDeviceCodes(kind) ? form.ean || undefined : undefined,
+        ...(quantity > 1 ? { quantity } : {}),
+        // The Beleg itself is attached to the first device; every further one keeps a link to it.
+        ...(scan.documentId && (quantity > 1 || firstDeviceId) ? { sourceDocumentId: scan.documentId } : {}),
       }).unwrap();
       if (scan.documentId && !firstDeviceId) await updateDocument({ id: scan.documentId, deviceId: device.id }).unwrap();
 
@@ -247,7 +254,7 @@ export default function NewDeviceScreen() {
                     numberOfLines={1}
                     style={styles.flex}
                     color={checked ? 'text' : 'textSecondary'}>
-                    {p.name}
+                    {(p.quantity ?? 1) > 1 ? `${p.quantity} × ${p.name}` : p.name}
                   </Text>
                   {saved ? (
                     <Text variant="captionStrong" color="success">
@@ -384,11 +391,15 @@ export default function NewDeviceScreen() {
           error={errors.price}
         />
         {hasDeviceCodes(kind) ? (
+          <QuantityField value={form.quantity} onChange={(n) => set('quantity', n)} />
+        ) : null}
+        {hasDeviceCodes(kind) ? (
           <DeviceCodeFields
             serialNumber={form.serialNumber}
             imei={form.imei}
             ean={form.ean}
             showImei
+            perUnit={form.quantity === 1}
             onChange={(target, value) => set(target === 'imei' ? 'imei' : target === 'ean' ? 'ean' : 'serialNumber', value)}
             errors={{ imei: errors.imei, ean: errors.ean }}
           />
@@ -458,10 +469,57 @@ function RightsLink() {
   );
 }
 
+const MAX_QUANTITY = 100;
+
+/** Anzahl: several identical devices on one Beleg (e.g. 20 laptops) become one device each. */
+function QuantityField({ value, onChange }: { value: number; onChange: (value: number) => void }) {
+  const theme = useTheme();
+  const { t } = useTranslation('device');
+  const step = (delta: number) => onChange(Math.min(MAX_QUANTITY, Math.max(1, value + delta)));
+  return (
+    <View style={styles.group}>
+      <View style={styles.quantityRow}>
+        <Text variant="captionStrong" style={styles.flex}>
+          {t('form.quantity')}
+        </Text>
+        <Pressable
+          onPress={() => step(-1)}
+          disabled={value <= 1}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('form.quantityLess')}
+          style={[styles.quantityButton, { borderColor: theme.borderStrong, opacity: value <= 1 ? 0.4 : 1 }]}>
+          <Ionicons name="remove" size={18} color={theme.text} />
+        </Pressable>
+        <Text variant="headline" style={styles.quantityValue} accessibilityLiveRegion="polite">
+          {value}
+        </Text>
+        <Pressable
+          onPress={() => step(1)}
+          disabled={value >= MAX_QUANTITY}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('form.quantityMore')}
+          style={[styles.quantityButton, { borderColor: theme.borderStrong }]}>
+          <Ionicons name="add" size={18} color={theme.text} />
+        </Pressable>
+      </View>
+      {value > 1 ? (
+        <Text variant="caption" color="textSecondary">
+          {t('form.quantityHint', { count: value })}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxxl * 2 },
   group: { gap: spacing.sm },
+  quantityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  quantityButton: { width: 36, height: 36, borderRadius: radius.pill, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  quantityValue: { minWidth: 32, textAlign: 'center' },
   groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   editingBadge: {
     flexDirection: 'row',

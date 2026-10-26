@@ -79,6 +79,21 @@ export function usePushRegistration() {
   }, [signedIn, register]);
 }
 
+/**
+ * Detaches this phone's push token from the account before signing out, so the next person who
+ * signs in on it does not get the previous owner's reminders. Never throws: signing out must work offline.
+ */
+export async function unregisterPush(unregister: (token: string) => Promise<unknown>): Promise<void> {
+  if (!available) return;
+  try {
+    if ((await Notifications!.getPermissionsAsync()).status !== 'granted') return;
+    const { data: token } = await Notifications!.getExpoPushTokenAsync({ projectId });
+    await unregister(token);
+  } catch (err) {
+    console.info('Push token not removed:', (err as Error).message);
+  }
+}
+
 /** Permission state for the settings switch, kept fresh when the user returns from the system settings. */
 export function usePushPermission() {
   const [register] = useRegisterPushTokenMutation();

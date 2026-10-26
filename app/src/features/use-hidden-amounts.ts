@@ -3,17 +3,20 @@ import { useSyncExternalStore } from 'react';
 
 const STORAGE_KEY = 'tresor.amountsHidden';
 const listeners = new Set<() => void>();
-let hidden = false;
+// null until the stored choice is read: amounts stay masked meanwhile instead of flashing up.
+let hidden: boolean | null = null;
 
 AsyncStorage.getItem(STORAGE_KEY)
   .then((stored) => {
     hidden = stored === '1';
-    listeners.forEach((l) => l());
   })
-  .catch(() => undefined);
+  .catch(() => {
+    hidden = false;
+  })
+  .finally(() => listeners.forEach((l) => l()));
 
 function toggle() {
-  hidden = !hidden;
+  hidden = hidden !== true;
   listeners.forEach((l) => l());
   AsyncStorage.setItem(STORAGE_KEY, hidden ? '1' : '0').catch(() => undefined);
 }
@@ -25,6 +28,7 @@ function subscribe(listener: () => void) {
 
 /** Tresor amounts behind the eye button; remembered on this device, shared by every screen showing them. */
 export function useHiddenAmounts() {
-  const isHidden = useSyncExternalStore(subscribe, () => hidden);
-  return { hidden: isHidden, toggle, mask: (text: string) => (isHidden ? '••••' : text) };
+  const state = useSyncExternalStore(subscribe, () => hidden, () => null);
+  const masked = state !== false;
+  return { hidden: state === true, toggle, mask: (text: string) => (masked ? '••••' : text) };
 }

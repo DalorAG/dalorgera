@@ -96,7 +96,8 @@ function EditForm({ device }: { device: Device }) {
     if (hasDeviceCodes(kind)) {
       changes.serialNumber = form.serialNumber.trim() || null;
       changes.imei = form.imei || null;
-      changes.ean = form.ean || null;
+      // Only when changed: a backend without the EAN field rejects unknown properties.
+      if (form.ean !== (device.ean ?? '')) changes.ean = form.ean || null;
     }
 
     try {

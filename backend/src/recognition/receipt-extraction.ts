@@ -11,8 +11,11 @@ export type ReceiptExtraction = {
     name: string;
     brand: string | null;
     category: string | null;
+    /** Unit price */
     priceCents: number | null;
     warrantyMonths: number | null;
+    /** How many of this product were bought, e.g. 20 for "20 x Laptop"; missing in older stored results (= 1) */
+    quantity?: number;
   }[];
 };
 
@@ -40,7 +43,7 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['name', 'brand', 'category', 'priceCents', 'warrantyMonths'],
+        required: ['name', 'brand', 'category', 'priceCents', 'warrantyMonths', 'quantity'],
         properties: {
           name: {
             type: 'string',
@@ -52,7 +55,11 @@ export const RECEIPT_EXTRACTION_SCHEMA = {
             ...nullable('string'),
             description: 'German category, e.g. Smartphone, Laptop, TV, Audio, Haushaltsgerät (Waschmaschine, Staubsauger), Küchengerät (Kaffeemaschine)',
           },
-          priceCents: nullable('integer'),
+          priceCents: { ...nullable('integer'), description: 'Price of one unit in cents' },
+          quantity: {
+            type: 'integer',
+            description: 'Number of units bought, from "20 x", "20 Stk.", "Menge 20" or a quantity column; 1 if not printed',
+          },
           warrantyMonths: {
             ...nullable('integer'),
             description:
@@ -155,6 +162,7 @@ export function sanitizeExtraction(raw: ReceiptExtraction, today = new Date().to
           category: text(p.category, 60),
           priceCents: int(p.priceCents, 100_000_000),
           warrantyMonths: int(p.warrantyMonths, 240),
+          quantity: Math.max(1, int(p.quantity ?? null, 100) ?? 1),
         },
       ];
     })),

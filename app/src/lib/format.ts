@@ -68,6 +68,7 @@ export function apiErrorMessage(err: unknown): string {
   const e = err as { status?: number | string; data?: { message?: string | string[] }; message?: string };
   if (e?.status === 'FETCH_ERROR') return i18n.t('labels:apiError.network');
   if (isDeviceLimitError(err)) return i18n.t('labels:apiError.deviceLimit');
+  if (e?.status === 429) return i18n.t('labels:apiError.aiQuota');
   const msg = e?.data?.message ?? e?.message;
   return Array.isArray(msg) ? msg.join('\n') : (msg ?? i18n.t('labels:apiError.generic'));
 }

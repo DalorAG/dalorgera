@@ -91,11 +91,11 @@ export function MarketValueCard({ item }: { item: LuxuryItem }) {
       {estimate ? (
         <View style={[styles.estimate, { backgroundColor: theme.brandSoft }]}>
           <Text variant="captionStrong">{t('detail.market.estimated')}</Text>
-          <Text variant="title">{formatPrice(estimate.valueCents, estimate.currency)}</Text>
+          <Text variant="title">{mask(formatPrice(estimate.valueCents, estimate.currency))}</Text>
           <Text variant="caption" color="textSecondary">
             {t('detail.market.range', {
-              low: formatPrice(estimate.lowCents, estimate.currency),
-              high: formatPrice(estimate.highCents, estimate.currency),
+              low: mask(formatPrice(estimate.lowCents, estimate.currency)),
+              high: mask(formatPrice(estimate.highCents, estimate.currency)),
             })}
             {' · '}
             {t(`detail.market.confidence.${estimate.confidence}`)}

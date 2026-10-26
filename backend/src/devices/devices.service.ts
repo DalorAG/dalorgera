@@ -7,7 +7,9 @@ import type { TablesInsert } from '../supabase/database.types.js';
 import { EXPIRING_WITHIN_DAYS, toDeviceInsert, toDeviceResponse } from './device.mapper.js';
 import type { CreateDeviceDto, ListDevicesQuery, UpdateDeviceDto } from './dto/device.dto.js';
 
-const SELECT = '*, documents(count)';
+// devices and documents are linked both ways (documents.device_id, devices.source_document_id),
+// so the embeds name their foreign key.
+const SELECT = '*, documents!documents_device_id_user_id_fkey(count), source:documents!devices_source_document_fkey(device_id)';
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -42,16 +44,22 @@ export class DevicesService {
     return toDeviceResponse(row);
   }
 
+  /** With quantity > 1 all devices are inserted in one statement: either all or none (plan limit). Returns the first. */
   async create(user: AuthUser, dto: CreateDeviceDto) {
-    const row = unwrap(
-      await this.supabase
-        .forUser(user.accessToken)
-        .from('devices')
-        .insert({ ...toDeviceInsert(dto), user_id: user.id } as TablesInsert<'devices'>)
-        .select(SELECT)
-        .single(),
+    const quantity = dto.quantity ?? 1;
+    const base = { ...toDeviceInsert(dto), user_id: user.id } as TablesInsert<'devices'>;
+    const rows =
+      quantity === 1
+        ? [base]
+        : Array.from({ length: quantity }, (_, i) => {
+            const suffix = ` (${i + 1}/${quantity})`;
+            return { ...base, name: dto.name.slice(0, 120 - suffix.length) + suffix };
+          });
+    const created = unwrap(
+      await this.supabase.forUser(user.accessToken).from('devices').insert(rows).select(SELECT).order('name'),
     );
-    return toDeviceResponse(row);
+    const first = created.find((r) => r.name === rows[0].name) ?? created[0];
+    return toDeviceResponse(first);
   }
 
   async update(user: AuthUser, id: string, dto: UpdateDeviceDto) {

@@ -10,13 +10,20 @@ import { Card } from '@/components/card';
 import { LanguagePicker } from '@/components/language-picker';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { PushSetting } from '@/components/push-setting';
+import { unregisterPush } from '@/features/use-push-registration';
 import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import i18n from '@/i18n';
 import { apiErrorMessage, formatDate } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import { useAppSelector } from '@/store';
-import { useDeleteAccountMutation, useGetMeQuery, useGetReminderSettingsQuery, useGetRemindersQuery } from '@/store/api';
+import {
+  useDeleteAccountMutation,
+  useGetMeQuery,
+  useGetReminderSettingsQuery,
+  useGetRemindersQuery,
+  useUnregisterPushTokenMutation,
+} from '@/store/api';
 import { spacing, useTheme } from '@/theme';
 
 function notify(title: string, message: string) {
@@ -45,9 +52,11 @@ export default function MoreScreen() {
   const { data: me } = useGetMeQuery();
   const [deleteAccount, { isLoading: deleting }] = useDeleteAccountMutation();
   const [signingOut, setSigningOut] = useState(false);
+  const [unregisterPushToken] = useUnregisterPushTokenMutation();
 
   const signOut = async () => {
     setSigningOut(true);
+    await unregisterPush((token) => unregisterPushToken(token).unwrap());
     const { error } = await supabase.auth.signOut();
     setSigningOut(false);
     if (error) notify(t('more.signOutFailed'), error.message);
@@ -122,7 +131,7 @@ export default function MoreScreen() {
         </Card>
 
         <Card>
-          <LanguagePicker />
+          <LanguagePicker returnTo="/mehr" />
         </Card>
 
         <Text variant="title">{t('more.upcomingReminders')}</Text>

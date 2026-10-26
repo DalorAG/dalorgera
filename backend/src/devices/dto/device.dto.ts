@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsIn,
@@ -6,6 +6,7 @@ import {
   IsISO8601,
   IsOptional,
   IsString,
+  IsUUID,
   Length,
   Matches,
   Max,
@@ -20,6 +21,9 @@ import { Constants, type Enums } from '../../supabase/database.types.js';
 
 export const DEVICE_KINDS = Constants.public.Enums.device_kind;
 export type DeviceKind = Enums<'device_kind'>;
+
+/** Identical devices created from one Beleg line at once. */
+export const MAX_QUANTITY = 100;
 
 export class CreateDeviceDto {
   @ApiPropertyOptional({
@@ -116,9 +120,26 @@ export class CreateDeviceDto {
   @IsOptional()
   @Matches(/^\d{8,14}$/)
   ean?: string | null;
+
+  @ApiPropertyOptional({ description: 'The Beleg this device was bought with; may be shared by several devices' })
+  @IsOptional()
+  @IsUUID()
+  sourceDocumentId?: string;
+
+  @ApiPropertyOptional({
+    example: 20,
+    default: 1,
+    description: 'Several identical items on one Beleg (e.g. 20 laptops): one device each, named "Laptop (1/20)" ...',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(MAX_QUANTITY)
+  quantity?: number;
 }
 
-export class UpdateDeviceDto extends PartialType(CreateDeviceDto) {}
+export class UpdateDeviceDto extends PartialType(OmitType(CreateDeviceDto, ['quantity', 'sourceDocumentId'] as const)) {}
 
 export const DEVICE_STATUSES = ['active', 'expiring', 'expired'] as const;
 export type DeviceStatus = (typeof DEVICE_STATUSES)[number];

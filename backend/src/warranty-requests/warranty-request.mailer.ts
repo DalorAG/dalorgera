@@ -24,9 +24,13 @@ export type WarrantyRequestMail = {
   purchaseDate: string | null;
   price: string | null;
   message: string | null;
-  /** Signed links to the receipt and photos, valid for 7 days */
-  photoUrls: string[];
+  /** Beleg and photos, attached to the email itself: no links that anyone holding them could open. */
+  attachments: MailAttachment[];
+  /** Files left out because the email would have become too large */
+  skippedAttachments?: number;
 };
+
+export type MailAttachment = { filename: string; content: string /* base64 */ };
 
 const TITLES: Record<RequestKind, string> = {
   extension: 'Garantieverlängerung',
@@ -89,15 +93,18 @@ export class WarrantyRequestMailer {
       `Neue Anfrage: ${title}`,
       '',
       ...rows.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`),
-      ...(mail.photoUrls.length ? ['', 'Fotos (7 Tage gültig):', ...mail.photoUrls] : []),
+      ...(mail.attachments.length ? ['', `Anhänge: ${mail.attachments.map((a) => a.filename).join(', ')}`] : []),
+      ...(mail.skippedAttachments ? [`${mail.skippedAttachments} weitere Fotos sind in der App gespeichert (zu groß für die E-Mail).`] : []),
       `\nAnfrage-ID: ${mail.id}`,
     ].join('\n');
     const html = `<h2>Neue Anfrage: ${escape(title)}</h2><table cellpadding="4">${rows
       .filter(([, v]) => v)
       .map(([k, v]) => `<tr><td><b>${escape(k)}</b></td><td>${escape(v!).replace(/\n/g, '<br>')}</td></tr>`)
       .join('')}</table>${
-      mail.photoUrls.length
-        ? `<p>${mail.photoUrls.map((url, i) => `<a href="${escape(url)}">Foto ${i + 1}</a>`).join(' · ')} (7 Tage gültig)</p>`
+      mail.attachments.length ? `<p>Anhänge: ${mail.attachments.map((a) => escape(a.filename)).join(', ')}</p>` : ''
+    }${
+      mail.skippedAttachments
+        ? `<p>${mail.skippedAttachments} weitere Fotos sind in der App gespeichert (zu groß für die E-Mail).</p>`
         : ''
     }<p style="color:#888">Anfrage-ID: ${escape(mail.id)}</p>`;
 
@@ -117,6 +124,7 @@ export class WarrantyRequestMailer {
           subject: `${title}: ${[mail.brand, mail.productName].filter(Boolean).join(' ')}`,
           text,
           html,
+          ...(mail.attachments.length ? { attachments: mail.attachments } : {}),
         }),
       });
       if (!res.ok) this.logger.error(`Resend responded with HTTP ${res.status}: ${(await res.text()).slice(0, 500)}`);

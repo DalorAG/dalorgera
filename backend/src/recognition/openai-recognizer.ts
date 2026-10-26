@@ -1,4 +1,10 @@
-import { Injectable, Logger, ServiceUnavailableException, BadGatewayException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  GatewayTimeoutException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { Env } from '../config/env.js';
@@ -96,25 +102,32 @@ export class OpenAiRecognizer {
   ): Promise<unknown> {
     if (!this.apiKey) throw new ServiceUnavailableException('Recognition is not configured');
 
-    const res = await fetch(OPENAI_URL, {
-      method: 'POST',
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` },
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          { role: 'system', content: system },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              { type: 'image_url', image_url: { url: imageUrl, detail } },
-            ],
-          },
-        ],
-        response_format: { type: 'json_schema', json_schema: { name, strict: true, schema } },
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(OPENAI_URL, {
+        method: 'POST',
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            { role: 'system', content: system },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                { type: 'image_url', image_url: { url: imageUrl, detail } },
+              ],
+            },
+          ],
+          response_format: { type: 'json_schema', json_schema: { name, strict: true, schema } },
+        }),
+      });
+    } catch (err) {
+      this.logger.error(`OpenAI request failed: ${(err as Error).message}`);
+      if ((err as Error).name === 'TimeoutError') throw new GatewayTimeoutException('Recognition timed out');
+      throw new BadGatewayException('Recognition failed');
+    }
 
     if (!res.ok) {
       this.logger.error(`OpenAI responded with HTTP ${res.status}: ${(await res.text()).slice(0, 500)}`);
@@ -125,6 +138,11 @@ export class OpenAiRecognizer {
       this.logger.warn(`OpenAI returned no content${message?.refusal ? `: ${message.refusal}` : ''}`);
       throw new BadGatewayException('Recognition failed');
     }
-    return JSON.parse(message.content);
+    try {
+      return JSON.parse(message.content);
+    } catch {
+      this.logger.warn('OpenAI returned invalid JSON');
+      throw new BadGatewayException('Recognition failed');
+    }
   }
 }

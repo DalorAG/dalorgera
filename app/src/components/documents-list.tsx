@@ -8,6 +8,7 @@ import { Card } from '@/components/card';
 import { DocumentThumb } from '@/components/document-thumb';
 import { Text } from '@/components/text';
 import { shareDocumentAsPdf } from '@/features/export-pdf';
+import { useHiddenAmounts } from '@/features/use-hidden-amounts';
 import i18n from '@/i18n';
 import type { Device, DocumentItem, LuxuryItem } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
@@ -56,6 +57,8 @@ export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
         : null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const open = useOpenDocument();
+  // Totals follow the eye in the Tresor, where this list is shown.
+  const { mask } = useHiddenAmounts();
   const [deleteDocument] = useDeleteDocumentMutation();
 
   const exportPdf = async (doc: DocumentItem) => {
@@ -96,7 +99,12 @@ export function DocumentsList({ documents, devices, luxuryItems = [] }: Props) {
           <View style={styles.flex}>
             <Text variant="headline">{DOCUMENT_KIND_LABELS[doc.kind]}</Text>
             <Text variant="caption" color="textSecondary">
-              {[doc.extracted?.merchant, formatPrice(doc.extracted?.totalCents, doc.extracted?.currency ?? 'EUR')]
+              {[
+                doc.extracted?.merchant,
+                doc.extracted?.totalCents != null
+                  ? mask(formatPrice(doc.extracted.totalCents, doc.extracted.currency ?? 'EUR'))
+                  : null,
+              ]
                 .filter(Boolean)
                 .join(' · ') || t('documents.uploadedAt', { date: formatDate(doc.createdAt) })}
             </Text>

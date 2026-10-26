@@ -4,11 +4,38 @@ import type { AuthUser } from '../auth/auth.types.js';
 import { unwrap } from '../common/db-error.js';
 import type { ReceiptExtraction } from '../recognition/receipt-extraction.js';
 import type { Tables } from '../supabase/database.types.js';
-import { DOCUMENTS_BUCKET, SupabaseService } from '../supabase/supabase.service.js';
+import { DOCUMENTS_BUCKET, SupabaseService, type Db } from '../supabase/supabase.service.js';
 import type { CreateWarrantyRequestDto } from './warranty-requests.dto.js';
-import { WarrantyRequestMailer } from './warranty-request.mailer.js';
+import { WarrantyRequestMailer, type MailAttachment } from './warranty-request.mailer.js';
 
-export const RECEIPT_URL_TTL_SECONDS = 7 * 24 * 60 * 60;
+/** Resend allows 40 MB per email, base64 included. */
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+
+/**
+ * Downloads the user's files (through their own RLS) to attach them to the team email.
+ * Files that no longer fit are counted, not sent.
+ */
+export async function loadAttachments(
+  db: Db,
+  files: { storagePath: string; name: string }[],
+): Promise<{ attachments: MailAttachment[]; skipped: number }> {
+  const attachments: MailAttachment[] = [];
+  let total = 0;
+  let skipped = 0;
+  for (const file of files) {
+    const { data } = await db.storage.from(DOCUMENTS_BUCKET).download(file.storagePath);
+    if (!data) continue;
+    const bytes = Buffer.from(await data.arrayBuffer());
+    if (total + bytes.length > MAX_ATTACHMENT_BYTES) {
+      skipped++;
+      continue;
+    }
+    total += bytes.length;
+    const extension = file.storagePath.split('.').pop() ?? 'jpg';
+    attachments.push({ filename: `${file.name}.${extension}`, content: bytes.toString('base64') });
+  }
+  return { attachments, skipped };
+}
 const COLUMNS = 'id, kind, document_id, product_name, category, brand, status, created_at';
 
 type ResponseRow = Pick<
@@ -88,9 +115,7 @@ export class WarrantyRequestsService {
         .single(),
     );
 
-    const receipt = storagePath
-      ? (await db.storage.from(DOCUMENTS_BUCKET).createSignedUrl(storagePath, RECEIPT_URL_TTL_SECONDS)).data
-      : null;
+    const files = await loadAttachments(db, storagePath ? [{ storagePath, name: 'Beleg' }] : []);
     await this.mailer.send({
       id: row.id,
       kind,
@@ -104,7 +129,8 @@ export class WarrantyRequestsService {
       purchaseDate: row.purchase_date,
       price: formatPrice(row.price_cents, row.currency),
       message: row.message,
-      photoUrls: receipt ? [receipt.signedUrl] : [],
+      attachments: files.attachments,
+      skippedAttachments: files.skipped,
     });
     return toResponse(row);
   }

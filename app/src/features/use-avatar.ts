@@ -11,7 +11,9 @@ import { uploadSigned } from './use-upload-document';
 
 const BUCKET = 'documents';
 const SIDE = 512;
-const URL_TTL_SECONDS = 60 * 60;
+const URL_TTL_SECONDS = 10 * 60;
+/** Signed again this long before it runs out. */
+const RENEW_BEFORE_MS = 60 * 1000;
 
 const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
   mediaTypes: ['images'],
@@ -21,20 +23,22 @@ const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
   preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
 };
 
-// Signed URLs by storage path, so every avatar on screen shares one request.
-const urls = new Map<string, Promise<string | null>>();
+// Signed URLs by storage path, so every avatar on screen shares one request. Failures are not kept.
+const urls = new Map<string, { url: Promise<string>; expiresAt: number }>();
 
-function signedUrl(path: string): Promise<string | null> {
-  if (!urls.has(path)) {
-    urls.set(
-      path,
-      supabase.storage
-        .from(BUCKET)
-        .createSignedUrl(path, URL_TTL_SECONDS)
-        .then(({ data }) => data?.signedUrl ?? null),
-    );
-  }
-  return urls.get(path)!;
+function signedUrl(path: string): Promise<string> {
+  const cached = urls.get(path);
+  if (cached && cached.expiresAt - RENEW_BEFORE_MS > Date.now()) return cached.url;
+  const url = supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(path, URL_TTL_SECONDS)
+    .then(({ data, error }) => {
+      if (!data) throw error ?? new Error('No signed URL');
+      return data.signedUrl;
+    });
+  urls.set(path, { url, expiresAt: Date.now() + URL_TTL_SECONDS * 1000 });
+  url.catch(() => urls.delete(path));
+  return url;
 }
 
 async function square(uri: string): Promise<string> {
@@ -51,6 +55,7 @@ async function square(uri: string): Promise<string> {
 /**
  * Profilfoto: a JPEG in the user's own folder of the documents bucket (so account deletion removes it),
  * its path kept in the Supabase user metadata. No document row, it is not a Beleg.
+ * Only the owner can read it: the bucket is private and the short-lived link is renewed while shown.
  */
 export function useAvatar() {
   const path = useAppSelector((s) => s.auth.avatarPath);
@@ -62,12 +67,17 @@ export function useAvatar() {
   useEffect(() => {
     if (!path) return;
     let current = true;
-    signedUrl(path).then(
-      (u) => current && setLoaded({ path, url: u }),
-      () => current && setLoaded({ path, url: null }),
-    );
+    const load = () =>
+      signedUrl(path).then(
+        (u) => current && setLoaded({ path, url: u }),
+        () => current && setLoaded({ path, url: null }),
+      );
+    load();
+    // Renew before the link expires while the photo stays on screen.
+    const timer = setInterval(load, (URL_TTL_SECONDS * 1000) / 2);
     return () => {
       current = false;
+      clearInterval(timer);
     };
   }, [path]);
 

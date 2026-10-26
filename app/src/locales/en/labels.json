@@ -118,6 +118,7 @@
   "apiError": {
     "network": "Server unreachable. Check your connection.",
     "generic": "Something went wrong.",
-    "deviceLimit": "You reached the device limit of your plan. Choose a bigger plan under Plans."
+    "deviceLimit": "You reached the device limit of your plan. Choose a bigger plan under Plans.",
+    "aiQuota": "The daily limit for this feature is reached. Try again tomorrow."
   }
 }

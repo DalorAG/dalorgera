@@ -44,7 +44,7 @@ export function usePhotoSearch() {
       setBusy(true);
       try {
         const photo = await preparePhoto(asset.uri).catch(() => ({ uri: asset.uri, mimeType: 'image/jpeg' as const }));
-        const { storagePath, token } = await createUploadUrl({ mimeType: photo.mimeType }).unwrap();
+        const { storagePath, token } = await createUploadUrl({ mimeType: photo.mimeType, purpose: 'search' }).unwrap();
         await uploadSigned(photo.uri, storagePath, token, photo.mimeType);
         const found = await describe({ storagePath }).unwrap();
         const label = [found.brand, found.model].filter(Boolean).join(' ') || found.keywords[0] || '';

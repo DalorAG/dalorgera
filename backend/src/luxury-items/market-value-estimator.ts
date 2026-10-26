@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  GatewayTimeoutException,
   Injectable,
   Logger,
   ServiceUnavailableException,
@@ -88,6 +89,8 @@ type Extracted = {
 type ResponsesOutput = {
   output?: {
     type: string;
+    /** web_search_call: the pages the search really returned */
+    action?: { sources?: { url?: string }[] };
     content?: {
       type: string;
       text?: string;
@@ -95,6 +98,18 @@ type ResponsesOutput = {
     }[];
   }[];
 };
+
+/** Price sites a source link may point to when the search did not report its pages. */
+const KNOWN_PRICE_SITES =
+  /(^|\.)(chrono24\.[a-z.]+|chronostats\.com|watchcharts\.com|chronocheck\.de|chronext\.[a-z.]+|vestiairecollective\.com|catawiki\.[a-z.]+|dorotheum\.com|christies\.com|sothebys\.com|phillips\.com|bonhams\.com|antiquorum\.swiss|ebay\.[a-z.]+|kleinanzeigen\.de|willhaben\.at|ricardo\.ch|uhrforum\.de|rebag\.com|fashionphile\.com)$/;
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
 
 /** Estimates what a Wertsache is worth today with an OpenAI model and web search. */
 @Injectable()
@@ -129,33 +144,43 @@ export class MarketValueEstimator {
       item.notes && `Owner's notes: ${item.notes}`,
     ].filter(Boolean);
 
-    const res = await fetch(OPENAI_URL, {
-      method: 'POST',
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: {
-        'content-type': 'application/json',
-        authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        tools: [
-          {
-            type: 'web_search',
-            user_location: { type: 'approximate', country: 'DE' },
-          },
-        ],
-        instructions: `${PROMPT}\nWrite the summary in ${LANGUAGE_NAMES[language] ?? 'German'}. Today is ${new Date().toISOString().slice(0, 10)}.`,
-        input: facts.join('\n'),
-        text: {
-          format: {
-            type: 'json_schema',
-            name: 'market_value',
-            strict: true,
-            schema: SCHEMA,
-          },
+    let res: Response;
+    try {
+      res = await fetch(OPENAI_URL, {
+        method: 'POST',
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${this.apiKey}`,
         },
-      }),
-    });
+        body: JSON.stringify({
+          model: this.model,
+          tools: [
+            {
+              type: 'web_search',
+              user_location: { type: 'approximate', country: 'DE' },
+            },
+          ],
+          // The pages the search returned, to check the links the model names against.
+          include: ['web_search_call.action.sources'],
+          instructions: `${PROMPT}\nWrite the summary in ${LANGUAGE_NAMES[language] ?? 'German'}. Today is ${new Date().toISOString().slice(0, 10)}.`,
+          input: facts.join('\n'),
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'market_value',
+              strict: true,
+              schema: SCHEMA,
+            },
+          },
+        }),
+      });
+    } catch (err) {
+      this.logger.error(`OpenAI request failed: ${(err as Error).message}`);
+      if ((err as Error).name === 'TimeoutError')
+        throw new GatewayTimeoutException('Market value estimation timed out');
+      throw new BadGatewayException('Market value estimation failed');
+    }
 
     if (!res.ok) {
       this.logger.error(
@@ -164,8 +189,9 @@ export class MarketValueEstimator {
       throw new BadGatewayException('Market value estimation failed');
     }
 
-    const content = ((await res.json()) as ResponsesOutput).output
-      ?.filter((o) => o.type === 'message')
+    const output = ((await res.json()) as ResponsesOutput).output ?? [];
+    const content = output
+      .filter((o) => o.type === 'message')
       .flatMap((o) => o.content ?? [])
       .filter((c) => c.type === 'output_text');
     const text = content?.map((c) => c.text ?? '').join('');
@@ -174,20 +200,42 @@ export class MarketValueEstimator {
       throw new BadGatewayException('Market value estimation failed');
     }
 
-    const parsed = JSON.parse(text) as Extracted;
+    let parsed: Extracted;
+    try {
+      parsed = JSON.parse(text) as Extracted;
+    } catch {
+      this.logger.warn('OpenAI returned invalid JSON for the market value');
+      throw new BadGatewayException('Market value estimation failed');
+    }
     const cents = (eur: number) => Math.max(0, Math.round(eur * 100));
     const valueCents = cents(parsed.estimate_eur);
     if (!valueCents)
       throw new BadGatewayException('Market value estimation failed');
 
-    // Citations when the model attaches them, otherwise the pages it names; only real web links.
+    // Only links to sites the web search really returned, or well-known price sites: a page could
+    // otherwise talk the model into naming any URL (phishing) as a source.
+    const searched = new Set(
+      output
+        .flatMap((o) => o.action?.sources ?? [])
+        .concat(content.flatMap((c) => c.annotations ?? []))
+        .flatMap((src) => (src.url ? [hostOf(src.url)] : []))
+        .filter(Boolean),
+    );
     const sources = new Map<string, string>();
     const found = [
-      ...content!.flatMap((c) => c.annotations ?? []),
-      ...parsed.sources.map((p) => ({ type: 'url_citation', ...p })),
+      ...content.flatMap((c) => c.annotations ?? []),
+      ...(Array.isArray(parsed.sources) ? parsed.sources : []).map((p) => ({
+        type: 'url_citation',
+        ...p,
+      })),
     ];
     for (const a of found) {
-      if (a.url && !/^https:\/\/[^\s/]+\.[^\s]+$/.test(a.url)) continue;
+      if (
+        !a.url ||
+        !/^https:\/\/[^\s/]+\.[^\s]+$/.test(a.url) ||
+        !(searched.has(hostOf(a.url)) || KNOWN_PRICE_SITES.test(hostOf(a.url)))
+      )
+        continue;
       if (
         a.type === 'url_citation' &&
         a.url &&
