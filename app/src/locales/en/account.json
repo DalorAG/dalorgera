@@ -36,9 +36,11 @@
     },
     "devices_one": "Up to {{count}} device",
     "devices_other": "Up to {{count}} devices",
+    "invoices_one": "Up to {{count}} valuables invoice",
+    "invoices_other": "Up to {{count}} valuables invoices",
     "features": {
       "reminders": "Reminders for warranty, statutory warranty and maintenance",
-      "tresor": "Tresor for valuables and all receipts"
+      "insurance": "Unlimited extra insurance requests"
     },
     "current": "Your plan",
     "choose": "Choose {{name}}",

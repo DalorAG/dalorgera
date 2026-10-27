@@ -38,9 +38,13 @@
     "devices_few": "До {{count}} устройств",
     "devices_many": "До {{count}} устройств",
     "devices_other": "До {{count}} устройств",
+    "invoices_one": "До {{count}} счёта за ценности",
+    "invoices_few": "До {{count}} счетов за ценности",
+    "invoices_many": "До {{count}} счетов за ценности",
+    "invoices_other": "До {{count}} счетов за ценности",
     "features": {
       "reminders": "Напоминания о гарантии, Gewährleistung и обслуживании",
-      "tresor": "Tresor для ценностей и всех чеков"
+      "insurance": "Безлимитные запросы на доп. страховку"
     },
     "current": "Твой тариф",
     "choose": "Выбрать {{name}}",

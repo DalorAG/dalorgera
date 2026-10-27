@@ -104,8 +104,9 @@ export default function PricingScreen() {
             </View>
             {[
               t("pricing.devices", { count: p.devices }),
+              t("pricing.invoices", { count: p.devices }),
+              t("pricing.features.insurance"),
               t("pricing.features.reminders"),
-              t("pricing.features.tresor"),
             ].map((f) => (
               <View key={f} style={styles.feature}>
                 <Ionicons

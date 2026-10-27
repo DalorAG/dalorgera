@@ -36,9 +36,11 @@
     },
     "devices_one": "Bis zu {{count}} Gerät",
     "devices_other": "Bis zu {{count}} Geräte",
+    "invoices_one": "Bis zu {{count}} Wertsachen-Rechnung",
+    "invoices_other": "Bis zu {{count}} Wertsachen-Rechnungen",
     "features": {
       "reminders": "Erinnerungen an Garantie, Gewährleistung und Wartung",
-      "tresor": "Tresor für Wertsachen und alle Belege"
+      "insurance": "Unbegrenzte Zusatzversicherungs-Anfragen"
     },
     "current": "Dein Tarif",
     "choose": "{{name}} wählen",
