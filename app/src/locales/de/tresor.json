@@ -26,7 +26,9 @@
     "notInsured": "Nicht versichert",
     "currentValue": "Aktueller Wert",
     "showAmounts": "Beträge anzeigen",
-    "hideAmounts": "Beträge ausblenden"
+    "hideAmounts": "Beträge ausblenden",
+    "insure": "Versicherung anfragen",
+    "insureHint": "Wertsache erfassen und gleich ein Angebot gegen Diebstahl, Verlust und Beschädigung anfragen."
   },
   "detail": {
     "addInvoice": "Rechnung hinzufügen",
@@ -138,6 +140,12 @@
       "purchaseDate": "Bitte gib das Kaufdatum als TT.MM.JJJJ an."
     },
     "identifying": "Erkenne, was auf dem Foto ist …",
-    "categoryDetected": "Automatisch erkannt, bitte prüfen."
+    "categoryDetected": "Automatisch erkannt, bitte prüfen.",
+    "insureTitle": "Versicherung anfragen",
+    "insureBanner": {
+      "title": "Deine Wertsache, gut versichert.",
+      "subtitle": "Rechnung, Fotos und Wert angeben. Wir senden alles an unser Team und melden uns per E-Mail. Unverbindlich und kostenlos."
+    },
+    "sendRequest": "Anfrage senden"
   }
 }

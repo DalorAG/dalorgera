@@ -24,7 +24,9 @@ import { LUXURY_CATEGORIES } from '@/lib/luxury';
 import {
   useCreateLuxuryItemMutation,
   useGetLuxuryItemQuery,
+  useGetMeQuery,
   useIdentifyDocumentMutation,
+  useRequestLuxuryInsuranceMutation,
   useUpdateLuxuryItemMutation,
 } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
@@ -33,17 +35,20 @@ const MAX_PHOTOS = 10;
 
 const centsToInput = (cents: number | null | undefined) => (cents == null ? '' : (cents / 100).toFixed(2).replace('.', ','));
 
-/** Adds a Wertsache to the Tresor, or edits one with ?id=. Insurance is requested from its detail screen. */
+/**
+ * Adds a Wertsache to the Tresor, or edits one with ?id=. With ?insure=1 the new Wertsache
+ * goes straight to our insurance team; otherwise insurance is requested from its detail screen.
+ */
 export default function LuxuryItemFormScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, insure } = useLocalSearchParams<{ id?: string; insure?: string }>();
   const { data: item, isLoading, error, refetch } = useGetLuxuryItemQuery(id ?? '', { skip: !id });
-  if (!id) return <LuxuryItemForm />;
+  if (!id) return <LuxuryItemForm insure={insure === '1'} />;
   if (isLoading) return <StateView kind="loading" />;
   if (error || !item) return <StateView kind="error" error={error} onRetry={refetch} />;
   return <LuxuryItemForm item={item} />;
 }
 
-function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
+function LuxuryItemForm({ item, insure = false }: { item?: LuxuryItem; insure?: boolean }) {
   const theme = useTheme();
   const { t } = useTranslation(['tresor', 'common']);
   const { photos, busy: photosBusy, add: attachPhotos, remove: removePhoto, full } = useRequestPhotos(
@@ -66,6 +71,10 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
   const [error, setError] = useState<string | null>(null);
   const [create, { isLoading: creating }] = useCreateLuxuryItemMutation();
   const [update, { isLoading: updating }] = useUpdateLuxuryItemMutation();
+  const [requestInsurance, { isLoading: requesting }] = useRequestLuxuryInsuranceMutation();
+  const { data: me } = useGetMeQuery(undefined, { skip: !insure });
+  // Without an email our team cannot send a quote, so the Wertsache is only saved.
+  const sendsRequest = insure && !!me?.email;
   const [identifyDocument, { isLoading: identifying }] = useIdentifyDocumentMutation();
   // Set when the category came from the photo, so the user knows to check it.
   const [detected, setDetected] = useState(false);
@@ -154,6 +163,8 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
         router.back();
       } else {
         const created = await create(body).unwrap();
+        // The Wertsache is saved either way; a failed request can be repeated from its detail screen.
+        if (sendsRequest) await requestInsurance({ id: created.id }).unwrap().catch(() => null);
         router.replace({ pathname: '/luxury/[id]', params: { id: created.id } });
       }
     } catch (err) {
@@ -167,15 +178,19 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
     <KeyboardAvoidingView
       style={[styles.flex, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {item ? <Stack.Screen options={{ title: t('form.editTitle') }} /> : null}
+      {item ? (
+        <Stack.Screen options={{ title: t('form.editTitle') }} />
+      ) : insure ? (
+        <Stack.Screen options={{ title: t('form.insureTitle') }} />
+      ) : null}
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {!item ? (
           <InfoBanner
-            title={t('form.banner.title')}
-            subtitle={t('form.banner.subtitle')}
+            title={insure ? t('form.insureBanner.title') : t('form.banner.title')}
+            subtitle={insure ? t('form.insureBanner.subtitle') : t('form.banner.subtitle')}
             icon={
               <View style={[styles.icon, { backgroundColor: theme.brand }]}>
-                <Ionicons name="lock-closed" size={18} color={theme.textOnBrand} />
+                <Ionicons name={insure ? 'shield-checkmark' : 'lock-closed'} size={18} color={theme.textOnBrand} />
               </View>
             }
           />
@@ -321,7 +336,18 @@ function LuxuryItemForm({ item }: { item?: LuxuryItem }) {
             {error}
           </Text>
         ) : null}
-        <Button label={t('common:actions.save')} icon="checkmark" onPress={save} loading={creating || updating} disabled={busy} />
+        {insure && !sendsRequest ? (
+          <Text variant="caption" color="warningText">
+            {t('detail.signInHint')}
+          </Text>
+        ) : null}
+        <Button
+          label={sendsRequest ? t('form.sendRequest') : t('common:actions.save')}
+          icon={sendsRequest ? 'shield-checkmark' : 'checkmark'}
+          onPress={save}
+          loading={creating || updating || requesting}
+          disabled={busy}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

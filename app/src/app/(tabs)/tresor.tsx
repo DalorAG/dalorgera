@@ -122,24 +122,12 @@ export default function TresorScreen() {
           </View>
         </Card>
 
-        <Pressable
-          onPress={() => router.push('/luxury-request')}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.cta,
-            { backgroundColor: pressed ? theme.brandSoft : theme.surface, borderColor: theme.brand },
-          ]}>
-          <View style={[styles.ctaIcon, { backgroundColor: theme.brand }]}>
-            <Ionicons name="add" size={22} color={theme.textOnBrand} />
-          </View>
-          <View style={styles.flex}>
-            <Text variant="bodyStrong">{t('list.add')}</Text>
-            <Text variant="caption" color="textSecondary">
-              {t('list.addHint')}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={theme.brand} />
-        </Pressable>
+        <AddCard title={t('list.add')} hint={t('list.addHint')} onPress={() => router.push('/luxury-request')} />
+        <AddCard
+          title={t('list.insure')}
+          hint={t('list.insureHint')}
+          onPress={() => router.push({ pathname: '/luxury-request', params: { insure: '1' } })}
+        />
 
         <SearchField
           value={search}
@@ -225,6 +213,30 @@ export default function TresorScreen() {
 /** Device and Wertsache names by id, so Belege can be found by what they belong to. */
 function ownerNames(devices: Device[], items: LuxuryItem[]) {
   return new Map<string, string>([...devices.map((d) => [d.id, d.name] as const), ...items.map((i) => [i.id, itemTitle(i)] as const)]);
+}
+
+function AddCard({ title, hint, onPress }: { title: string; hint: string; onPress: () => void }) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.cta,
+        { backgroundColor: pressed ? theme.brandSoft : theme.surface, borderColor: theme.brand },
+      ]}>
+      <View style={[styles.ctaIcon, { backgroundColor: theme.brand }]}>
+        <Ionicons name="add" size={22} color={theme.textOnBrand} />
+      </View>
+      <View style={styles.flex}>
+        <Text variant="bodyStrong">{title}</Text>
+        <Text variant="caption" color="textSecondary">
+          {hint}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={theme.brand} />
+    </Pressable>
+  );
 }
 
 function ItemRow({ item }: { item: LuxuryItem }) {

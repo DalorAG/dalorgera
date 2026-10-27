@@ -26,7 +26,9 @@
     "notInsured": "Not insured",
     "currentValue": "Current value",
     "showAmounts": "Show amounts",
-    "hideAmounts": "Hide amounts"
+    "hideAmounts": "Hide amounts",
+    "insure": "Request insurance",
+    "insureHint": "Add a valuable and request a quote against theft, loss and damage right away."
   },
   "detail": {
     "addInvoice": "Add invoice",
@@ -138,6 +140,12 @@
       "purchaseDate": "Please enter the purchase date as DD/MM/YYYY."
     },
     "identifying": "Recognising what is in the photo …",
-    "categoryDetected": "Detected automatically, please check."
+    "categoryDetected": "Detected automatically, please check.",
+    "insureTitle": "Request insurance",
+    "insureBanner": {
+      "title": "Your valuable, well insured.",
+      "subtitle": "Add the invoice, photos and value. We send everything to our team and get back to you by email. Free and without obligation."
+    },
+    "sendRequest": "Send request"
   }
 }
