@@ -52,6 +52,11 @@
         "text": "Foto machen, wir lesen Händler, Datum, Preis und Garantie aus.",
         "cta": "Rechnung hinzufügen"
       }
+    },
+    "deals": {
+      "title": "Aktionen in Österreich",
+      "until": "bis {{date}}",
+      "note": "Angebote der Händler, ohne Gewähr."
     }
   },
   "gawa": {

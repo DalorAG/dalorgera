@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from './auth/auth.module.js';
 import { validateEnv } from './config/env.js';
+import { DealsModule } from './deals/deals.module.js';
 import { DevicesModule } from './devices/devices.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
 import { HealthController } from './health/health.controller.js';
@@ -25,6 +26,7 @@ import { WarrantyRequestsModule } from './warranty-requests/warranty-requests.mo
     PushTokensModule,
     WarrantyRequestsModule,
     LuxuryItemsModule,
+    DealsModule,
   ],
   controllers: [HealthController],
 })

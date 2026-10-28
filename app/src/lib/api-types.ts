@@ -209,3 +209,16 @@ export type LuxuryItemInput = {
   /** Uploaded documents to attach: photos and the Rechnung */
   documentIds?: string[];
 };
+
+/** Aktion of an Austrian shop on the Übersicht; texts are German as the shop publishes them. */
+export type Deal = {
+  id: string;
+  store: string;
+  title: string;
+  description: string | null;
+  /** Short label, e.g. "−30 €" */
+  badge: string | null;
+  url: string;
+  /** null: bis auf Widerruf */
+  validUntil: string | null;
+};

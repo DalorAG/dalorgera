@@ -52,6 +52,11 @@
         "text": "Take a photo, we read store, date, price and warranty.",
         "cta": "Add invoice"
       }
+    },
+    "deals": {
+      "title": "Deals in Austria",
+      "until": "until {{date}}",
+      "note": "Offers by the shops, without guarantee."
     }
   },
   "gawa": {

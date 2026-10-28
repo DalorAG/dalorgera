@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 import type {
   CreateWarrantyRequest,
+  Deal,
   Device,
   DeviceInput,
   DeviceStatus,
@@ -162,6 +163,10 @@ export const api = createApi({
       query: ({ id, ...body }) => ({ url: `luxury-items/${id}/market-value`, method: 'POST', body }),
     }),
 
+    getDeals: build.query<Deal[], void>({
+      query: () => 'deals',
+    }),
+
     getReminders: build.query<Reminder[], void>({
       query: () => 'reminders',
       providesTags: ['Reminder'],
@@ -204,6 +209,7 @@ export const {
   useDeleteLuxuryItemMutation,
   useRequestLuxuryInsuranceMutation,
   useEstimateMarketValueMutation,
+  useGetDealsQuery,
   useGetRemindersQuery,
   useRegisterPushTokenMutation,
   useUnregisterPushTokenMutation,

@@ -17,6 +17,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      deals: {
+        Row: {
+          badge: string | null
+          created_at: string
+          description: string | null
+          id: string
+          sort: number
+          store: string
+          title: string
+          url: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          badge?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort?: number
+          store: string
+          title: string
+          url: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          badge?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort?: number
+          store?: string
+          title?: string
+          url?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       devices: {
         Row: {
           brand: string | null

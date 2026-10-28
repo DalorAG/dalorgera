@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { DealsList } from '@/components/deals-list';
 import { WarrantyCard } from '@/components/devices/warranty-card';
 import { InfoBanner } from '@/components/info-banner';
 import { PromoCarousel } from '@/components/promo-carousel';
@@ -99,6 +100,8 @@ export default function OverviewScreen() {
 
         <Text variant="title">{t('home.actions.title')}</Text>
         <PromoCarousel />
+
+        <DealsList />
 
         {devices?.length ? (
           <View style={styles.tiles}>
