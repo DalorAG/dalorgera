@@ -12,11 +12,11 @@ import type { CreateLuxuryItemDto, RequestInsuranceDto, UpdateLuxuryItemDto } fr
 import { MarketValueEstimator } from './market-value-estimator.js';
 
 const SELECT =
-  '*, documents(id, kind, mime_type, storage_path, created_at), warranty_requests(id, status, created_at)';
+  '*, documents(id, kind, mime_type, storage_path, created_at), warranty_requests(id, status, created_at, closed_at)';
 
 type ItemRow = Tables<'luxury_items'> & {
   documents: Pick<Tables<'documents'>, 'id' | 'kind' | 'mime_type' | 'storage_path' | 'created_at'>[];
-  warranty_requests: Pick<Tables<'warranty_requests'>, 'id' | 'status' | 'created_at'>[];
+  warranty_requests: Pick<Tables<'warranty_requests'>, 'id' | 'status' | 'created_at' | 'closed_at'>[];
 };
 
 const byCreatedAt = (a: { created_at: string }, b: { created_at: string }) => a.created_at.localeCompare(b.created_at);
@@ -55,7 +55,9 @@ function toResponse(row: ItemRow) {
       row.photo_order,
     ).map(toDocument),
     invoices: documents.filter((d) => d.kind === 'invoice').map(toDocument),
-    request: request ? { id: request.id, status: request.status, createdAt: request.created_at } : null,
+    request: request
+      ? { id: request.id, status: request.status, createdAt: request.created_at, closedAt: request.closed_at }
+      : null,
     createdAt: row.created_at,
   };
 }

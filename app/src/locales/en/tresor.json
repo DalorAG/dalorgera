@@ -28,7 +28,14 @@
     "showAmounts": "Show amounts",
     "hideAmounts": "Hide amounts",
     "insure": "Request insurance",
-    "insureHint": "Add a valuable and request a quote against theft, loss and damage right away."
+    "insureHint": "Add a valuable and request a quote against theft, loss and damage right away.",
+    "tabRequested": "Requested ({{n}})",
+    "requestedOn": "Requested on {{date}} · {{status}}",
+    "confirmedOn": "Insurance confirmed on {{date}}",
+    "emptyRequested": {
+      "title": "No open requests",
+      "message": "Valuables you asked us to insure appear here until we confirm them."
+    }
   },
   "detail": {
     "addInvoice": "Add invoice",
@@ -97,7 +104,9 @@
       "title": "Remove photo",
       "message": "The photo will be deleted permanently.",
       "failed": "Couldn't delete the photo"
-    }
+    },
+    "insuranceConfirmed": "Insurance confirmed",
+    "confirmedDates": "Requested on {{requested}}, confirmed on {{confirmed}}."
   },
   "form": {
     "editTitle": "Edit valuable",

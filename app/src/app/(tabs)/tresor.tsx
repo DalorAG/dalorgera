@@ -17,12 +17,12 @@ import { rankByPhoto, usePhotoSearch, type PhotoQuery } from '@/features/use-pho
 import type { PhotoSource } from '@/features/use-product-photo';
 import type { Device, DocumentItem, LuxuryItem } from '@/lib/api-types';
 import { DOCUMENT_KIND_LABELS } from '@/lib/device-ui';
-import { apiErrorMessage, formatPrice } from '@/lib/format';
-import { LUXURY_CATEGORIES, REQUEST_STATUS_LABELS, currentValue, itemTitle, totals, valueChange } from '@/lib/luxury';
+import { apiErrorMessage, formatDate, formatPrice } from '@/lib/format';
+import { LUXURY_CATEGORIES, REQUEST_STATUS_LABELS, currentValue, isRequested, itemTitle, totals, valueChange } from '@/lib/luxury';
 import { useGetDevicesQuery, useGetDocumentUrlQuery, useGetDocumentsQuery, useGetLuxuryItemsQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
-type Segment = 'items' | 'documents';
+type Segment = 'items' | 'requested' | 'documents';
 
 const words = (query: string) => query.split(/\s+/).filter(Boolean);
 
@@ -45,7 +45,9 @@ export default function TresorScreen() {
   const theme = useTheme();
   const { t } = useTranslation(['tresor', 'common', 'components']);
   const params = useLocalSearchParams<{ segment?: Segment }>();
-  const [segment, setSegment] = useState<Segment>(params.segment === 'documents' ? 'documents' : 'items');
+  const [segment, setSegment] = useState<Segment>(
+    params.segment === 'documents' || params.segment === 'requested' ? params.segment : 'items',
+  );
   const [search, setSearch] = useState('');
   const items = useGetLuxuryItemsQuery();
   const documents = useGetDocumentsQuery();
@@ -57,7 +59,10 @@ export default function TresorScreen() {
   const [photoQuery, setPhotoQuery] = useState<PhotoQuery | null>(null);
   const photoSearch = usePhotoSearch();
   const ownerOf = (d: DocumentItem) => owners.get(d.deviceId ?? d.luxuryItemId ?? '');
-  const allItems = items.data ?? [];
+  // Angefragt: insurance asked for but not confirmed; these stay out of Dein Vermögen.
+  const owned = (items.data ?? []).filter((i) => !isRequested(i));
+  const requested = (items.data ?? []).filter(isRequested);
+  const allItems = segment === 'requested' ? requested : owned;
   const allDocuments = documents.data ?? [];
   const shownItems = photoQuery
     ? rankByPhoto(allItems, itemText, photoQuery)
@@ -80,7 +85,7 @@ export default function TresorScreen() {
       else Alert.alert(t('components:search.photoFailed'), message);
     }
   };
-  const sum = totals(items.data ?? []);
+  const sum = totals(owned);
   const currency = items.data?.[0]?.currency ?? 'EUR';
   const { hidden, toggle, mask } = useHiddenAmounts();
 
@@ -114,7 +119,7 @@ export default function TresorScreen() {
           </Text>
           <View style={styles.wealthRow}>
             <Text variant="caption" color="textOnBrand">
-              {t('list.itemCount', { count: items.data?.length ?? 0 })}
+              {t('list.itemCount', { count: owned.length })}
             </Text>
             <Text variant="caption" color="textOnBrand">
               {t('list.totalCost', { amount: mask(formatPrice(sum.cost, currency)) })}
@@ -135,7 +140,7 @@ export default function TresorScreen() {
             setPhotoQuery(null);
             setSearch(v);
           }}
-          placeholder={segment === 'items' ? t('list.searchItems') : t('list.searchDocuments')}
+          placeholder={segment === 'documents' ? t('list.searchDocuments') : t('list.searchItems')}
           onPhoto={searchByPhoto}
           photoBusy={photoSearch.busy}
           photoQuery={photoQuery}
@@ -145,7 +150,8 @@ export default function TresorScreen() {
         <View style={[styles.segments, { borderBottomColor: theme.border }]}>
           {(
             [
-              ['items', t('list.tabItems', { n: items.data?.length ?? 0 })],
+              ['items', t('list.tabItems', { n: owned.length })],
+              ['requested', t('list.tabRequested', { n: requested.length })],
               ['documents', t('list.tabDocuments', { n: documents.data?.length ?? 0 })],
             ] as const
           ).map(([key, label]) => {
@@ -169,7 +175,7 @@ export default function TresorScreen() {
           <StateView kind="loading" />
         ) : active.error ? (
           <StateView kind="error" error={active.error} onRetry={active.refetch} />
-        ) : segment === 'items' ? (
+        ) : segment !== 'documents' ? (
           shownItems.length ? (
             <View style={styles.list}>
               {shownItems.map((item) => (
@@ -182,6 +188,13 @@ export default function TresorScreen() {
               icon="search-outline"
               title={t('common:state.nothingFound')}
               message={t('list.noItemMatch', { query: searched })}
+            />
+          ) : segment === 'requested' ? (
+            <StateView
+              kind="empty"
+              icon="shield-checkmark-outline"
+              title={t('list.emptyRequested.title')}
+              message={t('list.emptyRequested.message')}
             />
           ) : (
             <StateView
@@ -248,9 +261,14 @@ function ItemRow({ item }: { item: LuxuryItem }) {
   const { hidden, mask } = useHiddenAmounts();
   const value = currentValue(item);
   const change = hidden ? null : valueChange(item);
-  const status = item.request
-    ? t('list.insured', { status: REQUEST_STATUS_LABELS[item.request.status] })
-    : t('list.notInsured');
+  const { request } = item;
+  const status = !request
+    ? t('list.notInsured')
+    : request.status !== 'closed'
+      ? t('list.requestedOn', { status: REQUEST_STATUS_LABELS[request.status], date: formatDate(request.createdAt) })
+      : request.closedAt
+        ? t('list.confirmedOn', { date: formatDate(request.closedAt) })
+        : t('list.insured', { status: REQUEST_STATUS_LABELS[request.status] });
 
   return (
     <Card onPress={() => router.push({ pathname: '/luxury/[id]', params: { id: item.id } })} style={styles.row}>

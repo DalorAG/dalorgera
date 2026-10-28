@@ -179,7 +179,13 @@ export type LuxuryItem = {
   /** Rechnungen (documents of kind invoice) */
   invoices: LuxuryDocument[];
   /** The latest insurance request, null until the user asked for one */
-  request: { id: string; status: WarrantyRequestStatus; createdAt: string } | null;
+  request: {
+    id: string;
+    status: WarrantyRequestStatus;
+    createdAt: string;
+    /** When our team confirmed it (status closed); null while open */
+    closedAt: string | null;
+  } | null;
   createdAt: string;
 };
 

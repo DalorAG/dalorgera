@@ -28,7 +28,14 @@
     "showAmounts": "Beträge anzeigen",
     "hideAmounts": "Beträge ausblenden",
     "insure": "Versicherung anfragen",
-    "insureHint": "Wertsache erfassen und gleich ein Angebot gegen Diebstahl, Verlust und Beschädigung anfragen."
+    "insureHint": "Wertsache erfassen und gleich ein Angebot gegen Diebstahl, Verlust und Beschädigung anfragen.",
+    "tabRequested": "Angefragt ({{n}})",
+    "requestedOn": "Angefragt am {{date}} · {{status}}",
+    "confirmedOn": "Versicherung bestätigt am {{date}}",
+    "emptyRequested": {
+      "title": "Keine offenen Anfragen",
+      "message": "Wertsachen, für die du eine Versicherung angefragt hast, erscheinen hier, bis wir sie bestätigen."
+    }
   },
   "detail": {
     "addInvoice": "Rechnung hinzufügen",
@@ -97,7 +104,9 @@
       "title": "Foto entfernen",
       "message": "Das Foto wird dauerhaft gelöscht.",
       "failed": "Foto konnte nicht gelöscht werden"
-    }
+    },
+    "insuranceConfirmed": "Versicherung bestätigt",
+    "confirmedDates": "Angefragt am {{requested}}, bestätigt am {{confirmed}}."
   },
   "form": {
     "editTitle": "Wertsache bearbeiten",

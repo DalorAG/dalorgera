@@ -330,6 +330,20 @@ export default function LuxuryItemScreen() {
         </Card>
       ) : (
         <View style={styles.group}>
+          {item.request?.closedAt ? (
+            <Card style={styles.request}>
+              <Ionicons name="shield-checkmark" size={28} color={theme.success} />
+              <View style={styles.flex}>
+                <Text variant="bodyStrong">{t('detail.insuranceConfirmed')}</Text>
+                <Text variant="caption" color="textSecondary">
+                  {t('detail.confirmedDates', {
+                    requested: formatDate(item.request.createdAt),
+                    confirmed: formatDate(item.request.closedAt),
+                  })}
+                </Text>
+              </View>
+            </Card>
+          ) : null}
           <Button
             label={t('detail.requestInsurance')}
             icon="shield-checkmark"

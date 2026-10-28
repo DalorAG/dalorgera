@@ -456,6 +456,7 @@ export type Database = {
         Row: {
           brand: string | null
           category: string | null
+          closed_at: string | null
           created_at: string
           currency: string | null
           document_id: string | null
@@ -475,6 +476,7 @@ export type Database = {
         Insert: {
           brand?: string | null
           category?: string | null
+          closed_at?: string | null
           created_at?: string
           currency?: string | null
           document_id?: string | null
@@ -494,6 +496,7 @@ export type Database = {
         Update: {
           brand?: string | null
           category?: string | null
+          closed_at?: string | null
           created_at?: string
           currency?: string | null
           document_id?: string | null

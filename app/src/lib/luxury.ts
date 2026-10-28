@@ -34,6 +34,9 @@ for (const status of ['new', 'contacted', 'closed'] as const) {
 /** Aktueller Wert; without one the purchase price is the best guess. */
 export const currentValue = (item: LuxuryItem): number | null => item.valueCents ?? item.purchasePriceCents;
 
+/** Insurance asked for but not confirmed yet: listed under Angefragt, not counted in Dein Vermögen. */
+export const isRequested = (item: LuxuryItem): boolean => !!item.request && item.request.status !== 'closed';
+
 /** Dein Vermögen: what everything is worth today, and what it cost. */
 export function totals(items: LuxuryItem[]) {
   let value = 0;
