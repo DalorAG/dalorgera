@@ -48,6 +48,7 @@ export type Database = {
           accent: string
           badge: string | null
           category: string
+          conditions: string | null
           created_at: string
           description: string | null
           icon: string
@@ -64,6 +65,7 @@ export type Database = {
           accent?: string
           badge?: string | null
           category?: string
+          conditions?: string | null
           created_at?: string
           description?: string | null
           icon?: string
@@ -80,6 +82,7 @@ export type Database = {
           accent?: string
           badge?: string | null
           category?: string
+          conditions?: string | null
           created_at?: string
           description?: string | null
           icon?: string

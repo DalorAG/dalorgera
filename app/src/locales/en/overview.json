@@ -57,11 +57,9 @@
       "title": "Deals in Austria",
       "until": "until {{date}}",
       "note": "Offers by the shops, without guarantee. Images are illustrative.",
-      "all": "All",
       "saved": "Saved",
       "save": "Save",
       "unsave": "Remove from saved",
-      "emptySaved": "Tap the heart to save deals.",
       "categories": {
         "lebensmittel": "Groceries",
         "drogerie": "Drugstore",
@@ -70,6 +68,14 @@
         "moebel": "Living",
         "mode": "Fashion",
         "heimwerken": "DIY"
+      },
+      "detail": {
+        "open": "Go to offer",
+        "conditions": "Conditions",
+        "validUntil": "Valid until {{date}}",
+        "untilRevoked": "Valid until further notice",
+        "gone": "This deal has ended.",
+        "goneMessage": "You will find more deals on the overview."
       }
     }
   },

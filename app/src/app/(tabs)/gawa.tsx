@@ -22,7 +22,7 @@ import { apiErrorMessage } from '@/lib/format';
 import { useGetDevicesQuery } from '@/store/api';
 import { radius, spacing, useTheme } from '@/theme';
 
-/** Ga-Wa: Garantie und Gewährleistung of every device still covered; expired ones move to the Archiv. */
+/** Ga-Wa (Garantie Wallet): Garantie und Gewährleistung of every device still covered; expired ones move to the Archiv. */
 export default function GaWaScreen() {
   const theme = useTheme();
   const { t } = useTranslation(['overview', 'common', 'components']);

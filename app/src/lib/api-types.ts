@@ -224,6 +224,8 @@ export type Deal = {
   store: string;
   title: string;
   description: string | null;
+  /** Conditions in the shop's words, for the detail screen */
+  conditions: string | null;
   /** Short label, e.g. "−30 €" */
   badge: string | null;
   url: string;

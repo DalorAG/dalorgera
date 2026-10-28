@@ -5,11 +5,11 @@ import { toHttpError, unwrap } from '../common/db-error.js';
 import type { Tables } from '../supabase/database.types.js';
 import { SupabaseService } from '../supabase/supabase.service.js';
 
-const COLUMNS = 'id, store, title, description, badge, url, image_url, accent, icon, category, valid_until';
+const COLUMNS = 'id, store, title, description, conditions, badge, url, image_url, accent, icon, category, valid_until';
 
 type ResponseRow = Pick<
   Tables<'deals'>,
-  'id' | 'store' | 'title' | 'description' | 'badge' | 'url' | 'image_url' | 'accent' | 'icon' | 'category' | 'valid_until'
+  'id' | 'store' | 'title' | 'description' | 'conditions' | 'badge' | 'url' | 'image_url' | 'accent' | 'icon' | 'category' | 'valid_until'
 >;
 
 function toResponse(row: ResponseRow, saved: boolean) {
@@ -18,6 +18,7 @@ function toResponse(row: ResponseRow, saved: boolean) {
     store: row.store,
     title: row.title,
     description: row.description,
+    conditions: row.conditions,
     badge: row.badge,
     url: row.url,
     imageUrl: row.image_url,

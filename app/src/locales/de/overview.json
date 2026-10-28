@@ -57,11 +57,9 @@
       "title": "Aktionen in Österreich",
       "until": "bis {{date}}",
       "note": "Angebote der Händler, ohne Gewähr. Bilder sind Symbolbilder.",
-      "all": "Alle",
       "saved": "Gemerkt",
       "save": "Merken",
       "unsave": "Nicht mehr merken",
-      "emptySaved": "Tippe auf das Herz, um Aktionen zu merken.",
       "categories": {
         "lebensmittel": "Lebensmittel",
         "drogerie": "Drogerie",
@@ -70,6 +68,14 @@
         "moebel": "Wohnen",
         "mode": "Mode",
         "heimwerken": "Heimwerken"
+      },
+      "detail": {
+        "open": "Zum Angebot",
+        "conditions": "Bedingungen",
+        "validUntil": "Gültig bis {{date}}",
+        "untilRevoked": "Gültig bis auf Widerruf",
+        "gone": "Diese Aktion ist abgelaufen.",
+        "goneMessage": "Weitere Aktionen findest du auf der Übersicht."
       }
     }
   },
