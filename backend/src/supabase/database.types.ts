@@ -19,10 +19,13 @@ export type Database = {
     Tables: {
       deals: {
         Row: {
+          accent: string
           badge: string | null
           created_at: string
           description: string | null
+          icon: string
           id: string
+          image_url: string | null
           sort: number
           store: string
           title: string
@@ -31,10 +34,13 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          accent?: string
           badge?: string | null
           created_at?: string
           description?: string | null
+          icon?: string
           id?: string
+          image_url?: string | null
           sort?: number
           store: string
           title: string
@@ -43,10 +49,13 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          accent?: string
           badge?: string | null
           created_at?: string
           description?: string | null
+          icon?: string
           id?: string
+          image_url?: string | null
           sort?: number
           store?: string
           title?: string

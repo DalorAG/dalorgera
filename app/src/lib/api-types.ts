@@ -219,6 +219,12 @@ export type Deal = {
   /** Short label, e.g. "−30 €" */
   badge: string | null;
   url: string;
+  /** Picture on top of the card; without one the icon on the accent colour */
+  imageUrl: string | null;
+  /** The shop's colour, #RRGGBB */
+  accent: string;
+  /** Ionicons name */
+  icon: string;
   /** null: bis auf Widerruf */
   validUntil: string | null;
 };
