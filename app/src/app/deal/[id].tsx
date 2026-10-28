@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -75,7 +75,12 @@ export default function DealScreen() {
           <Button
             label={t('home.deals.detail.open')}
             icon="open-outline"
-            onPress={() => WebBrowser.openBrowserAsync(deal.url)}
+            onPress={() =>
+              // Shops refuse to be framed, so the web app opens them in a new tab.
+              Platform.OS === 'web'
+                ? WebBrowser.openBrowserAsync(deal.url)
+                : router.push({ pathname: '/browser', params: { url: deal.url, title: deal.store } })
+            }
           />
           <Button
             label={deal.saved ? t('home.deals.saved') : t('home.deals.save')}

@@ -75,7 +75,8 @@
         "validUntil": "Valid until {{date}}",
         "untilRevoked": "Valid until further notice",
         "gone": "This deal has ended.",
-        "goneMessage": "You will find more deals on the overview."
+        "goneMessage": "You will find more deals on the overview.",
+        "openExternal": "Open in browser"
       }
     }
   },

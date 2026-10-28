@@ -93,6 +93,7 @@ function RootNavigator() {
           <Stack.Screen name="device/[id]" options={{ headerShown: true, title: '' }} />
           <Stack.Screen name="luxury/[id]" options={{ headerShown: true, title: '' }} />
           <Stack.Screen name="deal/[id]" options={{ headerShown: true, title: '' }} />
+          <Stack.Screen name="browser" options={{ headerShown: true, title: '' }} />
           <Stack.Screen name="receipt/[id]" options={{ headerShown: true, title: '' }} />
           <Stack.Screen name="document/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen
