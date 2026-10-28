@@ -166,6 +166,19 @@ export const api = createApi({
     getDeals: build.query<Deal[], void>({
       query: () => 'deals',
     }),
+    // Optimistic: the heart flips at once and flips back if the request fails.
+    setDealSaved: build.mutation<void, { id: string; saved: boolean }>({
+      query: ({ id, saved }) => ({ url: `deals/${id}/save`, method: saved ? 'PUT' : 'DELETE' }),
+      async onQueryStarted({ id, saved }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          api.util.updateQueryData('getDeals', undefined, (deals) => {
+            const deal = deals.find((d) => d.id === id);
+            if (deal) deal.saved = saved;
+          }),
+        );
+        queryFulfilled.catch(patch.undo);
+      },
+    }),
 
     getReminders: build.query<Reminder[], void>({
       query: () => 'reminders',
@@ -210,6 +223,7 @@ export const {
   useRequestLuxuryInsuranceMutation,
   useEstimateMarketValueMutation,
   useGetDealsQuery,
+  useSetDealSavedMutation,
   useGetRemindersQuery,
   useRegisterPushTokenMutation,
   useUnregisterPushTokenMutation,

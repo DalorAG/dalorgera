@@ -17,10 +17,37 @@ export type Database = {
   }
   public: {
     Tables: {
+      deal_saves: {
+        Row: {
+          created_at: string
+          deal_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_saves_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           accent: string
           badge: string | null
+          category: string
           created_at: string
           description: string | null
           icon: string
@@ -36,6 +63,7 @@ export type Database = {
         Insert: {
           accent?: string
           badge?: string | null
+          category?: string
           created_at?: string
           description?: string | null
           icon?: string
@@ -51,6 +79,7 @@ export type Database = {
         Update: {
           accent?: string
           badge?: string | null
+          category?: string
           created_at?: string
           description?: string | null
           icon?: string

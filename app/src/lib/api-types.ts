@@ -210,6 +210,8 @@ export type LuxuryItemInput = {
   documentIds?: string[];
 };
 
+export type DealCategory = 'lebensmittel' | 'drogerie' | 'technik' | 'haushalt' | 'moebel' | 'mode' | 'heimwerken';
+
 /** Aktion of an Austrian shop on the Übersicht; texts are German as the shop publishes them. */
 export type Deal = {
   id: string;
@@ -225,6 +227,9 @@ export type Deal = {
   accent: string;
   /** Ionicons name */
   icon: string;
+  category: DealCategory;
   /** null: bis auf Widerruf */
   validUntil: string | null;
+  /** On the user's Merkliste */
+  saved: boolean;
 };

@@ -56,7 +56,21 @@
     "deals": {
       "title": "Aktionen in Österreich",
       "until": "bis {{date}}",
-      "note": "Angebote der Händler, ohne Gewähr. Bilder sind Symbolbilder."
+      "note": "Angebote der Händler, ohne Gewähr. Bilder sind Symbolbilder.",
+      "all": "Alle",
+      "saved": "Gemerkt",
+      "save": "Merken",
+      "unsave": "Nicht mehr merken",
+      "emptySaved": "Tippe auf das Herz, um Aktionen zu merken.",
+      "categories": {
+        "lebensmittel": "Lebensmittel",
+        "drogerie": "Drogerie",
+        "technik": "Technik",
+        "haushalt": "Haushalt",
+        "moebel": "Wohnen",
+        "mode": "Mode",
+        "heimwerken": "Heimwerken"
+      }
     }
   },
   "gawa": {
